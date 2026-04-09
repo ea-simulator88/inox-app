@@ -250,6 +250,7 @@ async function doLogin() {
     document.getElementById('role-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
     loginBtn.textContent = '\u23F3 \u0110ang t\u1EA3i...';
     loginBtn.disabled = true;
+    await new Promise(r => setTimeout(r, 50));
     try {
       await loadProducts();
       if (usingFallbackProducts) {
