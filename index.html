@@ -324,6 +324,18 @@ async function fetchProductsFromServer() {
   }
 }
 
+function fmt(n) {
+  return Number(n || 0).toLocaleString('en-US');
+}
+
+function fmtMoney(val) {
+  if (typeof val === 'string') {
+    const num = parseFloat(val.replace(/[^\d]/g, ''));
+    return isNaN(num) ? val : num.toLocaleString('en-US') + ' \u0111';
+  }
+  return Number(val || 0).toLocaleString('en-US') + ' \u0111';
+}
+
 function findProduct(code) {
   return products.find(p => p.ma === code.trim().toUpperCase());
 }
@@ -343,7 +355,7 @@ function renderProductList(list) {
         <div class="product-item-size">${p.kichthuoc}</div>
       </div>
       <div class="product-item-right">
-        <div class="product-item-tonkho${low ? ' low' : ''}">T\u1ED3n: ${p.tonkho || 0}</div>
+        <div class="product-item-tonkho${low ? ' low' : ''}">T\u1ED3n: ${fmt(p.tonkho)}</div>
         <div style="font-size:11px;color:#aaa;">${p.dvt}</div>
       </div>
     </div>`;
@@ -364,12 +376,12 @@ function showForm(product) {
   document.getElementById('form-name').textContent = product.ten;
   document.getElementById('form-size').textContent = 'Kích thước: ' + product.kichthuoc + '  |  Mã: ' + product.ma;
   document.getElementById('form-dvt').textContent = product.dvt;
-  document.getElementById('form-tonkho').textContent = (product.tonkho || 0) + ' ' + product.dvt;
+  document.getElementById('form-tonkho').textContent = fmt(product.tonkho) + ' ' + product.dvt;
   const isOwner = currentRole === 'owner';
   document.getElementById('form-badge').textContent = isOwner ? 'Chủ' : 'Nhân viên';
   document.getElementById('form-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
   document.getElementById('row-giavon').style.display = isOwner ? 'flex' : 'none';
-  document.getElementById('form-giavon').textContent = product.giavon;
+  document.getElementById('form-giavon').textContent = fmtMoney(product.giavon);
   document.getElementById('btn-nhap').style.display = isOwner ? 'block' : 'none';
   document.getElementById('form-soluong').value = '';
   document.getElementById('form-gia').value = '';
@@ -432,8 +444,8 @@ async function submitForm() {
   document.getElementById('success-detail').innerHTML = `
     <div class="info-row"><span class="info-label">Sản phẩm</span><span class="info-value">${currentProduct.ten}</span></div>
     <div class="info-row"><span class="info-label">Kích thước</span><span class="info-value">${currentProduct.kichthuoc}</span></div>
-    <div class="info-row"><span class="info-label">Số lượng</span><span class="info-value">${sl} ${currentProduct.dvt}</span></div>
-    <div class="info-row"><span class="info-label">${isXuat ? 'Giá bán' : 'Giá nhập'}</span><span class="info-value">${gia.toLocaleString('vi-VN')} đ</span></div>
+    <div class="info-row"><span class="info-label">Số lượng</span><span class="info-value">${fmt(sl)} ${currentProduct.dvt}</span></div>
+    <div class="info-row"><span class="info-label">${isXuat ? 'Giá bán' : 'Giá nhập'}</span><span class="info-value">${fmt(gia)} đ</span></div>
     ${ghichu ? `<div class="info-row"><span class="info-label">Ghi chú</span><span class="info-value">${ghichu}</span></div>` : ''}
   `;
   showScreen('screen-success');
