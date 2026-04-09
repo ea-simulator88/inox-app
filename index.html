@@ -184,10 +184,10 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
     </div>
 
     <label>Số lượng</label>
-    <input type="number" id="form-soluong" placeholder="Nhập số lượng..." min="1" inputmode="numeric" />
+    <input type="text" id="form-soluong" placeholder="Nhập số lượng..." inputmode="numeric" oninput="fmtInput(this)" />
 
     <label id="label-gia">Giá bán (đồng)</label>
-    <input type="number" id="form-gia" placeholder="Nhập giá..." min="0" inputmode="numeric" />
+    <input type="text" id="form-gia" placeholder="Nhập giá..." inputmode="numeric" oninput="fmtInput(this)" />
 
     <label>Ghi chú (không bắt buộc)</label>
     <input type="text" id="form-ghichu" placeholder="Tên khách, đơn hàng..." />
@@ -324,6 +324,21 @@ async function fetchProductsFromServer() {
   }
 }
 
+function fmtInput(el) {
+  const pos = el.selectionStart;
+  const oldLen = el.value.length;
+  const raw = el.value.replace(/[^0-9]/g, '');
+  const formatted = raw ? Number(raw).toLocaleString('en-US') : '';
+  el.value = formatted;
+  // gi\u1EEF v\u1ECB tr\u00ED con tr\u1ECF
+  const diff = formatted.length - oldLen;
+  el.setSelectionRange(pos + diff, pos + diff);
+}
+
+function getInputNum(id) {
+  return parseInt((document.getElementById(id).value || '').replace(/[^0-9]/g, '')) || 0;
+}
+
 function fmt(n) {
   return Number(n || 0).toLocaleString('en-US');
 }
@@ -412,8 +427,8 @@ function setMode(mode) {
 }
 
 async function submitForm() {
-  const sl = parseInt(document.getElementById('form-soluong').value);
-  const gia = parseInt(document.getElementById('form-gia').value);
+  const sl = getInputNum('form-soluong');
+  const gia = getInputNum('form-gia');
   const ghichu = document.getElementById('form-ghichu').value;
   if (!sl || sl <= 0) { alert('Vui lòng nhập số lượng!'); return; }
   if (!gia || gia <= 0) { alert('Vui lòng nhập giá!'); return; }
