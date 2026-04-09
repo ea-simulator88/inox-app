@@ -470,23 +470,49 @@ document.getElementById('manual-code').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') lookupManual();
 });
 
+let barcodeDetector = null;
+if ('BarcodeDetector' in window) {
+  try { barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e) {}
+}
+
 async function toggleScan() {
   if (scanning) { stopScan(); return; }
   const btn = document.getElementById('btn-scan-main');
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } });
     document.getElementById('video').srcObject = stream;
     document.getElementById('video-container').style.display = 'block';
     document.getElementById('scan-hint').style.display = 'block';
-    btn.textContent = '⏹ Dừng quét';
+    btn.textContent = '\u23F9 D\u1EEBng qu\u00E9t';
     scanning = true;
-    scanInterval = setInterval(doScanFrame, 250);
+    if (barcodeDetector) {
+      scanLoop();
+    } else {
+      scanInterval = setInterval(doScanFrameJsQR, 300);
+    }
   } catch(e) {
-    alert('Không mở được camera. Thử dùng nhập mã thủ công bên dưới.');
+    alert('Kh\u00F4ng m\u1EDF \u0111\u01B0\u1EE3c camera. Th\u1EED d\u00F9ng nh\u1EADp m\u00E3 th\u1EE7 c\u00F4ng b\u00EAn d\u01B0\u1EDBi.');
   }
 }
 
-function doScanFrame() {
+async function scanLoop() {
+  if (!scanning) return;
+  const video = document.getElementById('video');
+  try {
+    const barcodes = await barcodeDetector.detect(video);
+    if (barcodes.length > 0) {
+      const trimmed = barcodes[0].rawValue.trim().toUpperCase();
+      stopScan();
+      const p = findProduct(trimmed);
+      if (p) { showForm(p); }
+      else { alert('Kh\u00F4ng t\u00ECm th\u1EA5y s\u1EA3n ph\u1EA9m v\u1EDBi m\u00E3: ' + trimmed); }
+      return;
+    }
+  } catch(e) {}
+  if (scanning) requestAnimationFrame(scanLoop);
+}
+
+function doScanFrameJsQR() {
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   if (video.readyState < 2) return;
@@ -502,7 +528,7 @@ function doScanFrame() {
     const trimmed = code.data.trim().toUpperCase();
     const p = findProduct(trimmed);
     if (p) { showForm(p); }
-    else { alert('Không tìm thấy sản phẩm với mã: ' + trimmed); }
+    else { alert('Kh\u00F4ng t\u00ECm th\u1EA5y s\u1EA3n ph\u1EA9m v\u1EDBi m\u00E3: ' + trimmed); }
   }
 }
 
@@ -513,7 +539,7 @@ function stopScan() {
   document.getElementById('video-container').style.display = 'none';
   document.getElementById('scan-hint').style.display = 'none';
   const btn = document.getElementById('btn-scan-main');
-  if (btn) btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M14 17h3M17 14v3"/></svg> Quét mã QR';
+  if (btn) btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M14 17h3M17 14v3"/></svg> Qu\u00E9t m\u00E3 QR';
 }
 </script>
 </body>
