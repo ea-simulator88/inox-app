@@ -88,6 +88,17 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 
 /* Loading */
 .loading { text-align: center; font-size: 14px; color: #888; padding: 1rem; }
+
+/* Product list */
+.product-item { background: #fff; border: 1px solid #e8e8e8; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.product-item:active { background: #f0f0f0; }
+.product-item-left { flex: 1; }
+.product-item-ma { font-size: 12px; color: #888; margin-bottom: 2px; }
+.product-item-ten { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+.product-item-size { font-size: 12px; color: #aaa; margin-top: 2px; }
+.product-item-right { text-align: right; }
+.product-item-tonkho { font-size: 14px; font-weight: 600; color: #4CAF50; }
+.product-item-tonkho.low { color: #f44336; }
 </style>
 </head>
 <body>
@@ -140,9 +151,11 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 
   <div class="divider">— hoặc nhập mã thủ công —</div>
   <div class="manual-row">
-    <input type="text" id="manual-code" placeholder="VD: IN001" autocomplete="off" autocapitalize="characters" />
+    <input type="text" id="manual-code" placeholder="VD: IN001 hoặc tìm theo tên..." autocomplete="off" autocapitalize="characters" oninput="filterProductList()" />
     <button onclick="lookupManual()">Tìm</button>
   </div>
+
+  <div id="product-list" style="margin-top:12px;"></div>
 </div>
 
 <!-- FORM -->
@@ -216,6 +229,7 @@ let products = [];
 let scanInterval = null;
 let stream = null;
 let scanning = false;
+let usingFallbackProducts = false;
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -224,21 +238,28 @@ function showScreen(id) {
 
 async function doLogin() {
   const role = document.getElementById('login-role').value;
-  const pass = document.getElementById('login-pass').value;
+  const pass = document.getElementById('login-pass').value.trim();
   const err = document.getElementById('login-error');
+  const loginBtn = document.querySelector('#screen-login .btn-primary');
   if (pass === ACCOUNTS[role]) {
     currentRole = role;
     err.style.display = 'none';
     const isOwner = role === 'owner';
-    document.getElementById('role-display').textContent = isOwner ? 'Chủ tiệm' : 'Nhân viên';
-    document.getElementById('role-badge').textContent = isOwner ? 'Chủ' : 'Nhân viên';
+    document.getElementById('role-display').textContent = isOwner ? 'Ch\u1EE7 ti\u1EC7m' : 'Nh\u00E2n vi\u00EAn';
+    document.getElementById('role-badge').textContent = isOwner ? 'Ch\u1EE7' : 'Nh\u00E2n vi\u00EAn';
     document.getElementById('role-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
-    const loginBtn = document.querySelector('#screen-login .btn-primary');
-    loginBtn.textContent = '⏳ Đang tải...';
+    loginBtn.textContent = '\u23F3 \u0110ang t\u1EA3i...';
     loginBtn.disabled = true;
-    await loadProducts();
-    loginBtn.textContent = 'Đăng nhập';
-    loginBtn.disabled = false;
+    try {
+      await loadProducts();
+      if (usingFallbackProducts) {
+        alert('Kh\u00F4ng k\u1EBFt n\u1ED1i \u0111\u01B0\u1EE3c d\u1EEF li\u1EC7u online. App s\u1EBD d\u00F9ng d\u1EEF li\u1EC7u m\u1EABu \u0111\u1EC3 b\u1EA1n ti\u1EBFp t\u1EE5c thao t\u00E1c.');
+      }
+    } finally {
+      loginBtn.textContent = '\u0110\u0103ng nh\u1EADp';
+      loginBtn.disabled = false;
+    }
+    renderProductList(products);
     showScreen('screen-main');
   } else {
     err.style.display = 'block';
@@ -257,28 +278,90 @@ function doLogout() {
 }
 
 async function loadProducts() {
+  usingFallbackProducts = false;
+
+  // N\u1EBFu c\u00F3 cache, d\u00F9ng ngay v\u00E0 t\u1EA3i m\u1EDBi \u1EDF n\u1EC1n
+  const cached = localStorage.getItem('products_cache');
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+      if (parsed.length > 0) {
+        products = parsed;
+        fetchProductsFromServer().catch(() => {});
+        return;
+      }
+    } catch(e) {}
+  }
+
+  // Ch\u01B0a c\u00F3 cache: t\u1EA3i v\u00E0 ch\u1EDD
+  await fetchProductsFromServer();
+}
+
+async function fetchProductsFromServer() {
   try {
-    const res = await fetch(SCRIPT_URL + '?action=get');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(SCRIPT_URL + '?action=get', { signal: controller.signal, cache: 'no-store' });
+    clearTimeout(timeoutId);
     const data = await res.json();
-    products = data.slice(1).map(r => ({
+    const fetched = data.slice(1).map(r => ({
       ma: (r[0] || '').toString().trim(),
       ten: r[1] || '',
       kichthuoc: r[2] || '',
       giavon: r[3] || '',
-      dvt: r[4] || 'Cái',
+      dvt: r[4] || 'C\u00E1i',
       tonkho: r[5] || 0
     })).filter(p => p.ma);
+    if (fetched.length > 0) {
+      products = fetched;
+      localStorage.setItem('products_cache', JSON.stringify(products));
+      renderProductList(products);
+    }
   } catch(e) {
-    products = [
-      {ma:'IN001', ten:'Bàn Inox 304', kichthuoc:'50*80*75*1,5', giavon:'450.000 đ', dvt:'Cái', tonkho:10},
-      {ma:'IN002', ten:'Bàn Inox 304', kichthuoc:'60*90*75*1,5', giavon:'500.000 đ', dvt:'Cái', tonkho:5},
-      {ma:'IN003', ten:'Kệ Inox 304', kichthuoc:'100*120*100', giavon:'1.000.000 đ', dvt:'Cái', tonkho:8},
-    ];
+    if (products.length === 0) {
+      usingFallbackProducts = true;
+      products = [
+        {ma:'IN001', ten:'B\u00E0n Inox 304', kichthuoc:'50*80*75*1,5', giavon:'450.000 \u0111', dvt:'C\u00E1i', tonkho:10},
+        {ma:'IN002', ten:'B\u00E0n Inox 304', kichthuoc:'60*90*75*1,5', giavon:'500.000 \u0111', dvt:'C\u00E1i', tonkho:5},
+        {ma:'IN003', ten:'K\u1EC7 Inox 304', kichthuoc:'100*120*100', giavon:'1.000.000 \u0111', dvt:'C\u00E1i', tonkho:8},
+      ];
+    }
   }
 }
 
 function findProduct(code) {
   return products.find(p => p.ma === code.trim().toUpperCase());
+}
+
+function renderProductList(list) {
+  const el = document.getElementById('product-list');
+  if (!list || list.length === 0) {
+    el.innerHTML = '<div class="loading">Kh\u00F4ng t\u00ECm th\u1EA5y s\u1EA3n ph\u1EA9m</div>';
+    return;
+  }
+  el.innerHTML = list.map(p => {
+    const low = (p.tonkho || 0) <= 3;
+    return `<div class="product-item" onclick="showForm(products.find(x=>x.ma==='${p.ma}'))">
+      <div class="product-item-left">
+        <div class="product-item-ma">${p.ma}</div>
+        <div class="product-item-ten">${p.ten}</div>
+        <div class="product-item-size">${p.kichthuoc}</div>
+      </div>
+      <div class="product-item-right">
+        <div class="product-item-tonkho${low ? ' low' : ''}">T\u1ED3n: ${p.tonkho || 0}</div>
+        <div style="font-size:11px;color:#aaa;">${p.dvt}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterProductList() {
+  const q = (document.getElementById('manual-code').value || '').trim().toLowerCase();
+  if (!q) { renderProductList(products); return; }
+  const filtered = products.filter(p =>
+    p.ma.toLowerCase().includes(q) || p.ten.toLowerCase().includes(q) || p.kichthuoc.toLowerCase().includes(q)
+  );
+  renderProductList(filtered);
 }
 
 function showForm(product) {
@@ -411,7 +494,7 @@ function doScanFrame() {
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0);
   const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+  const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
   if (code && code.data) {
     stopScan();
     const p = findProduct(code.data);
