@@ -490,17 +490,19 @@ function doScanFrame() {
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
   if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+  if (!video.videoWidth || !video.videoHeight) return;
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0);
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
   if (code && code.data) {
     stopScan();
-    const p = findProduct(code.data);
+    const trimmed = code.data.trim().toUpperCase();
+    const p = findProduct(trimmed);
     if (p) { showForm(p); }
-    else { alert('Không tìm thấy sản phẩm với mã: ' + code.data); }
+    else { alert('Không tìm thấy sản phẩm với mã: ' + trimmed); }
   }
 }
 
