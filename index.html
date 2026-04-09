@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Tiệm Inox - Quản lý kho</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; }
+#app { max-width: 420px; margin: 0 auto; padding: 1rem; min-height: 100vh; }
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* Logo */
+.logo { text-align: center; padding: 2.5rem 0 2rem; }
+.logo-title { font-size: 24px; font-weight: 600; color: #1a1a1a; }
+.logo-sub { font-size: 14px; color: #888; margin-top: 6px; }
+
+/* Card */
+.card { background: #fff; border: 1px solid #e8e8e8; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+
+/* Form elements */
+label { font-size: 13px; color: #888; display: block; margin-bottom: 6px; margin-top: 12px; }
+label:first-child { margin-top: 0; }
+input, select { width: 100%; padding: 11px 14px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 15px; color: #1a1a1a; background: #fafafa; outline: none; }
+input:focus, select:focus { border-color: #4CAF50; background: #fff; }
+
+/* Buttons */
+.btn-primary { width: 100%; padding: 14px; background: #4CAF50; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 12px; }
+.btn-primary:active { opacity: 0.85; }
+.btn-scan { width: 100%; padding: 18px; background: #e8f5e9; color: #2e7d32; border: 1.5px solid #a5d6a7; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.btn-scan:active { opacity: 0.85; }
+.btn-back { background: none; border: none; color: #888; font-size: 14px; cursor: pointer; padding: 0; }
+.btn-confirm { width: 100%; padding: 16px; background: #4CAF50; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+.btn-confirm.xuat { background: #f44336; }
+.btn-confirm:active { opacity: 0.85; }
+.btn-secondary { width: 100%; padding: 12px; background: #fff; color: #555; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 14px; cursor: pointer; margin-top: 8px; }
+
+/* Header */
+.header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-top: 0.5rem; }
+.header-title { font-size: 18px; font-weight: 600; }
+
+/* Badge */
+.badge { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+.badge-owner { background: #fff3e0; color: #e65100; }
+.badge-staff { background: #e3f2fd; color: #1565c0; }
+
+/* Product info */
+.product-name { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px; }
+.product-size { font-size: 13px; color: #888; margin-bottom: 1rem; }
+.info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+.info-row:last-child { border-bottom: none; }
+.info-label { font-size: 13px; color: #888; }
+.info-value { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+.info-value.red { color: #f44336; }
+.info-value.green { color: #4CAF50; }
+
+/* Toggle */
+.toggle-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.toggle-btn { flex: 1; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; border: 1.5px solid #e0e0e0; background: #fafafa; color: #888; }
+.toggle-btn.active-xuat { background: #ffebee; color: #c62828; border-color: #ef9a9a; }
+.toggle-btn.active-nhap { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+
+/* Success */
+.success-wrap { text-align: center; padding: 2.5rem 0 1.5rem; }
+.success-circle { width: 72px; height: 72px; border-radius: 50%; background: #e8f5e9; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+.success-title { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+.success-sub { font-size: 13px; color: #888; }
+
+/* Error */
+.error-msg { font-size: 13px; color: #f44336; margin-top: 6px; display: none; }
+
+/* Video */
+#video-container { display: none; position: relative; margin-bottom: 1rem; border-radius: 14px; overflow: hidden; }
+#video { width: 100%; display: block; }
+#scan-line { position: absolute; left: 0; right: 0; height: 2.5px; background: #f44336; animation: scan 2s linear infinite; }
+@keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+.scan-hint { text-align: center; font-size: 13px; color: #888; margin-bottom: 12px; }
+
+/* Manual input */
+.divider { text-align: center; font-size: 12px; color: #bbb; margin: 14px 0; }
+.manual-row { display: flex; gap: 8px; }
+.manual-row input { margin-bottom: 0; flex: 1; }
+.manual-row button { padding: 11px 18px; background: #1565c0; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+
+/* Logout */
+.logout-btn { font-size: 12px; color: #aaa; background: none; border: none; cursor: pointer; }
+
+/* Loading */
+.loading { text-align: center; font-size: 14px; color: #888; padding: 1rem; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen active">
+  <div class="logo">
+    <div class="logo-title">🏪 Tiệm Inox</div>
+    <div class="logo-sub">Quản lý xuất nhập kho</div>
+  </div>
+  <div class="card">
+    <label>Tài khoản</label>
+    <select id="login-role">
+      <option value="owner">👑 Chủ tiệm</option>
+      <option value="staff">👷 Nhân viên</option>
+    </select>
+    <label>Mật khẩu</label>
+    <input type="password" id="login-pass" placeholder="Nhập mật khẩu..." />
+    <div class="error-msg" id="login-error">❌ Sai mật khẩu, thử lại!</div>
+    <button class="btn-primary" onclick="doLogin()">Đăng nhập</button>
+  </div>
+  <p style="font-size:12px;color:#bbb;text-align:center;margin-top:8px;">Demo: chủ = 1234 · nhân viên = 5678</p>
+</div>
+
+<!-- MAIN -->
+<div id="screen-main" class="screen">
+  <div class="header">
+    <div>
+      <div class="header-title">Quét hàng</div>
+      <div style="font-size:12px;color:#888;" id="role-display"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="badge" id="role-badge"></span>
+      <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
+    </div>
+  </div>
+
+  <div id="video-container">
+    <video id="video" autoplay playsinline muted></video>
+    <div id="scan-line"></div>
+    <canvas id="canvas" style="display:none;"></canvas>
+  </div>
+  <div class="scan-hint" id="scan-hint" style="display:none;">Đưa mã QR vào khung hình để quét</div>
+
+  <button class="btn-scan" id="btn-scan-main" onclick="toggleScan()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M14 17h3M17 14v3"/></svg>
+    Quét mã QR
+  </button>
+
+  <div class="divider">— hoặc nhập mã thủ công —</div>
+  <div class="manual-row">
+    <input type="text" id="manual-code" placeholder="VD: IN001" autocomplete="off" autocapitalize="characters" />
+    <button onclick="lookupManual()">Tìm</button>
+  </div>
+</div>
+
+<!-- FORM -->
+<div id="screen-form" class="screen">
+  <div class="header">
+    <button class="btn-back" onclick="goBack()">← Quay lại</button>
+    <span class="badge" id="form-badge"></span>
+  </div>
+
+  <div class="card">
+    <div class="product-name" id="form-name"></div>
+    <div class="product-size" id="form-size"></div>
+    <div class="info-row" id="row-giavon">
+      <span class="info-label">Giá vốn</span>
+      <span class="info-value red" id="form-giavon"></span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Đơn vị tính</span>
+      <span class="info-value" id="form-dvt"></span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Tồn kho hiện tại</span>
+      <span class="info-value green" id="form-tonkho"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>Nhập hay Xuất?</label>
+    <div class="toggle-row">
+      <button class="toggle-btn active-xuat" id="btn-xuat" onclick="setMode('Xuất')">📤 Xuất hàng</button>
+      <button class="toggle-btn" id="btn-nhap" onclick="setMode('Nhập')">📥 Nhập hàng</button>
+    </div>
+
+    <label>Số lượng</label>
+    <input type="number" id="form-soluong" placeholder="Nhập số lượng..." min="1" inputmode="numeric" />
+
+    <label id="label-gia">Giá bán (đồng)</label>
+    <input type="number" id="form-gia" placeholder="Nhập giá..." min="0" inputmode="numeric" />
+
+    <label>Ghi chú (không bắt buộc)</label>
+    <input type="text" id="form-ghichu" placeholder="Tên khách, đơn hàng..." />
+
+    <button class="btn-confirm xuat" id="btn-confirm" onclick="submitForm()">✅ Xác nhận Xuất hàng</button>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div id="screen-success" class="screen">
+  <div class="success-wrap">
+    <div class="success-circle">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="success-title" id="success-title">Ghi thành công!</div>
+    <div class="success-sub" id="success-sub"></div>
+  </div>
+  <div class="card" id="success-detail"></div>
+  <button class="btn-primary" onclick="goMain()" style="margin-top:1rem;">📷 Quét tiếp</button>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuMnQQXseZ6YtZgv7bOR0V5v0700bq8Vn_kNgpMjAPDX6x8dFmxvWgDsn6ch8hp7dNdg/exec';
+const ACCOUNTS = { owner: '1234', staff: '5678' };
+
+let currentRole = null;
+let currentProduct = null;
+let currentMode = 'Xuất';
+let products = [];
+let scanInterval = null;
+let stream = null;
+let scanning = false;
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function doLogin() {
+  const role = document.getElementById('login-role').value;
+  const pass = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  if (pass === ACCOUNTS[role]) {
+    currentRole = role;
+    err.style.display = 'none';
+    const isOwner = role === 'owner';
+    document.getElementById('role-display').textContent = isOwner ? 'Chủ tiệm' : 'Nhân viên';
+    document.getElementById('role-badge').textContent = isOwner ? 'Chủ' : 'Nhân viên';
+    document.getElementById('role-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
+    loadProducts();
+    showScreen('screen-main');
+  } else {
+    err.style.display = 'block';
+  }
+}
+
+document.getElementById('login-pass').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+
+function doLogout() {
+  stopScan();
+  currentRole = null;
+  document.getElementById('login-pass').value = '';
+  showScreen('screen-login');
+}
+
+async function loadProducts() {
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=get');
+    const data = await res.json();
+    products = data.slice(1).map(r => ({
+      ma: (r[0] || '').toString().trim(),
+      ten: r[1] || '',
+      kichthuoc: r[2] || '',
+      giavon: r[3] || '',
+      dvt: r[4] || 'Cái',
+      tonkho: r[5] || 0
+    })).filter(p => p.ma);
+  } catch(e) {
+    products = [
+      {ma:'IN001', ten:'Bàn Inox 304', kichthuoc:'50*80*75*1,5', giavon:'450.000 đ', dvt:'Cái', tonkho:10},
+      {ma:'IN002', ten:'Bàn Inox 304', kichthuoc:'60*90*75*1,5', giavon:'500.000 đ', dvt:'Cái', tonkho:5},
+      {ma:'IN003', ten:'Kệ Inox 304', kichthuoc:'100*120*100', giavon:'1.000.000 đ', dvt:'Cái', tonkho:8},
+    ];
+  }
+}
+
+function findProduct(code) {
+  return products.find(p => p.ma === code.trim().toUpperCase());
+}
+
+function showForm(product) {
+  currentProduct = product;
+  document.getElementById('form-name').textContent = product.ten;
+  document.getElementById('form-size').textContent = 'Kích thước: ' + product.kichthuoc + '  |  Mã: ' + product.ma;
+  document.getElementById('form-dvt').textContent = product.dvt;
+  document.getElementById('form-tonkho').textContent = (product.tonkho || 0) + ' ' + product.dvt;
+  const isOwner = currentRole === 'owner';
+  document.getElementById('form-badge').textContent = isOwner ? 'Chủ' : 'Nhân viên';
+  document.getElementById('form-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
+  document.getElementById('row-giavon').style.display = isOwner ? 'flex' : 'none';
+  document.getElementById('form-giavon').textContent = product.giavon;
+  document.getElementById('btn-nhap').style.display = isOwner ? 'block' : 'none';
+  document.getElementById('form-soluong').value = '';
+  document.getElementById('form-gia').value = '';
+  document.getElementById('form-ghichu').value = '';
+  setMode('Xuất');
+  showScreen('screen-form');
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  const bx = document.getElementById('btn-xuat');
+  const bn = document.getElementById('btn-nhap');
+  const lbl = document.getElementById('label-gia');
+  const bc = document.getElementById('btn-confirm');
+  if (mode === 'Xuất') {
+    bx.className = 'toggle-btn active-xuat';
+    bn.className = 'toggle-btn';
+    lbl.textContent = 'Giá bán (đồng)';
+    bc.textContent = '✅ Xác nhận Xuất hàng';
+    bc.className = 'btn-confirm xuat';
+  } else {
+    bn.className = 'toggle-btn active-nhap';
+    bx.className = 'toggle-btn';
+    lbl.textContent = 'Giá nhập (đồng)';
+    bc.textContent = '✅ Xác nhận Nhập hàng';
+    bc.className = 'btn-confirm';
+  }
+}
+
+async function submitForm() {
+  const sl = parseInt(document.getElementById('form-soluong').value);
+  const gia = parseInt(document.getElementById('form-gia').value);
+  const ghichu = document.getElementById('form-ghichu').value;
+  if (!sl || sl <= 0) { alert('Vui lòng nhập số lượng!'); return; }
+  if (!gia || gia <= 0) { alert('Vui lòng nhập giá!'); return; }
+
+  const btn = document.getElementById('btn-confirm');
+  btn.textContent = '⏳ Đang ghi...';
+  btn.disabled = true;
+
+  const now = new Date();
+  const thoiGian = now.toLocaleString('vi-VN');
+  const sheetName = currentMode === 'Xuất' ? 'Xuất' : 'Nhập';
+  const row = [currentProduct.ma, thoiGian, currentProduct.ten, currentProduct.kichthuoc, currentProduct.dvt, sl, gia, ghichu];
+
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sheet: sheetName, row: row })
+    });
+  } catch(e) {}
+
+  btn.disabled = false;
+
+  const isXuat = currentMode === 'Xuất';
+  document.getElementById('success-title').textContent = isXuat ? '📤 Xuất hàng thành công!' : '📥 Nhập hàng thành công!';
+  document.getElementById('success-sub').textContent = thoiGian;
+  document.getElementById('success-detail').innerHTML = `
+    <div class="info-row"><span class="info-label">Sản phẩm</span><span class="info-value">${currentProduct.ten}</span></div>
+    <div class="info-row"><span class="info-label">Kích thước</span><span class="info-value">${currentProduct.kichthuoc}</span></div>
+    <div class="info-row"><span class="info-label">Số lượng</span><span class="info-value">${sl} ${currentProduct.dvt}</span></div>
+    <div class="info-row"><span class="info-label">${isXuat ? 'Giá bán' : 'Giá nhập'}</span><span class="info-value">${gia.toLocaleString('vi-VN')} đ</span></div>
+    ${ghichu ? `<div class="info-row"><span class="info-label">Ghi chú</span><span class="info-value">${ghichu}</span></div>` : ''}
+  `;
+  showScreen('screen-success');
+}
+
+function goBack() {
+  stopScan();
+  showScreen('screen-main');
+}
+
+function goMain() {
+  showScreen('screen-main');
+}
+
+function lookupManual() {
+  const code = document.getElementById('manual-code').value;
+  if (!code) return;
+  const p = findProduct(code);
+  if (p) {
+    document.getElementById('manual-code').value = '';
+    showForm(p);
+  } else {
+    alert('Không tìm thấy mã sản phẩm: ' + code.toUpperCase());
+  }
+}
+
+document.getElementById('manual-code').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') lookupManual();
+});
+
+async function toggleScan() {
+  if (scanning) { stopScan(); return; }
+  const btn = document.getElementById('btn-scan-main');
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
+    document.getElementById('video').srcObject = stream;
+    document.getElementById('video-container').style.display = 'block';
+    document.getElementById('scan-hint').style.display = 'block';
+    btn.textContent = '⏹ Dừng quét';
+    scanning = true;
+    scanInterval = setInterval(doScanFrame, 250);
+  } catch(e) {
+    alert('Không mở được camera. Thử dùng nhập mã thủ công bên dưới.');
+  }
+}
+
+function doScanFrame() {
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+  if (code && code.data) {
+    stopScan();
+    const p = findProduct(code.data);
+    if (p) { showForm(p); }
+    else { alert('Không tìm thấy sản phẩm với mã: ' + code.data); }
+  }
+}
+
+function stopScan() {
+  scanning = false;
+  if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  document.getElementById('video-container').style.display = 'none';
+  document.getElementById('scan-hint').style.display = 'none';
+  const btn = document.getElementById('btn-scan-main');
+  if (btn) btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M14 17h3M17 14v3"/></svg> Quét mã QR';
+}
+</script>
+</body>
+</html>
