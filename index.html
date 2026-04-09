@@ -71,10 +71,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .error-msg { font-size: 13px; color: #f44336; margin-top: 6px; display: none; }
 
 /* Video */
-#video-container { display: none; position: relative; margin-bottom: 1rem; border-radius: 14px; overflow: hidden; }
-#video { width: 100%; display: block; }
-#scan-line { position: absolute; left: 0; right: 0; height: 2.5px; background: #f44336; animation: scan 2s linear infinite; }
-@keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+#video-container { display: none; margin-bottom: 1rem; border-radius: 14px; overflow: hidden; }
 .scan-hint { text-align: center; font-size: 13px; color: #888; margin-bottom: 12px; }
 
 /* Manual input */
@@ -137,11 +134,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
     </div>
   </div>
 
-  <div id="video-container">
-    <video id="video" autoplay playsinline muted></video>
-    <div id="scan-line"></div>
-    <canvas id="canvas" style="display:none;"></canvas>
-  </div>
+  <div id="video-container"></div>
   <div class="scan-hint" id="scan-hint" style="display:none;">Đưa mã QR vào khung hình để quét</div>
 
   <button class="btn-scan" id="btn-scan-main" onclick="toggleScan()">
@@ -217,7 +210,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuMnQQXseZ6YtZgv7bOR0V5v0700bq8Vn_kNgpMjAPDX6x8dFmxvWgDsn6ch8hp7dNdg/exec';
 const ACCOUNTS = { owner: '1234', staff: '5678' };
@@ -470,72 +463,48 @@ document.getElementById('manual-code').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') lookupManual();
 });
 
-let barcodeDetector = null;
-if ('BarcodeDetector' in window) {
-  try { barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e) {}
-}
+let html5QrCode = null;
 
 async function toggleScan() {
   if (scanning) { stopScan(); return; }
   const btn = document.getElementById('btn-scan-main');
+  const container = document.getElementById('video-container');
+  scanning = true;
+  container.style.display = 'block';
+  document.getElementById('scan-hint').style.display = 'block';
+  btn.textContent = '\u23F9 D\u1EEBng qu\u00E9t';
+
+  html5QrCode = new Html5Qrcode('video-container');
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } });
-    document.getElementById('video').srcObject = stream;
-    document.getElementById('video-container').style.display = 'block';
-    document.getElementById('scan-hint').style.display = 'block';
-    btn.textContent = '\u23F9 D\u1EEBng qu\u00E9t';
-    scanning = true;
-    if (barcodeDetector) {
-      scanLoop();
-    } else {
-      scanInterval = setInterval(doScanFrameJsQR, 300);
-    }
+    await html5QrCode.start(
+      { facingMode: 'environment' },
+      { fps: 15, qrbox: { width: 280, height: 280 }, aspectRatio: 1.0 },
+      (decodedText) => {
+        const trimmed = decodedText.trim().toUpperCase();
+        stopScan();
+        const p = findProduct(trimmed);
+        if (p) { showForm(p); }
+        else { alert('Kh\u00F4ng t\u00ECm th\u1EA5y s\u1EA3n ph\u1EA9m v\u1EDBi m\u00E3: ' + trimmed); }
+      },
+      () => {}
+    );
   } catch(e) {
+    scanning = false;
+    container.style.display = 'none';
+    document.getElementById('scan-hint').style.display = 'none';
+    btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M14 17h3M17 14v3"/></svg> Qu\u00E9t m\u00E3 QR';
     alert('Kh\u00F4ng m\u1EDF \u0111\u01B0\u1EE3c camera. Th\u1EED d\u00F9ng nh\u1EADp m\u00E3 th\u1EE7 c\u00F4ng b\u00EAn d\u01B0\u1EDBi.');
-  }
-}
-
-async function scanLoop() {
-  if (!scanning) return;
-  const video = document.getElementById('video');
-  try {
-    const barcodes = await barcodeDetector.detect(video);
-    if (barcodes.length > 0) {
-      const trimmed = barcodes[0].rawValue.trim().toUpperCase();
-      stopScan();
-      const p = findProduct(trimmed);
-      if (p) { showForm(p); }
-      else { alert('Kh\u00F4ng t\u00ECm th\u1EA5y s\u1EA3n ph\u1EA9m v\u1EDBi m\u00E3: ' + trimmed); }
-      return;
-    }
-  } catch(e) {}
-  if (scanning) requestAnimationFrame(scanLoop);
-}
-
-function doScanFrameJsQR() {
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  if (video.readyState < 2) return;
-  if (!video.videoWidth || !video.videoHeight) return;
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
-  if (code && code.data) {
-    stopScan();
-    const trimmed = code.data.trim().toUpperCase();
-    const p = findProduct(trimmed);
-    if (p) { showForm(p); }
-    else { alert('Kh\u00F4ng t\u00ECm th\u1EA5y s\u1EA3n ph\u1EA9m v\u1EDBi m\u00E3: ' + trimmed); }
   }
 }
 
 function stopScan() {
   scanning = false;
-  if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
-  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  if (html5QrCode) {
+    html5QrCode.stop().then(() => {
+      html5QrCode.clear();
+      html5QrCode = null;
+    }).catch(() => { html5QrCode = null; });
+  }
   document.getElementById('video-container').style.display = 'none';
   document.getElementById('scan-hint').style.display = 'none';
   const btn = document.getElementById('btn-scan-main');
