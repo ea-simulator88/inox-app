@@ -222,7 +222,11 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
 }
 
+<<<<<<< HEAD
 async function doLogin() {
+=======
+function doLogin() {
+>>>>>>> d26db8fe013c6cc7c3eb36d0bda4ba73d6c891b3
   const role = document.getElementById('login-role').value;
   const pass = document.getElementById('login-pass').value;
   const err = document.getElementById('login-error');
@@ -233,12 +237,16 @@ async function doLogin() {
     document.getElementById('role-display').textContent = isOwner ? 'Chủ tiệm' : 'Nhân viên';
     document.getElementById('role-badge').textContent = isOwner ? 'Chủ' : 'Nhân viên';
     document.getElementById('role-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
+<<<<<<< HEAD
     const loginBtn = document.querySelector('#screen-login .btn-primary');
     loginBtn.textContent = '⏳ Đang tải...';
     loginBtn.disabled = true;
     await loadProducts();
     loginBtn.textContent = 'Đăng nhập';
     loginBtn.disabled = false;
+=======
+    loadProducts();
+>>>>>>> d26db8fe013c6cc7c3eb36d0bda4ba73d6c891b3
     showScreen('screen-main');
   } else {
     err.style.display = 'block';
@@ -333,7 +341,11 @@ async function submitForm() {
   btn.disabled = true;
 
   const now = new Date();
+<<<<<<< HEAD
   const thoiGian = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+=======
+  const thoiGian = now.toLocaleString('vi-VN');
+>>>>>>> d26db8fe013c6cc7c3eb36d0bda4ba73d6c891b3
   const sheetName = currentMode === 'Xuất' ? 'Xuất' : 'Nhập';
   const row = [currentProduct.ma, thoiGian, currentProduct.ten, currentProduct.kichthuoc, currentProduct.dvt, sl, gia, ghichu];
 
