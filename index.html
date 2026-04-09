@@ -489,7 +489,7 @@ async function toggleScan() {
 function doScanFrame() {
   const video = document.getElementById('video');
   const canvas = document.getElementById('canvas');
-  if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+  if (video.readyState < 2) return;
   if (!video.videoWidth || !video.videoHeight) return;
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
