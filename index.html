@@ -502,13 +502,13 @@ function setMode(mode) {
   if (mode === 'Xuất') {
     bx.className = 'toggle-btn active-xuat';
     bn.className = 'toggle-btn';
-    lbl.textContent = 'Giá bán (đồng)';
+    lbl.innerHTML = 'Giá bán (đồng) <span style="color:#f44336;">*</span>';
     bc.textContent = '✅ Xác nhận Xuất hàng';
     bc.className = 'btn-confirm xuat';
   } else {
     bn.className = 'toggle-btn active-nhap';
     bx.className = 'toggle-btn';
-    lbl.textContent = 'Giá nhập (đồng)';
+    lbl.innerHTML = 'Giá nhập (đồng) <span style="color:#f44336;">*</span>';
     bc.textContent = '✅ Xác nhận Nhập hàng';
     bc.className = 'btn-confirm';
     document.getElementById('form-phi-chanh').value = '';
