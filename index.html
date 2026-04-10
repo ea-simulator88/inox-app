@@ -241,7 +241,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuMnQQXseZ6YtZgv7bOR0V5v0700bq8Vn_kNgpMjAPDX6x8dFmxvWgDsn6ch8hp7dNdg/exec';
 
@@ -635,86 +635,36 @@ document.getElementById('manual-code').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') lookupManual();
 });
 
-// === MULTI-ANGLE QR SCANNER ===
-const _sf = document.createElement('canvas');
-const _sr = document.createElement('canvas');
-const _sfc = _sf.getContext('2d', { willReadFrequently: true });
-const _src = _sr.getContext('2d', { willReadFrequently: true });
-
-let _bd = null;
-try { if ('BarcodeDetector' in window) _bd = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e) {}
-
-let _scanVideo = null;
-let _scanTimer = null;
-let _bdBusy = false;
+// === ZXING SCANNER (QR + Barcode, all angles) ===
+let _zxingReader = null;
 
 async function toggleScan() {
   if (scanning) { stopScan(); return; }
   const btn = document.getElementById('btn-scan-main');
   const container = document.getElementById('video-container');
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
-    });
-    _scanVideo = document.createElement('video');
-    _scanVideo.srcObject = stream;
-    // iOS Safari requires these as attributes AND properties
-    _scanVideo.setAttribute('autoplay', '');
-    _scanVideo.setAttribute('playsinline', '');
-    _scanVideo.setAttribute('muted', '');
-    _scanVideo.autoplay = true;
-    _scanVideo.playsInline = true;
-    _scanVideo.muted = true;
-    _scanVideo.style.cssText = 'width:100%;display:block;border-radius:14px;';
+    if (typeof ZXing === 'undefined') throw new Error('ZXing not loaded');
+    _zxingReader = new ZXing.BrowserMultiFormatReader();
+    const videoEl = document.createElement('video');
+    videoEl.setAttribute('playsinline', '');
+    videoEl.muted = true;
+    videoEl.style.cssText = 'width:100%;display:block;border-radius:14px;';
     container.innerHTML = '';
-    container.appendChild(_scanVideo);
+    container.appendChild(videoEl);
     container.style.display = 'block';
     document.getElementById('scan-hint').style.display = 'block';
     btn.textContent = '\u23F9 D\u1EEBng qu\u00E9t';
     scanning = true;
-    // iOS requires explicit play() call — autoplay alone is not enough
-    try { await _scanVideo.play(); } catch(pe) {}
-    _scanTimer = setInterval(_doScan, 80);
+    await _zxingReader.decodeFromConstraints(
+      { video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } } },
+      videoEl,
+      (result, err) => {
+        if (result && scanning) _onScanned(result.getText());
+      }
+    );
   } catch(e) {
+    stopScan();
     alert('Kh\u00F4ng m\u1EDF \u0111\u01B0\u1EE3c camera. Th\u1EED d\u00F9ng nh\u1EADp m\u00E3 th\u1EE7 c\u00F4ng b\u00EAn d\u01B0\u1EDBi.');
-  }
-}
-
-function _doScan() {
-  if (!scanning || !_scanVideo || !_scanVideo.videoWidth || !_scanVideo.videoHeight) return;
-  const vw = _scanVideo.videoWidth, vh = _scanVideo.videoHeight;
-  const scale = Math.min(1, 640 / Math.max(vw, vh));
-  const w = Math.round(vw * scale), h = Math.round(vh * scale);
-  _sf.width = w; _sf.height = h;
-  _sfc.drawImage(_scanVideo, 0, 0, w, h);
-
-  // BarcodeDetector ch\u1EA1y song song (x\u1EED l\u00FD g\u00F3c ngh\u1ECBng r\u1EA5t t\u1ED1t)
-  if (_bd && !_bdBusy) {
-    _bdBusy = true;
-    _bd.detect(_scanVideo).then(c => {
-      _bdBusy = false;
-      if (c.length && scanning) _onScanned(c[0].rawValue);
-    }).catch(() => { _bdBusy = false; });
-  }
-
-  // jsQR th\u1EED 4 g\u00F3c xoay (0\u00B0, 90\u00B0, 180\u00B0, 270\u00B0)
-  for (const deg of [0, 90, 180, 270]) {
-    let img;
-    if (deg === 0) {
-      img = _sfc.getImageData(0, 0, w, h);
-    } else {
-      const swap = deg === 90 || deg === 270;
-      _sr.width = swap ? h : w; _sr.height = swap ? w : h;
-      _src.save();
-      _src.clearRect(0, 0, _sr.width, _sr.height);
-      _src.translate(_sr.width / 2, _sr.height / 2);
-      _src.rotate(deg * Math.PI / 180);
-      _src.drawImage(_sf, -w / 2, -h / 2);
-      _src.restore();
-      img = _src.getImageData(0, 0, _sr.width, _sr.height);
-    }
-    const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
-    if (code && code.data && scanning) { _onScanned(code.data); return; }
   }
 }
 
@@ -728,9 +678,8 @@ function _onScanned(text) {
 
 function stopScan() {
   scanning = false;
-  if (_scanTimer) { clearInterval(_scanTimer); _scanTimer = null; }
+  if (_zxingReader) { try { _zxingReader.reset(); } catch(e) {} _zxingReader = null; }
   if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-  _scanVideo = null; _bdBusy = false;
   const container = document.getElementById('video-container');
   container.innerHTML = '';
   container.style.display = 'none';
