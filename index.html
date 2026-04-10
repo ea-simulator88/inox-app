@@ -650,7 +650,7 @@ async function toggleScan() {
   try {
     await html5QrCode.start(
       { facingMode: 'environment' },
-      { fps: 15, qrbox: { width: 280, height: 280 }, aspectRatio: 1.0 },
+      { fps: 15 },
       (decodedText) => {
         const trimmed = decodedText.trim().toUpperCase();
         stopScan();
