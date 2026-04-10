@@ -300,6 +300,8 @@ document.getElementById('login-pass').addEventListener('keydown', function(e) {
 function doLogout() {
   stopScan();
   currentRole = null;
+  products = [];
+  localStorage.removeItem('products_cache');
   document.getElementById('login-pass').value = '';
   showScreen('screen-login');
 }
