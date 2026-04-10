@@ -161,9 +161,9 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   <div class="card">
     <div class="product-name" id="form-name"></div>
     <div class="product-size" id="form-size"></div>
-    <div class="info-row" id="row-phanloai" style="display:none;">
-      <span class="info-label">Phân loại</span>
-      <span class="info-value" id="form-phanloai"></span>
+    <div class="info-row" id="row-nhanhieu" style="display:none;">
+      <span class="info-label">Nhãn hiệu</span>
+      <span class="info-value" id="form-nhanhieu"></span>
     </div>
     <div class="info-row" id="row-phanloai" style="display:none;">
       <span class="info-label">Phân loại</span>
@@ -340,12 +340,13 @@ async function fetchProductsFromServer() {
     const data = await res.json();
     const fetched = data.slice(1).map(r => ({
       ma: (r[0] || '').toString().trim(),
-      phanloai: r[1] || '',
-      ten: r[2] || '',
-      kichthuoc: r[3] || '',
-      giavon: r[4] || '',
-      dvt: r[5] || 'Cái',
-      tonkho: r[6] || 0
+      nhanHieu: r[1] || '',
+      phanloai: r[2] || '',
+      ten: r[3] || '',
+      kichthuoc: r[4] || '',
+      giavon: r[5] || '',
+      dvt: r[6] || 'Cái',
+      tonkho: r[7] || 0
     })).filter(p => p.ma);
     if (fetched.length > 0) {
       products = fetched;
@@ -356,9 +357,9 @@ async function fetchProductsFromServer() {
     if (products.length === 0) {
       usingFallbackProducts = true;
       products = [
-        {ma:'IN001', phanloai:'Bàn', ten:'Bàn Inox 304', kichthuoc:'50*80*75*1,5', giavon:'450.000 đ', dvt:'Cái', tonkho:10},
-        {ma:'IN002', phanloai:'Bàn', ten:'Bàn Inox 304', kichthuoc:'60*90*75*1,5', giavon:'500.000 đ', dvt:'Cái', tonkho:5},
-        {ma:'IN003', phanloai:'Kệ', ten:'Kệ Inox 304', kichthuoc:'100*120*100', giavon:'1.000.000 đ', dvt:'Cái', tonkho:8},
+        {ma:'IN001', nhanHieu:'', phanloai:'Bàn', ten:'Bàn Inox 304', kichthuoc:'50*80*75*1,5', giavon:'450.000 đ', dvt:'Cái', tonkho:10},
+        {ma:'IN002', nhanHieu:'', phanloai:'Bàn', ten:'Bàn Inox 304', kichthuoc:'60*90*75*1,5', giavon:'500.000 đ', dvt:'Cái', tonkho:5},
+        {ma:'IN003', nhanHieu:'', phanloai:'Kệ', ten:'Kệ Inox 304', kichthuoc:'100*120*100', giavon:'1.000.000 đ', dvt:'Cái', tonkho:8},
       ];
     }
   }
@@ -423,7 +424,7 @@ function renderProductList(list) {
     const low = (p.tonkho || 0) <= 3;
     return `<div class="product-item" onclick="showForm(products.find(x=>x.ma==='${p.ma}'))">
       <div class="product-item-left">
-        <div class="product-item-ma">${p.ma}${p.phanloai ? ' · ' + p.phanloai : ''}</div>
+        <div class="product-item-ma">${p.ma}${p.phanloai ? ' · ' + p.phanloai : ''}${p.nhanHieu ? ' · ' + p.nhanHieu : ''}</div>
         <div class="product-item-ten">${p.ten}</div>
         <div class="product-item-size">${p.kichthuoc}</div>
       </div>
@@ -446,7 +447,8 @@ function filterProductList() {
     removeDiacritics(p.ma).includes(q) ||
     removeDiacritics(p.ten).includes(q) ||
     removeDiacritics(p.kichthuoc).includes(q) ||
-    removeDiacritics(p.phanloai).includes(q)
+    removeDiacritics(p.phanloai).includes(q) ||
+    removeDiacritics(p.nhanHieu).includes(q)
   );
   renderProductList(filtered);
 }
@@ -455,6 +457,12 @@ function showForm(product) {
   currentProduct = product;
   document.getElementById('form-name').textContent = product.ten;
   document.getElementById('form-size').textContent = 'Kích thước: ' + product.kichthuoc + '  |  Mã: ' + product.ma;
+  if (product.nhanHieu) {
+    document.getElementById('row-nhanhieu').style.display = 'flex';
+    document.getElementById('form-nhanhieu').textContent = product.nhanHieu;
+  } else {
+    document.getElementById('row-nhanhieu').style.display = 'none';
+  }
   if (product.phanloai) {
     document.getElementById('row-phanloai').style.display = 'flex';
     document.getElementById('form-phanloai').textContent = product.phanloai;
@@ -576,7 +584,7 @@ async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
   const now = new Date();
   const thoiGian = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   const sheetName = currentMode === 'Xuất' ? 'Xuất' : 'Nhập';
-  const row = [currentProduct.ma, thoiGian, currentProduct.phanloai || '', currentProduct.ten, currentProduct.kichthuoc, currentProduct.dvt, sl, gia, giaodich, phiChanh || '', ghichu];
+  const row = [currentProduct.ma, thoiGian, currentProduct.nhanHieu || '', currentProduct.phanloai || '', currentProduct.ten, currentProduct.kichthuoc, currentProduct.dvt, sl, gia, giaodich, phiChanh || '', ghichu];
 
   try {
     await fetch(SCRIPT_URL, {
