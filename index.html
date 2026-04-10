@@ -203,10 +203,8 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
       <option value="Chuyển khoản">🏦 Chuyển khoản</option>
     </select>
 
-    <div id="row-phi-chanh" style="display:none;">
-      <label>Phí chành xe (không bắt buộc)</label>
-      <input type="text" id="form-phi-chanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)" />
-    </div>
+    <label id="label-phi-chanh" style="display:none;">Phí chành xe (không bắt buộc)</label>
+    <input type="text" id="form-phi-chanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)" style="display:none;" />
 
     <label>Ghi chú (không bắt buộc)</label>
     <input type="text" id="form-ghichu" placeholder="Tên khách, đơn hàng..." />
@@ -498,21 +496,21 @@ function setMode(mode) {
   const bn = document.getElementById('btn-nhap');
   const lbl = document.getElementById('label-gia');
   const bc = document.getElementById('btn-confirm');
-  const phiRow = document.getElementById('row-phi-chanh');
+  const showPhi = mode === 'Xuất';
+  document.getElementById('label-phi-chanh').style.display = showPhi ? 'block' : 'none';
+  document.getElementById('form-phi-chanh').style.display = showPhi ? 'block' : 'none';
   if (mode === 'Xuất') {
     bx.className = 'toggle-btn active-xuat';
     bn.className = 'toggle-btn';
     lbl.textContent = 'Giá bán (đồng)';
     bc.textContent = '✅ Xác nhận Xuất hàng';
     bc.className = 'btn-confirm xuat';
-    phiRow.style.display = 'block';
   } else {
     bn.className = 'toggle-btn active-nhap';
     bx.className = 'toggle-btn';
     lbl.textContent = 'Giá nhập (đồng)';
     bc.textContent = '✅ Xác nhận Nhập hàng';
     bc.className = 'btn-confirm';
-    phiRow.style.display = 'none';
     document.getElementById('form-phi-chanh').value = '';
   }
 }
