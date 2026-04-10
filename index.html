@@ -505,6 +505,22 @@ async function submitForm() {
   const giaodich = document.getElementById('form-giaodich').value;
   const ghichu = document.getElementById('form-ghichu').value;
 
+  if (currentMode === 'Xuất') {
+    const tonkho = Number(currentProduct.tonkho) || 0;
+    if (tonkho <= 0) {
+      showModal('Hết hàng!', 'Sản phẩm này hiện không còn tồn kho để xuất.', () => {});
+      document.getElementById('modal-yes').style.display = 'none';
+      document.getElementById('modal-no').textContent = 'Đóng';
+      return;
+    }
+    if (sl > tonkho) {
+      showModal('Số lượng vượt tồn kho!', 'Tồn kho hiện tại: ' + fmt(tonkho) + ' ' + currentProduct.dvt + '. Không thể xuất ' + fmt(sl) + '.', () => {});
+      document.getElementById('modal-yes').style.display = 'none';
+      document.getElementById('modal-no').textContent = 'Đóng';
+      return;
+    }
+  }
+
   if (!sl || sl <= 0) {
     document.getElementById('form-soluong').focus();
     showModal('Thiếu thông tin!', 'Vui lòng nhập Số lượng.', () => {});
