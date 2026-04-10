@@ -161,6 +161,14 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   <div class="card">
     <div class="product-name" id="form-name"></div>
     <div class="product-size" id="form-size"></div>
+    <div class="info-row" id="row-phanloai" style="display:none;">
+      <span class="info-label">Phân loại</span>
+      <span class="info-value" id="form-phanloai"></span>
+    </div>
+    <div class="info-row" id="row-phanloai" style="display:none;">
+      <span class="info-label">Phân loại</span>
+      <span class="info-value" id="form-phanloai"></span>
+    </div>
     <div class="info-row" id="row-giavon">
       <span class="info-label">Giá vốn</span>
       <span class="info-value red" id="form-giavon"></span>
@@ -401,7 +409,7 @@ function renderProductList(list) {
     const low = (p.tonkho || 0) <= 3;
     return `<div class="product-item" onclick="showForm(products.find(x=>x.ma==='${p.ma}'))">
       <div class="product-item-left">
-        <div class="product-item-ma">${p.ma}</div>
+        <div class="product-item-ma">${p.ma}${p.phanloai ? ' · ' + p.phanloai : ''}</div>
         <div class="product-item-ten">${p.ten}</div>
         <div class="product-item-size">${p.kichthuoc}</div>
       </div>
@@ -423,7 +431,8 @@ function filterProductList() {
   const filtered = products.filter(p =>
     removeDiacritics(p.ma).includes(q) ||
     removeDiacritics(p.ten).includes(q) ||
-    removeDiacritics(p.kichthuoc).includes(q)
+    removeDiacritics(p.kichthuoc).includes(q) ||
+    removeDiacritics(p.phanloai).includes(q)
   );
   renderProductList(filtered);
 }
@@ -432,6 +441,18 @@ function showForm(product) {
   currentProduct = product;
   document.getElementById('form-name').textContent = product.ten;
   document.getElementById('form-size').textContent = 'Kích thước: ' + product.kichthuoc + '  |  Mã: ' + product.ma;
+  if (product.phanloai) {
+    document.getElementById('row-phanloai').style.display = 'flex';
+    document.getElementById('form-phanloai').textContent = product.phanloai;
+  } else {
+    document.getElementById('row-phanloai').style.display = 'none';
+  }
+  if (product.phanloai) {
+    document.getElementById('row-phanloai').style.display = 'flex';
+    document.getElementById('form-phanloai').textContent = product.phanloai;
+  } else {
+    document.getElementById('row-phanloai').style.display = 'none';
+  }
   document.getElementById('form-dvt').textContent = product.dvt;
   document.getElementById('form-tonkho').textContent = fmt(product.tonkho) + ' ' + product.dvt;
   const isOwner = currentRole === 'owner';
