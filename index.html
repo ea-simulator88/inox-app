@@ -203,6 +203,11 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
       <option value="Chuyển khoản">🏦 Chuyển khoản</option>
     </select>
 
+    <div id="row-phi-chanh" style="display:none;">
+      <label>Phí chành xe (không bắt buộc)</label>
+      <input type="text" id="form-phi-chanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)" />
+    </div>
+
     <label>Ghi chú (không bắt buộc)</label>
     <input type="text" id="form-ghichu" placeholder="Tên khách, đơn hàng..." />
 
@@ -473,6 +478,7 @@ function showForm(product) {
   document.getElementById('form-soluong').value = '';
   document.getElementById('form-gia').value = '';
   document.getElementById('form-giaodich').value = '';
+  document.getElementById('form-phi-chanh').value = '';
   document.getElementById('form-ghichu').value = '';
   setMode('Xuất');
   showScreen('screen-form');
@@ -484,18 +490,22 @@ function setMode(mode) {
   const bn = document.getElementById('btn-nhap');
   const lbl = document.getElementById('label-gia');
   const bc = document.getElementById('btn-confirm');
+  const phiRow = document.getElementById('row-phi-chanh');
   if (mode === 'Xuất') {
     bx.className = 'toggle-btn active-xuat';
     bn.className = 'toggle-btn';
     lbl.textContent = 'Giá bán (đồng)';
     bc.textContent = '✅ Xác nhận Xuất hàng';
     bc.className = 'btn-confirm xuat';
+    phiRow.style.display = 'block';
   } else {
     bn.className = 'toggle-btn active-nhap';
     bx.className = 'toggle-btn';
     lbl.textContent = 'Giá nhập (đồng)';
     bc.textContent = '✅ Xác nhận Nhập hàng';
     bc.className = 'btn-confirm';
+    phiRow.style.display = 'none';
+    document.getElementById('form-phi-chanh').value = '';
   }
 }
 
@@ -503,6 +513,7 @@ async function submitForm() {
   const sl = getInputNum('form-soluong');
   const gia = getInputNum('form-gia');
   const giaodich = document.getElementById('form-giaodich').value;
+  const phiChanh = getInputNum('form-phi-chanh');
   const ghichu = document.getElementById('form-ghichu').value;
 
   if (currentMode === 'Xuất') {
@@ -549,23 +560,23 @@ async function submitForm() {
       const sub = currentRole === 'owner'
         ? 'Giá vốn: ' + fmt(giavon) + ' đ  •  Giá bán: ' + fmt(gia) + ' đ'
         : 'Giá bán có thể thấp. Bạn có chắc muốn tiếp tục?';
-      showModal('Giá bán thấp hơn giá vốn!', sub, () => doSubmit(sl, gia, giaodich, ghichu));
+      showModal('Giá bán thấp hơn giá vốn!', sub, () => doSubmit(sl, gia, giaodich, ghichu, phiChanh));
       return;
     }
   }
-  doSubmit(sl, gia, giaodich, ghichu);
+  doSubmit(sl, gia, giaodich, ghichu, phiChanh);
 }
 
-async function doSubmit(sl, gia, giaodich, ghichu) {
+async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
 
   const btn = document.getElementById('btn-confirm');
   btn.textContent = '⏳ Đang ghi...';
   btn.disabled = true;
 
   const now = new Date();
-  const thoiGian = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const thoiGian = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   const sheetName = currentMode === 'Xuất' ? 'Xuất' : 'Nhập';
-  const row = [currentProduct.ma, thoiGian, currentProduct.phanloai || '', currentProduct.ten, currentProduct.kichthuoc, currentProduct.dvt, sl, gia, giaodich, ghichu];
+  const row = [currentProduct.ma, thoiGian, currentProduct.phanloai || '', currentProduct.ten, currentProduct.kichthuoc, currentProduct.dvt, sl, gia, giaodich, phiChanh || '', ghichu];
 
   try {
     await fetch(SCRIPT_URL, {
@@ -587,6 +598,7 @@ async function doSubmit(sl, gia, giaodich, ghichu) {
     <div class="info-row"><span class="info-label">Số lượng</span><span class="info-value">${fmt(sl)} ${currentProduct.dvt}</span></div>
     <div class="info-row"><span class="info-label">${isXuat ? 'Giá bán' : 'Giá nhập'}</span><span class="info-value">${fmt(gia)} đ</span></div>
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
+    ${isXuat && phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí chành xe</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
     ${ghichu ? `<div class="info-row"><span class="info-label">Ghi chú</span><span class="info-value">${ghichu}</span></div>` : ''}
   `;
   showScreen('screen-success');
