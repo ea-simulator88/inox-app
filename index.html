@@ -117,7 +117,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
     <label>Mật khẩu</label>
     <input type="password" id="login-pass" placeholder="Nhập mật khẩu..." />
     <div class="error-msg" id="login-error">❌ Sai mật khẩu, thử lại!</div>
-    <button class="btn-primary" onclick="doLogin()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:6px;margin-bottom:2px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Login</button>
+    <button class="btn-primary" onclick="doLogin()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:6px;margin-bottom:2px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Đăng nhập</button>
   </div>
 </div>
 
@@ -195,6 +195,13 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 
     <label id="label-gia">Giá bán (đồng)</label>
     <input type="text" id="form-gia" placeholder="Nhập giá..." inputmode="numeric" oninput="fmtInput(this)" />
+
+    <label>Giao dịch <span style="color:#f44336;">*</span></label>
+    <select id="form-giaodich">
+      <option value="">-- Chọn hình thức --</option>
+      <option value="Tiền mặt">💵 Tiền mặt</option>
+      <option value="Chuyển khoản">🏦 Chuyển khoản</option>
+    </select>
 
     <label>Ghi chú (không bắt buộc)</label>
     <input type="text" id="form-ghichu" placeholder="Tên khách, đơn hàng..." />
@@ -463,6 +470,7 @@ function showForm(product) {
   document.getElementById('btn-nhap').style.display = isOwner ? 'block' : 'none';
   document.getElementById('form-soluong').value = '';
   document.getElementById('form-gia').value = '';
+  document.getElementById('form-giaodich').value = '';
   document.getElementById('form-ghichu').value = '';
   setMode('Xuất');
   showScreen('screen-form');
@@ -492,9 +500,30 @@ function setMode(mode) {
 async function submitForm() {
   const sl = getInputNum('form-soluong');
   const gia = getInputNum('form-gia');
+  const giaodich = document.getElementById('form-giaodich').value;
   const ghichu = document.getElementById('form-ghichu').value;
-  if (!sl || sl <= 0) { alert('Vui lòng nhập số lượng!'); return; }
-  if (!gia || gia <= 0) { alert('Vui lòng nhập giá!'); return; }
+
+  if (!sl || sl <= 0) {
+    document.getElementById('form-soluong').focus();
+    showModal('Thiếu thông tin!', 'Vui lòng nhập Số lượng.', () => {});
+    document.getElementById('modal-yes').style.display = 'none';
+    document.getElementById('modal-no').textContent = 'Đóng';
+    return;
+  }
+  if (!gia || gia <= 0) {
+    document.getElementById('form-gia').focus();
+    showModal('Thiếu thông tin!', currentMode === 'Xuất' ? 'Vui lòng nhập Giá bán.' : 'Vui lòng nhập Giá nhập.', () => {});
+    document.getElementById('modal-yes').style.display = 'none';
+    document.getElementById('modal-no').textContent = 'Đóng';
+    return;
+  }
+  if (!giaodich) {
+    document.getElementById('form-giaodich').focus();
+    showModal('Thiếu thông tin!', 'Vui lòng chọn hình thức Giao dịch.', () => {});
+    document.getElementById('modal-yes').style.display = 'none';
+    document.getElementById('modal-no').textContent = 'Đóng';
+    return;
+  }
 
   if (currentMode === 'Xuất') {
     const giavon = parseNum(currentProduct.giavon);
@@ -502,14 +531,14 @@ async function submitForm() {
       const sub = currentRole === 'owner'
         ? 'Giá vốn: ' + fmt(giavon) + ' đ  •  Giá bán: ' + fmt(gia) + ' đ'
         : 'Giá bán có thể thấp. Bạn có chắc muốn tiếp tục?';
-      showModal('Giá bán thấp hơn giá vốn!', sub, () => doSubmit(sl, gia, ghichu));
+      showModal('Giá bán thấp hơn giá vốn!', sub, () => doSubmit(sl, gia, giaodich, ghichu));
       return;
     }
   }
-  doSubmit(sl, gia, ghichu);
+  doSubmit(sl, gia, giaodich, ghichu);
 }
 
-async function doSubmit(sl, gia, ghichu) {
+async function doSubmit(sl, gia, giaodich, ghichu) {
 
   const btn = document.getElementById('btn-confirm');
   btn.textContent = '⏳ Đang ghi...';
@@ -518,7 +547,7 @@ async function doSubmit(sl, gia, ghichu) {
   const now = new Date();
   const thoiGian = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
   const sheetName = currentMode === 'Xuất' ? 'Xuất' : 'Nhập';
-  const row = [currentProduct.ma, thoiGian, currentProduct.phanloai || '', currentProduct.ten, currentProduct.kichthuoc, currentProduct.dvt, sl, gia, ghichu];
+  const row = [currentProduct.ma, thoiGian, currentProduct.phanloai || '', currentProduct.ten, currentProduct.kichthuoc, currentProduct.dvt, sl, gia, giaodich, ghichu];
 
   try {
     await fetch(SCRIPT_URL, {
@@ -539,6 +568,7 @@ async function doSubmit(sl, gia, ghichu) {
     <div class="info-row"><span class="info-label">Kích thước</span><span class="info-value">${currentProduct.kichthuoc}</span></div>
     <div class="info-row"><span class="info-label">Số lượng</span><span class="info-value">${fmt(sl)} ${currentProduct.dvt}</span></div>
     <div class="info-row"><span class="info-label">${isXuat ? 'Giá bán' : 'Giá nhập'}</span><span class="info-value">${fmt(gia)} đ</span></div>
+    <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
     ${ghichu ? `<div class="info-row"><span class="info-label">Ghi chú</span><span class="info-value">${ghichu}</span></div>` : ''}
   `;
   showScreen('screen-success');
