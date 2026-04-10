@@ -241,7 +241,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 
 </div>
 
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuMnQQXseZ6YtZgv7bOR0V5v0700bq8Vn_kNgpMjAPDX6x8dFmxvWgDsn6ch8hp7dNdg/exec';
 
@@ -635,55 +635,99 @@ document.getElementById('manual-code').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') lookupManual();
 });
 
-let html5QrCode = null;
+// === MULTI-ANGLE QR SCANNER ===
+const _sf = document.createElement('canvas');
+const _sr = document.createElement('canvas');
+const _sfc = _sf.getContext('2d', { willReadFrequently: true });
+const _src = _sr.getContext('2d', { willReadFrequently: true });
+
+let _bd = null;
+try { if ('BarcodeDetector' in window) _bd = new BarcodeDetector({ formats: ['qr_code'] }); } catch(e) {}
+
+let _scanVideo = null;
+let _scanTimer = null;
+let _bdBusy = false;
 
 async function toggleScan() {
   if (scanning) { stopScan(); return; }
   const btn = document.getElementById('btn-scan-main');
   const container = document.getElementById('video-container');
-  scanning = true;
-  container.style.display = 'block';
-  document.getElementById('scan-hint').style.display = 'block';
-  btn.textContent = '\u23F9 D\u1EEBng qu\u00E9t';
-
-  html5QrCode = new Html5Qrcode('video-container');
   try {
-    await html5QrCode.start(
-      { facingMode: 'environment' },
-      {
-        fps: 25,
-        qrbox: (w, h) => ({ width: Math.min(w, h) * 0.85, height: Math.min(w, h) * 0.85 }),
-        aspectRatio: window.innerHeight / window.innerWidth,
-        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
-        rememberLastUsedCamera: false,
-      },
-      (decodedText) => {
-        const trimmed = decodedText.trim().toUpperCase();
-        stopScan();
-        const p = findProduct(trimmed);
-        if (p) { showForm(p); }
-        else { alert('Kh\u00F4ng t\u00ECm th\u1EA5y s\u1EA3n ph\u1EA9m v\u1EDBi m\u00E3: ' + trimmed); }
-      },
-      () => {}
-    );
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    _scanVideo = document.createElement('video');
+    _scanVideo.srcObject = stream;
+    _scanVideo.autoplay = true;
+    _scanVideo.playsInline = true;
+    _scanVideo.muted = true;
+    _scanVideo.style.cssText = 'width:100%;display:block;border-radius:14px;';
+    container.innerHTML = '';
+    container.appendChild(_scanVideo);
+    container.style.display = 'block';
+    document.getElementById('scan-hint').style.display = 'block';
+    btn.textContent = '\u23F9 D\u1EEBng qu\u00E9t';
+    scanning = true;
+    _scanTimer = setInterval(_doScan, 80);
   } catch(e) {
-    scanning = false;
-    container.style.display = 'none';
-    document.getElementById('scan-hint').style.display = 'none';
-    btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M14 17h3M17 14v3"/></svg> Qu\u00E9t m\u00E3 QR';
     alert('Kh\u00F4ng m\u1EDF \u0111\u01B0\u1EE3c camera. Th\u1EED d\u00F9ng nh\u1EADp m\u00E3 th\u1EE7 c\u00F4ng b\u00EAn d\u01B0\u1EDBi.');
   }
 }
 
+function _doScan() {
+  if (!scanning || !_scanVideo || _scanVideo.readyState < 2 || !_scanVideo.videoWidth) return;
+  const vw = _scanVideo.videoWidth, vh = _scanVideo.videoHeight;
+  const scale = Math.min(1, 640 / Math.max(vw, vh));
+  const w = Math.round(vw * scale), h = Math.round(vh * scale);
+  _sf.width = w; _sf.height = h;
+  _sfc.drawImage(_scanVideo, 0, 0, w, h);
+
+  // BarcodeDetector ch\u1EA1y song song (x\u1EED l\u00FD g\u00F3c ngh\u1ECBng r\u1EA5t t\u1ED1t)
+  if (_bd && !_bdBusy) {
+    _bdBusy = true;
+    _bd.detect(_scanVideo).then(c => {
+      _bdBusy = false;
+      if (c.length && scanning) _onScanned(c[0].rawValue);
+    }).catch(() => { _bdBusy = false; });
+  }
+
+  // jsQR th\u1EED 4 g\u00F3c xoay (0\u00B0, 90\u00B0, 180\u00B0, 270\u00B0)
+  for (const deg of [0, 90, 180, 270]) {
+    let img;
+    if (deg === 0) {
+      img = _sfc.getImageData(0, 0, w, h);
+    } else {
+      const swap = deg === 90 || deg === 270;
+      _sr.width = swap ? h : w; _sr.height = swap ? w : h;
+      _src.save();
+      _src.clearRect(0, 0, _sr.width, _sr.height);
+      _src.translate(_sr.width / 2, _sr.height / 2);
+      _src.rotate(deg * Math.PI / 180);
+      _src.drawImage(_sf, -w / 2, -h / 2);
+      _src.restore();
+      img = _src.getImageData(0, 0, _sr.width, _sr.height);
+    }
+    const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
+    if (code && code.data && scanning) { _onScanned(code.data); return; }
+  }
+}
+
+function _onScanned(text) {
+  const trimmed = text.trim().toUpperCase();
+  stopScan();
+  const p = findProduct(trimmed);
+  if (p) showForm(p);
+  else alert('Kh\u00F4ng t\u00ECm th\u1EA5y s\u1EA3n ph\u1EA9m v\u1EDBi m\u00E3: ' + trimmed);
+}
+
 function stopScan() {
   scanning = false;
-  if (html5QrCode) {
-    html5QrCode.stop().then(() => {
-      html5QrCode.clear();
-      html5QrCode = null;
-    }).catch(() => { html5QrCode = null; });
-  }
-  document.getElementById('video-container').style.display = 'none';
+  if (_scanTimer) { clearInterval(_scanTimer); _scanTimer = null; }
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  _scanVideo = null; _bdBusy = false;
+  const container = document.getElementById('video-container');
+  container.innerHTML = '';
+  container.style.display = 'none';
   document.getElementById('scan-hint').style.display = 'none';
   const btn = document.getElementById('btn-scan-main');
   if (btn) btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M14 17h3M17 14v3"/></svg> Qu\u00E9t m\u00E3 QR';
