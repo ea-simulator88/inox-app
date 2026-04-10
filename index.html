@@ -249,7 +249,7 @@ async function doLogin() {
 
   if (!pass) { err.style.display = 'block'; return; }
 
-  loginBtn.innerHTML = '⏳ Đang kiểm tra...';
+  loginBtn.innerHTML = '⏳ Đang đăng nhập...';
   loginBtn.disabled = true;
 
   try {
@@ -318,11 +318,12 @@ async function fetchProductsFromServer() {
     const data = await res.json();
     const fetched = data.slice(1).map(r => ({
       ma: (r[0] || '').toString().trim(),
-      ten: r[1] || '',
-      kichthuoc: r[2] || '',
-      giavon: r[3] || '',
-      dvt: r[4] || 'C\u00E1i',
-      tonkho: r[5] || 0
+      phanloai: r[1] || '',
+      ten: r[2] || '',
+      kichthuoc: r[3] || '',
+      giavon: r[4] || '',
+      dvt: r[5] || 'Cái',
+      tonkho: r[6] || 0
     })).filter(p => p.ma);
     if (fetched.length > 0) {
       products = fetched;
@@ -333,9 +334,9 @@ async function fetchProductsFromServer() {
     if (products.length === 0) {
       usingFallbackProducts = true;
       products = [
-        {ma:'IN001', ten:'B\u00E0n Inox 304', kichthuoc:'50*80*75*1,5', giavon:'450.000 \u0111', dvt:'C\u00E1i', tonkho:10},
-        {ma:'IN002', ten:'B\u00E0n Inox 304', kichthuoc:'60*90*75*1,5', giavon:'500.000 \u0111', dvt:'C\u00E1i', tonkho:5},
-        {ma:'IN003', ten:'K\u1EC7 Inox 304', kichthuoc:'100*120*100', giavon:'1.000.000 \u0111', dvt:'C\u00E1i', tonkho:8},
+        {ma:'IN001', phanloai:'Bàn', ten:'Bàn Inox 304', kichthuoc:'50*80*75*1,5', giavon:'450.000 đ', dvt:'Cái', tonkho:10},
+        {ma:'IN002', phanloai:'Bàn', ten:'Bàn Inox 304', kichthuoc:'60*90*75*1,5', giavon:'500.000 đ', dvt:'Cái', tonkho:5},
+        {ma:'IN003', phanloai:'Kệ', ten:'Kệ Inox 304', kichthuoc:'100*120*100', giavon:'1.000.000 đ', dvt:'Cái', tonkho:8},
       ];
     }
   }
@@ -496,7 +497,7 @@ async function doSubmit(sl, gia, ghichu) {
   const now = new Date();
   const thoiGian = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
   const sheetName = currentMode === 'Xuất' ? 'Xuất' : 'Nhập';
-  const row = [currentProduct.ma, thoiGian, currentProduct.ten, currentProduct.kichthuoc, currentProduct.dvt, sl, gia, ghichu];
+  const row = [currentProduct.ma, thoiGian, currentProduct.phanloai || '', currentProduct.ten, currentProduct.kichthuoc, currentProduct.dvt, sl, gia, ghichu];
 
   try {
     await fetch(SCRIPT_URL, {
