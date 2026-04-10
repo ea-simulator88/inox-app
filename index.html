@@ -658,6 +658,10 @@ async function toggleScan() {
     });
     _scanVideo = document.createElement('video');
     _scanVideo.srcObject = stream;
+    // iOS Safari requires these as attributes AND properties
+    _scanVideo.setAttribute('autoplay', '');
+    _scanVideo.setAttribute('playsinline', '');
+    _scanVideo.setAttribute('muted', '');
     _scanVideo.autoplay = true;
     _scanVideo.playsInline = true;
     _scanVideo.muted = true;
@@ -668,6 +672,8 @@ async function toggleScan() {
     document.getElementById('scan-hint').style.display = 'block';
     btn.textContent = '\u23F9 D\u1EEBng qu\u00E9t';
     scanning = true;
+    // iOS requires explicit play() call — autoplay alone is not enough
+    try { await _scanVideo.play(); } catch(pe) {}
     _scanTimer = setInterval(_doScan, 80);
   } catch(e) {
     alert('Kh\u00F4ng m\u1EDF \u0111\u01B0\u1EE3c camera. Th\u1EED d\u00F9ng nh\u1EADp m\u00E3 th\u1EE7 c\u00F4ng b\u00EAn d\u01B0\u1EDBi.');
@@ -675,7 +681,7 @@ async function toggleScan() {
 }
 
 function _doScan() {
-  if (!scanning || !_scanVideo || _scanVideo.readyState < 2 || !_scanVideo.videoWidth) return;
+  if (!scanning || !_scanVideo || !_scanVideo.videoWidth || !_scanVideo.videoHeight) return;
   const vw = _scanVideo.videoWidth, vh = _scanVideo.videoHeight;
   const scale = Math.min(1, 640 / Math.max(vw, vh));
   const w = Math.round(vw * scale), h = Math.round(vh * scale);
