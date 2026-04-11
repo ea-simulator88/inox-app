@@ -749,6 +749,20 @@ function removeDiacritics(str) {
   return (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 }
 
+function genMaSP(ten) {
+  const words = removeDiacritics(ten).trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return '';
+  const prefix = words[0].slice(0, 3).toUpperCase();
+  let max = 0;
+  (products || []).forEach(p => {
+    if (p.ma && p.ma.toUpperCase().startsWith(prefix)) {
+      const num = parseInt(p.ma.slice(prefix.length)) || 0;
+      if (num > max) max = num;
+    }
+  });
+  return prefix + String(max + 1).padStart(3, '0');
+}
+
 function filterProductList() {
   const q = removeDiacritics(document.getElementById('manual-code').value || '').trim();
   if (!q) { renderProductList(products); return; }
@@ -1318,16 +1332,21 @@ function renderManageProductList() {
   `).join('');
 }
 
-function openProductForm(mode, product) {
+async function openProductForm(mode, product) {
   productFormMode = mode;
   editingProduct = product || null;
   document.getElementById('product-form-title').textContent = mode === 'add' ? 'Thêm SP mới' : 'Sửa sản phẩm';
+
+  if (mode === 'add') {
+    await fetchProductsFromServer();
+  }
+
   const fieldsEl = document.getElementById('product-form-fields');
   fieldsEl.innerHTML = CONFIG.product_columns.filter(col => col.input_type !== 'formula').map(col => {
     const raw = product ? (product[col.field] !== undefined ? product[col.field] : '') : '';
     const isNum = col.input_type === 'number';
     const displayVal = isNum && raw !== '' ? (Number(raw) > 0 ? Number(raw).toLocaleString('en-US') : '') : String(raw).replace(/"/g, '&quot;');
-    const locked = mode === 'edit' && col.field === 'ma';
+    const locked = col.field === 'ma';
     const required = col.field === 'ma' || col.field === 'ten';
     return `
       <label style="margin-top:12px;">${col.form_label || col.sheet_name}${required ? ' <span style="color:#f44336;">*</span>' : ''}</label>
@@ -1339,6 +1358,18 @@ function openProductForm(mode, product) {
         ${locked ? 'readonly style="background:#f5f5f5;color:#888;"' : ''} />
     `;
   }).join('');
+
+  if (mode === 'add') {
+    const maEl = document.getElementById('pf_ma');
+    const tenEl = document.getElementById('pf_ten');
+    if (tenEl && maEl) {
+      tenEl.addEventListener('input', function() {
+        if (this.value.trim().length >= 1) maEl.value = genMaSP(this.value);
+        else maEl.value = '';
+      });
+    }
+  }
+
   showScreen('screen-product-form');
 }
 
