@@ -733,6 +733,16 @@ function fmtInput(el) {
 
 function fmt(n) { return Number(n || 0).toLocaleString('en-US'); }
 
+function fmtTime(d) {
+  d = d || new Date();
+  const Y  = d.getFullYear();
+  const M  = String(d.getMonth() + 1).padStart(2, '0');
+  const D  = String(d.getDate()).padStart(2, '0');
+  const HH = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${Y}-${M}-${D} ${HH}:${mm}`;
+}
+
 function fmtMoney(val) {
   if (typeof val === 'string') {
     const num = parseFloat(val.replace(/[^\d]/g, ''));
@@ -1022,7 +1032,7 @@ async function doSubmitCart(mode, giaodich, ghichu) {
   btnXuat.disabled = true; btnXuat.textContent = '⏳ Đang ghi...';
 
   const now = new Date();
-  const thoiGian = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const thoiGian = fmtTime(now);
 
   const totalAmount = cart.reduce((s, i) => s + i.sl * i.gia, 0);
   const totalItems = cart.length;
@@ -1205,7 +1215,7 @@ async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
   btn.disabled = true;
 
   const now = new Date();
-  const thoiGian = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const thoiGian = fmtTime(now);
   const sheetName = currentMode === 'Xuất' ? 'Xuất' : 'Nhập';
   const cols = currentMode === 'Xuất' ? CONFIG.export_columns : CONFIG.import_columns;
   const row = cols.map(col => {
@@ -1421,7 +1431,7 @@ async function submitProductForm() {
         });
         const giavon = parseInt((giavonEl ? giavonEl.value.replace(/,/g, '') : '') || '0') || 0;
         const now = new Date();
-        const ts = now.toLocaleString('vi-VN');
+        const ts = fmtTime(now);
         const importRow = CONFIG.import_columns.map(col => {
           if (col.value === 'auto_timestamp') return ts;
           if (col.value === 'form.soluong')   return tonkho;
@@ -1677,7 +1687,7 @@ async function dtSubmit() {
   btn.textContent = '⏳ Đang ghi...';
 
   const now = new Date();
-  const thoiGian = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const thoiGian = fmtTime(now);
   const cols = dtMode === 'Xuất' ? CONFIG.export_columns : CONFIG.import_columns;
 
   const rows = dtCart.map((item, idx) => {
