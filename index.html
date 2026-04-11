@@ -136,6 +136,42 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 /* Toast */
 .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; z-index: 2000; white-space: nowrap; pointer-events: none; }
 </style>
+
+<!-- ====== CONFIG - ANH JAMES CHỈ SỬA TRONG KHỐI NÀY ====== -->
+<script id="app-config">
+const CONFIG = {
+  product_columns: [
+    { field: "ma",        sheet_name: "Mã SP",               show: false, owner_only: false },
+    { field: "ten",       sheet_name: "Tên SP",              show: true,  owner_only: false },
+    { field: "kichthuoc", sheet_name: "Kích thước DxRxCxS",  show: true,  owner_only: false },
+    { field: "giavon",    sheet_name: "Giá vốn",             show: true,  owner_only: true  },
+    { field: "dvt",       sheet_name: "Đơn vị tính",         show: true,  owner_only: false },
+    { field: "tonkho",    sheet_name: "Tồn kho",             show: true,  owner_only: false },
+  ],
+  export_columns: [
+    { sheet_name: "Mã SP",       value: "product.ma"        },
+    { sheet_name: "Thời gian",   value: "auto_timestamp"    },
+    { sheet_name: "Mặt hàng",    value: "product.ten"       },
+    { sheet_name: "Kích thước",  value: "product.kichthuoc" },
+    { sheet_name: "Đơn vị tính", value: "product.dvt"       },
+    { sheet_name: "Số lượng",    value: "form.soluong"      },
+    { sheet_name: "Giá bán",     value: "form.gia"          },
+    { sheet_name: "Ghi chú",     value: "form.ghichu"       },
+  ],
+  import_columns: [
+    { sheet_name: "Mã SP",       value: "product.ma"        },
+    { sheet_name: "Thời gian",   value: "auto_timestamp"    },
+    { sheet_name: "Mặt hàng",    value: "product.ten"       },
+    { sheet_name: "Kích thước",  value: "product.kichthuoc" },
+    { sheet_name: "Đơn vị tính", value: "product.dvt"       },
+    { sheet_name: "Số lượng",    value: "form.soluong"      },
+    { sheet_name: "Giá nhập",    value: "form.gia"          },
+    { sheet_name: "Ghi chú",     value: "form.ghichu"       },
+  ]
+};
+</script>
+<!-- ======================================================== -->
+
 </head>
 <body>
 <div id="app">
@@ -417,16 +453,32 @@ async function fetchProductsFromServer() {
     const res = await fetch(SCRIPT_URL + '?action=get', { signal: controller.signal, cache: 'no-store' });
     clearTimeout(timeoutId);
     const data = await res.json();
-    const fetched = data.slice(1).map(r => ({
-      ma: (r[0] || '').toString().trim(),
-      nhanHieu: r[1] || '',
-      phanloai: r[2] || '',
-      ten: r[3] || '',
-      kichthuoc: r[4] || '',
-      giavon: r[5] || '',
-      dvt: r[6] || 'Cái',
-      tonkho: r[7] || 0
-    })).filter(p => p.ma);
+
+    // Đọc header động từ data[0], map theo CONFIG.product_columns
+    const headers = (data[0] || []).map(h => (h || '').toString().trim());
+    const hIdx = name => headers.indexOf(name);
+    const colIdx = {};
+    CONFIG.product_columns.forEach(col => {
+      const i = hIdx(col.sheet_name);
+      if (i !== -1) colIdx[col.field] = i;
+    });
+    // nhanHieu & phanloai dùng trong search/render, không có trong CONFIG
+    const nhanHieuIdx = hIdx('Nhãn hiệu');
+    const phanLoaiIdx = hIdx('Phân loại');
+
+    const fetched = data.slice(1).map(r => {
+      const p = {};
+      CONFIG.product_columns.forEach(col => {
+        const i = colIdx[col.field];
+        p[col.field] = i !== undefined ? (r[i] || '') : '';
+      });
+      p.ma       = (p.ma || '').toString().trim();
+      p.dvt      = p.dvt || 'Cái';
+      p.tonkho   = Number(colIdx.tonkho !== undefined ? r[colIdx.tonkho] : 0) || 0;
+      p.nhanHieu = nhanHieuIdx !== -1 ? (r[nhanHieuIdx] || '') : '';
+      p.phanloai = phanLoaiIdx !== -1 ? (r[phanLoaiIdx] || '') : '';
+      return p;
+    }).filter(p => p.ma);
     if (fetched.length > 0) {
       products = fetched;
       localStorage.setItem('products_cache', JSON.stringify(products));
@@ -892,6 +944,26 @@ async function submitForm() {
   doSubmit(sl, gia, giaodich, ghichu, phiChanh);
 }
 
+function buildRow(columns, ctx) {
+  return columns.map(col => {
+    switch (col.value) {
+      case 'product.ma':        return ctx.product.ma || '';
+      case 'product.ten':       return ctx.product.ten || '';
+      case 'product.kichthuoc': return ctx.product.kichthuoc || '';
+      case 'product.dvt':       return ctx.product.dvt || '';
+      case 'product.nhanHieu':  return ctx.product.nhanHieu || '';
+      case 'product.phanloai':  return ctx.product.phanloai || '';
+      case 'auto_timestamp':    return ctx.thoiGian;
+      case 'form.soluong':      return ctx.sl;
+      case 'form.gia':          return ctx.gia;
+      case 'form.ghichu':       return ctx.ghichu || '';
+      case 'form.giaodich':     return ctx.giaodich || '';
+      case 'form.phiChanh':     return ctx.phiChanh || '';
+      default:                  return '';
+    }
+  });
+}
+
 async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
   const btn = document.getElementById('btn-confirm');
   btn.textContent = '⏳ Đang ghi...';
@@ -900,7 +972,8 @@ async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
   const now = new Date();
   const thoiGian = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   const sheetName = currentMode === 'Xuất' ? 'Xuất' : 'Nhập';
-  const row = [currentProduct.ma, thoiGian, currentProduct.nhanHieu || '', currentProduct.phanloai || '', currentProduct.ten, currentProduct.kichthuoc, currentProduct.dvt, sl, gia, giaodich, phiChanh || '', ghichu];
+  const columns = currentMode === 'Xuất' ? CONFIG.export_columns : CONFIG.import_columns;
+  const row = buildRow(columns, { product: currentProduct, sl, gia, giaodich, ghichu, phiChanh, thoiGian });
 
   try {
     await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sheet: sheetName, row }) });
