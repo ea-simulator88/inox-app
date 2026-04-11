@@ -580,6 +580,8 @@ function doLogout() {
   products = [];
   cart = [];
   cartGiaodich = 'Tiền mặt';
+  dtCart = [];
+  dtMode = 'Xuất';
   localStorage.removeItem('products_cache');
   document.getElementById('login-pass').value = '';
   updateCartBadge();
@@ -1350,6 +1352,229 @@ function confirmDeleteProduct(product) {
     showToast('🗑️ Đã xóa: ' + product.ten);
   });
   document.getElementById('modal-yes').textContent = 'Xóa';
+}
+
+// ===== DESKTOP LAYOUT =====
+let dtCart = [];
+let dtMode = 'Xuất';
+
+function dtInitLayout() {
+  const isOwner = currentRole === 'owner';
+  const badge = isOwner ? 'Admin' : 'Staff';
+  const cls = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
+  document.getElementById('dt-role-badge').textContent = badge;
+  document.getElementById('dt-role-badge').className = cls;
+  document.getElementById('dt-form-badge').textContent = badge;
+  document.getElementById('dt-form-badge').className = cls;
+  // hide Nhập button for staff
+  document.getElementById('dt-btn-nhap').style.display = isOwner ? '' : 'none';
+  dtCart = [];
+  dtMode = 'Xuất';
+  dtSetMode('Xuất');
+  dtRenderProducts(products);
+  dtRenderCart();
+}
+
+function dtFilterProducts() {
+  const q = removeDiacritics(document.getElementById('dt-search').value || '').trim();
+  if (!q) { dtRenderProducts(products); return; }
+  const filtered = products.filter(p =>
+    removeDiacritics(p.ma).includes(q) ||
+    removeDiacritics(p.ten).includes(q) ||
+    removeDiacritics(p.kichthuoc).includes(q) ||
+    removeDiacritics(p.ncc).includes(q) ||
+    removeDiacritics(p.motaSP).includes(q)
+  );
+  dtRenderProducts(filtered);
+}
+
+function dtRenderProducts(list) {
+  const el = document.getElementById('dt-product-list');
+  if (!list || list.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:#aaa;font-size:13px;padding:16px;">Không tìm thấy</div>';
+    return;
+  }
+  el.innerHTML = list.map(p => {
+    const inCart = dtCart.some(i => i.product.ma === p.ma);
+    const low = (p.tonkho || 0) <= 3;
+    return `<div class="dt-product-item${inCart ? ' in-cart' : ''}"
+      style="padding:8px 10px;border-radius:8px;border:1px solid ${inCart ? '#a5d6a7' : 'transparent'};
+      margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;
+      background:${inCart ? '#e8f5e9' : '#fff'};">
+      <div style="flex:1;min-width:0;" onclick="dtAddToCart(products.find(x=>x.ma==='${p.ma}'))">
+        <div style="font-size:11px;color:#aaa;">${p.ma}${p.ncc ? ' · ' + p.ncc : ''}</div>
+        <div style="font-size:13px;font-weight:600;margin:1px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.ten}</div>
+        <div style="font-size:11px;color:#aaa;">${[p.kichthuoc, p.motaSP].filter(Boolean).join(' · ')}</div>
+      </div>
+      <div style="flex-shrink:0;margin-left:8px;text-align:right;">
+        <div style="font-size:12px;font-weight:600;color:${low ? '#f44336' : '#4CAF50'};">Tồn: ${fmt(p.tonkho)}</div>
+        <button onclick="dtAddToCart(products.find(x=>x.ma==='${p.ma}'))"
+          style="margin-top:4px;padding:4px 10px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;
+          border:1.5px solid ${inCart ? '#4CAF50' : '#1565c0'};
+          background:${inCart ? '#e8f5e9' : '#e3f2fd'};
+          color:${inCart ? '#2e7d32' : '#1565c0'};">
+          ${inCart ? '✓ Đã thêm' : '+ Thêm'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function dtAddToCart(product) {
+  if (!product) return;
+  if (dtCart.some(i => i.product.ma === product.ma)) return;
+  dtCart.push({ product, sl: 1, gia: 0 });
+  dtRenderCart();
+  dtRenderProducts(products);
+}
+
+function dtRemoveFromCart(ma) {
+  dtCart = dtCart.filter(i => i.product.ma !== ma);
+  dtRenderCart();
+  dtRenderProducts(products);
+}
+
+function dtUpdateCart(ma, field, value) {
+  const item = dtCart.find(i => i.product.ma === ma);
+  if (!item) return;
+  const num = parseInt((value || '').replace(/[^0-9]/g, '')) || 0;
+  if (field === 'sl') item.sl = num < 1 ? 1 : num;
+  if (field === 'gia') item.gia = num;
+  // update subtotal display
+  const sub = item.sl * item.gia;
+  const subEl = document.getElementById('dt-sub-' + ma.replace(/[^a-zA-Z0-9]/g, '_'));
+  if (subEl) subEl.textContent = sub > 0 ? fmt(sub) + ' đ' : '—';
+  // update total
+  const total = dtCart.reduce((s, i) => s + i.sl * i.gia, 0);
+  document.getElementById('dt-total').textContent = fmt(total) + ' đ';
+}
+
+function dtRenderCart() {
+  const listEl = document.getElementById('dt-cart-list');
+  const emptyEl = document.getElementById('dt-cart-empty');
+  const total = dtCart.reduce((s, i) => s + i.sl * i.gia, 0);
+  document.getElementById('dt-cart-count').textContent = dtCart.length + ' SP';
+  document.getElementById('dt-total').textContent = fmt(total) + ' đ';
+  const confirmBtn = document.getElementById('dt-btn-confirm');
+  confirmBtn.textContent = `✅ Xác nhận ${dtMode} — ${dtCart.length} SP`;
+
+  if (dtCart.length === 0) {
+    emptyEl.style.display = 'flex';
+    // clear only non-empty items
+    const items = listEl.querySelectorAll('.dt-cart-item');
+    items.forEach(el => el.remove());
+    return;
+  }
+  emptyEl.style.display = 'none';
+  listEl.innerHTML = '';
+  dtCart.forEach(item => {
+    const p = item.product;
+    const safeId = p.ma.replace(/[^a-zA-Z0-9]/g, '_');
+    const giaFmt = item.gia > 0 ? Number(item.gia).toLocaleString('en-US') : '';
+    const sub = item.sl * item.gia;
+    const div = document.createElement('div');
+    div.className = 'dt-cart-item';
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.ten}</div>
+          <div style="font-size:11px;color:#aaa;">${p.ma}${p.ncc ? ' · ' + p.ncc : ''}</div>
+          ${currentRole === 'owner' && p.giavon ? `<div style="font-size:11px;color:#f44336;">Vốn: ${fmtMoney(p.giavon)}</div>` : ''}
+        </div>
+        <button onclick="dtRemoveFromCart('${p.ma}')"
+          style="background:none;border:none;color:#f44336;font-size:16px;cursor:pointer;padding:0 2px;flex-shrink:0;">✕</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <input type="text" inputmode="numeric" value="${item.sl}"
+          style="width:44px;padding:5px 4px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;text-align:center;outline:none;"
+          oninput="fmtInput(this);dtUpdateCart('${p.ma}','sl',this.value)" />
+        <span style="font-size:12px;color:#aaa;">×</span>
+        <input type="text" inputmode="numeric" value="${giaFmt}"
+          placeholder="Nhập giá..."
+          style="flex:1;padding:5px 7px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;"
+          oninput="fmtInput(this);dtUpdateCart('${p.ma}','gia',this.value)" />
+        <span style="font-size:12px;color:#aaa;">=</span>
+        <span id="dt-sub-${safeId}" style="font-size:12px;font-weight:600;color:#4CAF50;min-width:55px;text-align:right;">
+          ${sub > 0 ? fmt(sub) + ' đ' : '—'}
+        </span>
+      </div>`;
+    listEl.appendChild(div);
+  });
+}
+
+function dtSetMode(mode) {
+  dtMode = mode;
+  const bx = document.getElementById('dt-btn-xuat');
+  const bn = document.getElementById('dt-btn-nhap');
+  if (mode === 'Xuất') {
+    bx.className = 'toggle-btn active-xuat';
+    bn.className = 'toggle-btn';
+  } else {
+    bn.className = 'toggle-btn active-nhap';
+    bx.className = 'toggle-btn';
+    document.getElementById('dt-phichanh').value = '';
+  }
+  document.getElementById('dt-row-phichanh').style.display = mode === 'Xuất' ? 'block' : 'none';
+  document.getElementById('dt-confirm-hint').textContent = `Mỗi SP ghi 1 dòng vào sheet ${mode}`;
+  const btn = document.getElementById('dt-btn-confirm');
+  if (btn) {
+    btn.className = 'btn-confirm' + (mode === 'Xuất' ? ' xuat' : '');
+    btn.textContent = `✅ Xác nhận ${mode} — ${dtCart.length} SP`;
+  }
+}
+
+async function dtSubmit() {
+  if (dtCart.length === 0) { showInfoModal('Giỏ trống!', 'Thêm ít nhất 1 sản phẩm.'); return; }
+  const giaodich = document.getElementById('dt-giaodich').value;
+  const ghichu = document.getElementById('dt-ghichu').value.trim();
+  const phiChanh = parseInt((document.getElementById('dt-phichanh').value || '').replace(/[^0-9]/g,'')) || 0;
+
+  for (const item of dtCart) {
+    if (!item.sl || item.sl <= 0) { showInfoModal('Thiếu SL!', 'Vui lòng nhập số lượng cho: ' + item.product.ten); return; }
+    if (!item.gia || item.gia <= 0) { showInfoModal('Thiếu giá!', (dtMode === 'Xuất' ? 'Giá bán' : 'Giá nhập') + ' cho: ' + item.product.ten); return; }
+  }
+  if (!giaodich) { showInfoModal('Thiếu thông tin!', 'Vui lòng chọn hình thức Giao dịch.'); return; }
+
+  const btn = document.getElementById('dt-btn-confirm');
+  btn.disabled = true;
+  btn.textContent = '⏳ Đang ghi...';
+
+  const now = new Date();
+  const thoiGian = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const cols = dtMode === 'Xuất' ? CONFIG.export_columns : CONFIG.import_columns;
+
+  const sends = dtCart.map(item => {
+    const row = cols.map(col => {
+      if (col.value === 'auto_timestamp')   return thoiGian;
+      if (col.value === 'form.soluong')     return item.sl;
+      if (col.value === 'form.gia')         return item.gia;
+      if (col.value === 'form.giaodich')    return giaodich;
+      if (col.value === 'form.phichanh')    return dtMode === 'Xuất' ? (phiChanh || '') : '';
+      if (col.value === 'form.ghichu')      return ghichu;
+      if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
+      return '';
+    });
+    return fetch(SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sheet: dtMode, row })
+    }).catch(() => {});
+  });
+
+  await Promise.all(sends);
+
+  const count = dtCart.length;
+  const modeLabel = dtMode;
+  dtCart = [];
+  document.getElementById('dt-giaodich').value = '';
+  document.getElementById('dt-phichanh').value = '';
+  document.getElementById('dt-ghichu').value = '';
+
+  btn.disabled = false;
+  dtSetMode(dtMode);
+  dtRenderCart();
+  fetchProductsFromServer().then(() => dtRenderProducts(products));
+  showToast(`✅ Đã ghi ${count} SP vào sheet ${modeLabel}!`);
 }
 
 function stopScan() {
