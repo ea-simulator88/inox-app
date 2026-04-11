@@ -175,6 +175,7 @@ const CONFIG = {
     { sheet_name: "Giá bán",      value: "form.gia"          },
     { sheet_name: "Giao dịch",    value: "form.giaodich"     },
     { sheet_name: "Phí chành xe", value: "form.phichanh"     },
+    { sheet_name: "Tổng",         value: "sheet_formula"     },
     { sheet_name: "Ghi chú",      value: "form.ghichu"       },
   ],
   import_columns: [
@@ -189,6 +190,7 @@ const CONFIG = {
     { sheet_name: "Giá nhập",     value: "form.gia"          },
     { sheet_name: "Giao dịch",    value: "form.giaodich"     },
     { sheet_name: "Phí chành xe", value: "form.phichanh"     },
+    { sheet_name: "Tổng",         value: "sheet_formula"     },
     { sheet_name: "Ghi chú",      value: "form.ghichu"       },
   ]
 };
@@ -440,7 +442,7 @@ const CONFIG = {
   <div style="display:flex;gap:12px;flex:1;overflow:hidden;min-height:0;">
 
     <!-- CỘT TRÁI: danh sách SP -->
-    <div style="width:450px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;height:100%;flex-shrink:0;">
+    <div style="width:650px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;height:100%;flex-shrink:0;">
       <div style="padding:12px 14px;border-bottom:1px solid #f0f0f0;flex-shrink:0;">
         <div style="font-size:14px;font-weight:600;margin-bottom:8px;">📦 Sản phẩm</div>
         <input type="text" id="dt-search" placeholder="Tìm mã hoặc tên..."
@@ -451,7 +453,7 @@ const CONFIG = {
     </div>
 
     <!-- CỘT GIỮA: giỏ hàng -->
-    <div style="width:450px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;height:100%;flex-shrink:0;">
+    <div style="width:850px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;height:100%;flex-shrink:0;">
       <div style="padding:12px 14px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
         <div style="font-size:14px;font-weight:600;">🛒 Giỏ hàng</div>
         <span id="dt-cart-count" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#ffebee;color:#c62828;">0 SP</span>
@@ -1088,7 +1090,7 @@ function setMode(mode) {
   const bn = document.getElementById('btn-nhap');
   const lbl = document.getElementById('label-gia');
   const bc = document.getElementById('btn-confirm');
-  document.getElementById('row-phichanh').style.display = mode === 'Xuất' ? 'block' : 'none';
+  document.getElementById('row-phichanh').style.display = 'block';
   if (mode === 'Xuất') {
     bx.className = 'toggle-btn active-xuat';
     bn.className = 'toggle-btn';
@@ -1178,7 +1180,7 @@ async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
     if (col.value === 'form.soluong')     return sl;
     if (col.value === 'form.gia')         return gia;
     if (col.value === 'form.giaodich')    return giaodich;
-    if (col.value === 'form.phichanh')    return currentMode === 'Xuất' ? (phiChanh || '') : '';
+    if (col.value === 'form.phichanh')    return phiChanh || '';
     if (col.value === 'form.ghichu')      return ghichu || '';
     if (col.value.startsWith('product.')) {
       const key = col.value.replace('product.', '');
@@ -1595,7 +1597,7 @@ function dtSetMode(mode) {
     bx.className = 'toggle-btn';
     document.getElementById('dt-phichanh').value = '';
   }
-  document.getElementById('dt-row-phichanh').style.display = mode === 'Xuất' ? 'block' : 'none';
+  document.getElementById('dt-row-phichanh').style.display = 'block';
   document.getElementById('dt-confirm-hint').textContent = `Mỗi SP ghi 1 dòng vào sheet ${mode}`;
   const btn = document.getElementById('dt-btn-confirm');
   if (btn) {
@@ -1630,7 +1632,7 @@ async function dtSubmit() {
       if (col.value === 'form.soluong')     return item.sl;
       if (col.value === 'form.gia')         return item.gia;
       if (col.value === 'form.giaodich')    return giaodich;
-      if (col.value === 'form.phichanh')    return (idx === 0 && dtMode === 'Xuất') ? (phiChanh || '') : '';
+      if (col.value === 'form.phichanh')    return idx === 0 ? (phiChanh || '') : '';
       if (col.value === 'form.ghichu')      return ghichu;
       if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
       return '';
