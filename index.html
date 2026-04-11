@@ -159,6 +159,7 @@ const CONFIG = {
     { field: "kichthuoc", sheet_name: "Kích thước",     form_label: "Kích thước",   show: true,  owner_only: false, input_type: "text"    },
     { field: "motaSP",    sheet_name: "Mô tả Sp",       form_label: "Mô tả SP",     show: true,  owner_only: false, input_type: "text"    },
     { field: "giavon",    sheet_name: "Giá vốn",        form_label: "Giá vốn",      show: true,  owner_only: true,  input_type: "number"  },
+    { field: "giasi",     sheet_name: "Giá sỉ",         form_label: "Giá sỉ",       show: true,  owner_only: true,  input_type: "number"  },
     { field: "dvt",       sheet_name: "Đơn vị tính",    form_label: "Đơn vị tính",  show: true,  owner_only: false, input_type: "text"    },
     { field: "tonkho",    sheet_name: "Tồn kho",        form_label: "Số lượng",     show: true,  owner_only: true,  input_type: "number"  },
     { field: "qr",        sheet_name: "QR",             form_label: "QR",           show: false, owner_only: false, input_type: "formula" },
@@ -284,6 +285,10 @@ const CONFIG = {
     <div class="info-row" id="row-giavon">
       <span class="info-label">Giá vốn</span>
       <span class="info-value red" id="form-giavon"></span>
+    </div>
+    <div class="info-row" id="row-giasi">
+      <span class="info-label">Giá sỉ</span>
+      <span class="info-value" style="color:#1565c0;" id="form-giasi"></span>
     </div>
     <div class="info-row">
       <span class="info-label">Đơn vị tính</span>
@@ -885,7 +890,11 @@ function renderCart() {
           <div class="cart-item-name">${item.product.ten}</div>
           <div class="cart-item-size">${item.product.ma}${item.product.ncc ? ' · ' + item.product.ncc : ''}</div>
           ${[item.product.kichthuoc, item.product.motaSP].filter(Boolean).length ? `<div style="font-size:12px;color:#aaa;margin-top:1px;">${[item.product.kichthuoc, item.product.motaSP].filter(Boolean).join(' · ')}</div>` : ''}
-          ${currentRole === 'owner' && item.product.giavon ? `<div style="font-size:12px;color:#f44336;margin-top:3px;font-weight:600;">Giá vốn: ${fmtMoney(item.product.giavon)}</div>` : ''}
+          ${currentRole === 'owner'
+            ? (currentMode === 'Xuất'
+                ? (item.product.giasi ? `<div style="font-size:12px;color:#1565c0;margin-top:3px;font-weight:600;">Giá sỉ: ${fmtMoney(item.product.giasi)}</div>` : '')
+                : (item.product.giavon ? `<div style="font-size:12px;color:#f44336;margin-top:3px;font-weight:600;">Giá vốn: ${fmtMoney(item.product.giavon)}</div>` : ''))
+            : ''}
         </div>
         <button class="btn-delete" onclick="removeFromCart(${idx})">🗑</button>
       </div>
@@ -1072,8 +1081,8 @@ function showForm(product) {
   const isOwner = currentRole === 'owner';
   document.getElementById('form-badge').textContent = isOwner ? 'Admin' : 'Staff';
   document.getElementById('form-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
-  document.getElementById('row-giavon').style.display = isOwner ? 'flex' : 'none';
   document.getElementById('form-giavon').textContent = fmtMoney(product.giavon);
+  document.getElementById('form-giasi').textContent = fmtMoney(product.giasi);
   document.getElementById('btn-nhap').style.display = isOwner ? '' : 'none';
   document.getElementById('form-soluong').value = '';
   document.getElementById('form-gia').value = '';
@@ -1091,12 +1100,15 @@ function setMode(mode) {
   const lbl = document.getElementById('label-gia');
   const bc = document.getElementById('btn-confirm');
   document.getElementById('row-phichanh').style.display = 'block';
+  const isOwner = currentRole === 'owner';
   if (mode === 'Xuất') {
     bx.className = 'toggle-btn active-xuat';
     bn.className = 'toggle-btn';
     lbl.innerHTML = 'Giá bán (đồng) <span style="color:#f44336;">*</span>';
     bc.textContent = '✅ Xác nhận Xuất hàng';
     bc.className = 'btn-confirm xuat';
+    document.getElementById('row-giavon').style.display = 'none';
+    document.getElementById('row-giasi').style.display = isOwner ? 'flex' : 'none';
   } else {
     bn.className = 'toggle-btn active-nhap';
     bx.className = 'toggle-btn';
@@ -1104,7 +1116,10 @@ function setMode(mode) {
     bc.textContent = '✅ Xác nhận Nhập hàng';
     bc.className = 'btn-confirm';
     document.getElementById('form-phichanh').value = '';
+    document.getElementById('row-giavon').style.display = isOwner ? 'flex' : 'none';
+    document.getElementById('row-giasi').style.display = 'none';
   }
+  if (typeof renderCart === 'function') renderCart();
 }
 
 function getInputNum(id) {
@@ -1555,8 +1570,11 @@ function dtRenderCart() {
     const safeId = p.ma.replace(/[^a-zA-Z0-9]/g, '_');
     const giaFmt = item.gia > 0 ? Number(item.gia).toLocaleString('en-US') : '';
     const sub = item.sl * item.gia;
-    const gv = currentRole === 'owner' && p.giavon
-      ? `<div style="font-size:11px;color:#f44336;">Vốn: ${fmtMoney(p.giavon)}</div>` : '';
+    const gv = currentRole === 'owner'
+      ? (dtMode === 'Xuất'
+          ? (p.giasi ? `<div style="font-size:11px;color:#1565c0;">Giá sỉ: ${fmtMoney(p.giasi)}</div>` : '')
+          : (p.giavon ? `<div style="font-size:11px;color:#f44336;">Vốn: ${fmtMoney(p.giavon)}</div>` : ''))
+      : '';
     return `<div class="dt-cart-item">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
         <div style="flex:1;min-width:0;">
@@ -1599,6 +1617,7 @@ function dtSetMode(mode) {
   }
   document.getElementById('dt-row-phichanh').style.display = 'block';
   document.getElementById('dt-confirm-hint').textContent = `Mỗi SP ghi 1 dòng vào sheet ${mode}`;
+  dtRenderCart();
   const btn = document.getElementById('dt-btn-confirm');
   if (btn) {
     btn.className = 'btn-confirm' + (mode === 'Xuất' ? ' xuat' : '');
