@@ -175,6 +175,7 @@ const CONFIG = {
     { sheet_name: "Giá bán",      value: "form.gia"          },
     { sheet_name: "Giao dịch",    value: "form.giaodich"     },
     { sheet_name: "Phí chành xe", value: "form.phichanh"     },
+    { sheet_name: "Tổng",         value: "sheet_formula"     },
     { sheet_name: "Ghi chú",      value: "form.ghichu"       },
   ],
   import_columns: [
@@ -189,6 +190,7 @@ const CONFIG = {
     { sheet_name: "Giá nhập",     value: "form.gia"          },
     { sheet_name: "Giao dịch",    value: "form.giaodich"     },
     { sheet_name: "Phí chành xe", value: "form.phichanh"     },
+    { sheet_name: "Tổng",         value: "sheet_formula"     },
     { sheet_name: "Ghi chú",      value: "form.ghichu"       },
   ]
 };
@@ -998,7 +1000,7 @@ async function doSubmitCart(mode, giaodich, ghichu) {
   const totalAmount = cart.reduce((s, i) => s + i.sl * i.gia, 0);
   const totalItems = cart.length;
 
-  const sends = cart.map(item => fetch(SCRIPT_URL, {
+  const sends = cart.map((item) => fetch(SCRIPT_URL, {
     method: 'POST',
     mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
@@ -1008,7 +1010,7 @@ async function doSubmitCart(mode, giaodich, ghichu) {
         item.product.ma, thoiGian,
         item.product.nhanHieu || '', item.product.phanloai || '',
         item.product.ten, item.product.kichthuoc, item.product.dvt,
-        item.sl, item.gia, giaodich, '', ghichu
+        item.sl, item.gia, giaodich, '', '', ghichu
       ]
     })
   }).catch(() => {}));
@@ -1624,13 +1626,13 @@ async function dtSubmit() {
   const thoiGian = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   const cols = dtMode === 'Xuất' ? CONFIG.export_columns : CONFIG.import_columns;
 
-  const sends = dtCart.map(item => {
+  const sends = dtCart.map((item, idx) => {
     const row = cols.map(col => {
       if (col.value === 'auto_timestamp')   return thoiGian;
       if (col.value === 'form.soluong')     return item.sl;
       if (col.value === 'form.gia')         return item.gia;
       if (col.value === 'form.giaodich')    return giaodich;
-      if (col.value === 'form.phichanh')    return dtMode === 'Xuất' ? (phiChanh || '') : '';
+      if (col.value === 'form.phichanh')    return (idx === 0 && dtMode === 'Xuất') ? (phiChanh || '') : '';
       if (col.value === 'form.ghichu')      return ghichu;
       if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
       return '';
