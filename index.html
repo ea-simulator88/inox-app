@@ -135,6 +135,24 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 
 /* Toast */
 .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; z-index: 2000; white-space: nowrap; pointer-events: none; }
+
+/* ===== DESKTOP RESPONSIVE ===== */
+@media (min-width: 768px) {
+  body { background: #ebebeb; }
+  #app { max-width: 100%; padding: 12px; min-height: 100vh; display: flex; flex-direction: column; }
+  #screen-login { max-width: 380px; margin: 60px auto; }
+  #screen-main, #screen-form, #screen-success,
+  #screen-products, #screen-product-form, #screen-cart { display: none !important; }
+  #desktop-layout { display: flex !important; flex-direction: column; }
+}
+@media (max-width: 767px) {
+  #desktop-layout { display: none !important; }
+}
+
+/* Desktop item hover */
+.dt-product-item:hover { background: #f5f5f5 !important; }
+.dt-product-item.in-cart { background: #e8f5e9 !important; border-color: #a5d6a7 !important; }
+.dt-cart-item { padding: 8px; border-radius: 8px; border: 1px solid #f0f0f0; margin-bottom: 6px; }
 </style>
 
 <!-- ====== CONFIG - ANH JAMES CHỈ SỬA TRONG KHỐI NÀY ====== -->
@@ -403,6 +421,96 @@ const CONFIG = {
   </div>
 </div>
 
+<!-- ===== DESKTOP LAYOUT ===== -->
+<div id="desktop-layout" style="display:none; flex-direction:column; gap:10px; flex:1;">
+
+  <!-- Header -->
+  <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:12px;padding:12px 20px;border:1px solid #e0e0e0;">
+    <div style="font-size:17px;font-weight:600;">🏪 Hộ Kinh Doanh Hàng Gia Dụng</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span id="dt-role-badge" class="badge"></span>
+      <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
+    </div>
+  </div>
+
+  <!-- 3 cột -->
+  <div style="display:flex;gap:10px;flex:1;overflow:hidden;min-height:0;">
+
+    <!-- CỘT TRÁI: danh sách SP -->
+    <div style="width:280px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;">
+      <div style="padding:12px 14px;border-bottom:1px solid #f0f0f0;">
+        <div style="font-size:14px;font-weight:600;margin-bottom:8px;">📦 Sản phẩm</div>
+        <input type="text" id="dt-search" placeholder="Tìm mã hoặc tên..."
+          style="width:100%;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;"
+          oninput="dtFilterProducts()" />
+      </div>
+      <div id="dt-product-list" style="flex:1;overflow-y:auto;padding:8px;"></div>
+    </div>
+
+    <!-- CỘT GIỮA: giỏ hàng -->
+    <div style="width:260px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;">
+      <div style="padding:12px 14px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:14px;font-weight:600;">🛒 Giỏ hàng</div>
+        <span id="dt-cart-count" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#ffebee;color:#c62828;">0 SP</span>
+      </div>
+      <div id="dt-cart-list" style="flex:1;overflow-y:auto;padding:8px;">
+        <div id="dt-cart-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#ccc;font-size:13px;gap:6px;padding:20px 0;">
+          <div style="font-size:28px;">🛒</div>
+          <div>Chưa có sản phẩm</div>
+          <div style="font-size:11px;">Click "+ Thêm" để chọn SP</div>
+        </div>
+      </div>
+      <div style="padding:10px 14px;border-top:1px solid #f0f0f0;background:#fafafa;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:13px;color:#888;">Tổng cộng</span>
+          <span id="dt-total" style="font-size:16px;font-weight:700;color:#f44336;">0 đ</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CỘT PHẢI: form giao dịch -->
+    <div style="flex:1;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="padding:12px 16px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:14px;font-weight:600;">Thông tin giao dịch</div>
+        <span id="dt-form-badge" class="badge"></span>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:14px 16px;">
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;">Xuất hay Nhập?</label>
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <button id="dt-btn-xuat" class="toggle-btn active-xuat" onclick="dtSetMode('Xuất')">📤 Xuất hàng</button>
+          <button id="dt-btn-nhap" class="toggle-btn" onclick="dtSetMode('Nhập')">📥 Nhập hàng</button>
+        </div>
+
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;">Giao dịch <span style="color:#f44336;">*</span></label>
+        <select id="dt-giaodich" style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;margin-bottom:12px;">
+          <option value="">-- Chọn hình thức --</option>
+          <option value="Tiền mặt">Tiền mặt</option>
+          <option value="Chuyển khoản">Chuyển khoản</option>
+          <option value="Tiền mặt + Chuyển khoản">Tiền mặt + Chuyển khoản</option>
+        </select>
+
+        <div id="dt-row-phichanh">
+          <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;">Phí chành xe (không bắt buộc)</label>
+          <input type="text" id="dt-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)"
+            style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;margin-bottom:12px;" />
+        </div>
+
+        <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;">Ghi chú (không bắt buộc)</label>
+        <input type="text" id="dt-ghichu" placeholder="Tên khách, đơn hàng..."
+          style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;margin-bottom:14px;" />
+
+        <button id="dt-btn-confirm" class="btn-confirm xuat" onclick="dtSubmit()" style="width:100%;">
+          ✅ Xác nhận Xuất — 0 SP
+        </button>
+        <div id="dt-confirm-hint" style="font-size:12px;color:#aaa;text-align:center;margin-top:8px;">
+          Mỗi SP ghi 1 dòng vào sheet Xuất
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 </div><!-- #app -->
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -449,6 +557,7 @@ async function doLogin() {
       await loadProducts();
       renderProductList(products);
       document.getElementById('btn-manage-products').style.display = currentRole === 'owner' ? 'flex' : 'none';
+      dtInitLayout();
       showScreen('screen-main');
     } else {
       err.style.display = 'block';
@@ -1165,15 +1274,18 @@ function openProductForm(mode, product) {
   document.getElementById('product-form-title').textContent = mode === 'add' ? 'Thêm SP mới' : 'Sửa sản phẩm';
   const fieldsEl = document.getElementById('product-form-fields');
   fieldsEl.innerHTML = CONFIG.product_columns.map(col => {
-    const val = product ? (product[col.field] !== undefined ? product[col.field] : '') : '';
+    const raw = product ? (product[col.field] !== undefined ? product[col.field] : '') : '';
+    const isNum = col.input_type === 'number';
+    const displayVal = isNum && raw !== '' ? (Number(raw) > 0 ? Number(raw).toLocaleString('en-US') : '') : String(raw).replace(/"/g, '&quot;');
     const locked = mode === 'edit' && col.field === 'ma';
     const required = col.field === 'ma' || col.field === 'ten';
     return `
       <label style="margin-top:12px;">${col.sheet_name}${required ? ' <span style="color:#f44336;">*</span>' : ''}</label>
       <input id="pf_${col.field}"
-        type="text" inputmode="${col.input_type === 'number' ? 'numeric' : 'text'}"
-        value="${String(val).replace(/"/g, '&quot;')}"
+        type="text" inputmode="${isNum ? 'numeric' : 'text'}"
+        value="${displayVal}"
         placeholder="${col.sheet_name}..."
+        ${isNum ? 'oninput="fmtInput(this)"' : ''}
         ${locked ? 'readonly style="background:#f5f5f5;color:#888;"' : ''} />
     `;
   }).join('');
