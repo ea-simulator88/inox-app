@@ -141,12 +141,6 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   body { background: #ebebeb; }
   #app { max-width: 100%; padding: 12px; min-height: 100vh; display: flex; flex-direction: column; }
   #screen-login { max-width: 380px; margin: 60px auto; }
-  #screen-main, #screen-form, #screen-success,
-  #screen-products, #screen-product-form, #screen-cart { display: none !important; }
-  #desktop-layout { display: flex !important; flex-direction: column; }
-}
-@media (max-width: 767px) {
-  #desktop-layout { display: none !important; }
 }
 
 /* Desktop item hover */
@@ -529,6 +523,18 @@ let cartGiaodich = 'Tiền mặt';
 
 // ===== SCREEN =====
 function showScreen(id) {
+  const isDesktop = window.innerWidth >= 768;
+
+  if (isDesktop && currentRole) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('desktop-layout').style.display = 'flex';
+    return;
+  }
+
+  if (id === 'screen-login') {
+    document.getElementById('desktop-layout').style.display = 'none';
+  }
+
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
@@ -557,8 +563,13 @@ async function doLogin() {
       await loadProducts();
       renderProductList(products);
       document.getElementById('btn-manage-products').style.display = currentRole === 'owner' ? 'flex' : 'none';
-      dtInitLayout();
-      showScreen('screen-main');
+      if (window.innerWidth >= 768) {
+        dtInitLayout();
+        document.getElementById('desktop-layout').style.display = 'flex';
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      } else {
+        showScreen('screen-main');
+      }
     } else {
       err.style.display = 'block';
     }
@@ -584,6 +595,7 @@ function doLogout() {
   dtMode = 'Xuất';
   localStorage.removeItem('products_cache');
   document.getElementById('login-pass').value = '';
+  document.getElementById('desktop-layout').style.display = 'none';
   updateCartBadge();
   showScreen('screen-login');
 }
