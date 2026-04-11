@@ -153,15 +153,16 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 <script id="app-config">
 const CONFIG = {
   product_columns: [
-    { field: "ma",        sheet_name: "Mã SP",               show: true,  owner_only: false, input_type: "text"   },
-    { field: "ncc",       sheet_name: "NCC",                 show: true,  owner_only: false, input_type: "text"   },
-    { field: "ten",       sheet_name: "Tên SP",              show: true,  owner_only: false, input_type: "text"   },
-    { field: "kichthuoc", sheet_name: "Kích thước",  show: true,  owner_only: false, input_type: "text"   },
-    { field: "motaSP",    sheet_name: "Mô tả Sp",            show: true,  owner_only: false, input_type: "text"   },
-    { field: "giavon",    sheet_name: "Giá vốn",             show: true,  owner_only: true,  input_type: "number" },
-    { field: "dvt",       sheet_name: "Đơn vị tính",         show: true,  owner_only: false, input_type: "text"   },
-    { field: "tonkho",    sheet_name: "Tồn kho",             show: true,  owner_only: false, input_type: "number" },
-  ],
+    { field: "ma",        sheet_name: "Mã SP",         show: false, owner_only: false, input_type: "text"   },
+    { field: "ncc",       sheet_name: "NCC",            show: true,  owner_only: false, input_type: "text"   },
+    { field: "ten",       sheet_name: "Tên SP",         show: true,  owner_only: false, input_type: "text"   },
+    { field: "kichthuoc", sheet_name: "Kích thước",     show: true,  owner_only: false, input_type: "text"   },
+    { field: "motaSP",    sheet_name: "Mô tả Sp",       show: true,  owner_only: false, input_type: "text"   },
+    { field: "giavon",    sheet_name: "Giá vốn",        show: true,  owner_only: true,  input_type: "number" },
+    { field: "dvt",       sheet_name: "Đơn vị tính",    show: true,  owner_only: false, input_type: "text"   },
+    { field: "tonkho",    sheet_name: "Tồn kho",        show: true,  owner_only: true,  input_type: "number" },
+    { field: "qr",        sheet_name: "QR",             show: false, owner_only: false, input_type: "formula" },
+    ],
   export_columns: [
     { sheet_name: "Mã SP",        value: "product.ma"        },
     { sheet_name: "Thời gian",    value: "auto_timestamp"    },
@@ -333,10 +334,12 @@ const CONFIG = {
     <div class="header-title">Quản lý Sản phẩm</div>
     <div style="width:60px;"></div>
   </div>
-  <button class="btn-scan" onclick="openProductForm('add', null)" style="margin-bottom:12px;">
-    ➕ Thêm sản phẩm mới
-  </button>
-  <div id="manage-product-list"></div>
+  <div style="max-width:680px;margin:0 auto;width:100%;">
+    <button class="btn-scan" onclick="openProductForm('add', null)" style="margin-bottom:12px;">
+      ➕ Thêm sản phẩm mới
+    </button>
+    <div id="manage-product-list"></div>
+  </div>
 </div>
 
 <!-- PRODUCT FORM -->
@@ -346,9 +349,11 @@ const CONFIG = {
     <div class="header-title" id="product-form-title">Thêm SP mới</div>
     <div style="width:60px;"></div>
   </div>
-  <div class="card">
-    <div id="product-form-fields"></div>
-    <button class="btn-confirm" id="btn-save-product" onclick="submitProductForm()" style="margin-top:16px;">✅ Lưu sản phẩm</button>
+  <div style="max-width:520px;margin:0 auto;width:100%;">
+    <div class="card">
+      <div id="product-form-fields"></div>
+      <button class="btn-confirm" id="btn-save-product" onclick="submitProductForm()" style="margin-top:16px;">✅ Lưu sản phẩm</button>
+    </div>
   </div>
 </div>
 
@@ -422,7 +427,7 @@ const CONFIG = {
   <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:12px;padding:12px 20px;border:1px solid #e0e0e0;flex-shrink:0;">
     <div style="font-size:17px;font-weight:600;">🏪 Hộ Kinh Doanh Hàng Gia Dụng</div>
     <div style="display:flex;align-items:center;gap:12px;">
-      <button id="dt-btn-manage" onclick="showScreen('screen-products')"
+      <button id="dt-btn-manage" onclick="showManageProducts()"
         style="display:none;font-size:13px;padding:6px 14px;border-radius:8px;border:1px solid #e0e0e0;background:#fafafa;color:#555;cursor:pointer;">
         ➕ Quản lý SP
       </button>
@@ -435,7 +440,7 @@ const CONFIG = {
   <div style="display:flex;gap:12px;flex:1;overflow:hidden;min-height:0;">
 
     <!-- CỘT TRÁI: danh sách SP -->
-    <div style="width:280px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;height:100%;flex-shrink:0;">
+    <div style="width:450px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;height:100%;flex-shrink:0;">
       <div style="padding:12px 14px;border-bottom:1px solid #f0f0f0;flex-shrink:0;">
         <div style="font-size:14px;font-weight:600;margin-bottom:8px;">📦 Sản phẩm</div>
         <input type="text" id="dt-search" placeholder="Tìm mã hoặc tên..."
@@ -446,7 +451,7 @@ const CONFIG = {
     </div>
 
     <!-- CỘT GIỮA: giỏ hàng -->
-    <div style="width:260px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;height:100%;flex-shrink:0;">
+    <div style="width:450px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;height:100%;flex-shrink:0;">
       <div style="padding:12px 14px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
         <div style="font-size:14px;font-weight:600;">🛒 Giỏ hàng</div>
         <span id="dt-cart-count" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#ffebee;color:#c62828;">0 SP</span>
@@ -757,6 +762,8 @@ function renderProductList(list) {
   el.innerHTML = list.map(p => {
     const low = (p.tonkho || 0) <= 3;
     const qid = 'q_' + p.ma.replace(/[^a-zA-Z0-9]/g, '_');
+    const cartItem = cart.find(i => i.product.ma === p.ma);
+    const cartSl = cartItem ? cartItem.sl : '';
     return `<div class="product-item">
       <div class="product-item-left" onclick="showForm(products.find(x=>x.ma==='${p.ma}'))">
         <div class="product-item-ma">${p.ma}${p.ncc ? ' · ' + p.ncc : ''}${p.phanloai ? ' · ' + p.phanloai : ''}</div>
@@ -766,9 +773,9 @@ function renderProductList(list) {
       <div class="product-item-meta">
         <div class="product-item-tonkho${low ? ' low' : ''}">Tồn: ${fmt(p.tonkho)}</div>
         <div class="qty-stepper">
-          <input class="qty-input" id="${qid}" type="text" inputmode="numeric" value=""
+          <input class="qty-input" id="${qid}" type="text" inputmode="numeric" value="${cartSl}"
             placeholder="1" onclick="event.stopPropagation()" oninput="sanitizeQty(this)" />
-          <button class="btn-add-cart" onclick="addToCartQty(products.find(x=>x.ma==='${p.ma}'),'${qid}')">+</button>
+          <button class="btn-add-cart" onclick="addToCartQty(products.find(x=>x.ma==='${p.ma}'))">+</button>
         </div>
       </div>
     </div>`;
@@ -797,20 +804,18 @@ function sanitizeQty(el) {
   el.value = raw === '' ? '' : String(Math.max(1, parseInt(raw)));
 }
 
-function addToCartQty(product, qid) {
+function addToCartQty(product) {
   if (!product) return;
-  const input = document.getElementById(qid);
-  const qty = Math.max(1, parseInt((input ? input.value.replace(/[^0-9]/g,'') : '1') || '1') || 1);
   const existing = cart.find(i => i.product.ma === product.ma);
   if (existing) {
-    existing.sl += qty;
+    existing.sl += 1;
     showToast('➕ ' + product.ten + ' (SL: ' + existing.sl + ')');
   } else {
-    cart.push({ product: product, sl: qty, gia: 0 });
-    showToast('🛒 Đã thêm: ' + product.ten + (qty > 1 ? ' x' + qty : ''));
+    cart.push({ product: product, sl: 1, gia: 0 });
+    showToast('🛒 Đã thêm: ' + product.ten);
   }
-  if (input) input.value = '';
   updateCartBadge();
+  filterProductList();
 }
 
 function showToast(msg) {
@@ -1297,7 +1302,7 @@ function openProductForm(mode, product) {
   editingProduct = product || null;
   document.getElementById('product-form-title').textContent = mode === 'add' ? 'Thêm SP mới' : 'Sửa sản phẩm';
   const fieldsEl = document.getElementById('product-form-fields');
-  fieldsEl.innerHTML = CONFIG.product_columns.map(col => {
+  fieldsEl.innerHTML = CONFIG.product_columns.filter(col => col.input_type !== 'formula').map(col => {
     const raw = product ? (product[col.field] !== undefined ? product[col.field] : '') : '';
     const isNum = col.input_type === 'number';
     const displayVal = isNum && raw !== '' ? (Number(raw) > 0 ? Number(raw).toLocaleString('en-US') : '') : String(raw).replace(/"/g, '&quot;');
@@ -1317,61 +1322,66 @@ function openProductForm(mode, product) {
 }
 
 async function submitProductForm() {
-  const product = {};
-  for (const col of CONFIG.product_columns) {
-    const el = document.getElementById('pf_' + col.field);
-    if (!el) continue;
-    const raw = el.value.trim();
-    product[col.field] = col.input_type === 'number' ? (parseInt(raw.replace(/[^0-9]/g, '')) || 0) : raw;
-  }
-  if (!product.ma) { showInfoModal('Thiếu thông tin!', 'Vui lòng nhập Mã SP.'); return; }
-  if (!product.ten) { showInfoModal('Thiếu thông tin!', 'Vui lòng nhập Tên SP.'); return; }
+  // Validate trước khi lưu
+  const maEl = document.getElementById('pf_ma');
+  const tenEl = document.getElementById('pf_ten');
+  if (!maEl || !maEl.value.trim()) { showInfoModal('Thiếu thông tin!', 'Vui lòng nhập Mã SP.'); return; }
+  if (!tenEl || !tenEl.value.trim()) { showInfoModal('Thiếu thông tin!', 'Vui lòng nhập Tên SP.'); return; }
 
   const btn = document.getElementById('btn-save-product');
   btn.textContent = '⏳ Đang lưu...';
   btn.disabled = true;
 
+  // Build row theo thứ tự CONFIG.product_columns, bỏ qua các cột formula (VD: QR)
+  const row = CONFIG.product_columns.filter(col => col.input_type !== 'formula').map(col => {
+    const el = document.getElementById('pf_' + col.field);
+    if (!el) return '';
+    const isNum = col.input_type === 'number';
+    return isNum ? (parseInt(el.value.replace(/,/g, '')) || 0) : el.value.trim();
+  });
+
+  const body = productFormMode === 'add'
+    ? { sheet: 'Sản phẩm', action: 'add', row: row }
+    : { sheet: 'Sản phẩm', action: 'update', ma: editingProduct.ma, row: row };
+
+  console.log('submitProductForm body:', JSON.stringify(body));
+
   try {
     await fetch(SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: productFormMode === 'add' ? 'addProduct' : 'editProduct', product })
+      body: JSON.stringify(body)
     });
-  } catch(e) {}
-
-  // Cập nhật local products array
-  const idx = products.findIndex(p => p.ma === product.ma);
-  if (idx !== -1) {
-    products[idx] = { ...products[idx], ...product };
-  } else {
-    products.push({ nhanHieu: '', phanloai: '', ...product });
+    await new Promise(r => setTimeout(r, 1500));
+    await fetchProductsFromServer();
+    showScreen('screen-products');
+    alert(productFormMode === 'add' ? '✅ Đã thêm sản phẩm mới!' : '✅ Đã cập nhật sản phẩm!');
+  } catch(e) {
+    alert('❌ Lỗi: ' + e.message);
+  } finally {
+    btn.textContent = '✅ Lưu sản phẩm';
+    btn.disabled = false;
   }
-  localStorage.setItem('products_cache', JSON.stringify(products));
-  renderProductList(products);
-
-  btn.textContent = '✅ Lưu sản phẩm';
-  btn.disabled = false;
-  showToast(productFormMode === 'add' ? '✅ Đã thêm sản phẩm!' : '✅ Đã cập nhật!');
-  renderManageProductList();
-  showScreen('screen-products');
 }
 
 function confirmDeleteProduct(product) {
   if (!product) return;
-  showModal('Xóa sản phẩm?', product.ten + ' (' + product.ma + ')', async () => {
+  showModal('Xóa ' + product.ten + '?', 'Hành động này không thể hoàn tác', async () => {
+    const body = { sheet: 'Sản phẩm', action: 'delete', ma: product.ma };
+    console.log('deleteProduct body:', JSON.stringify(body));
     try {
       await fetch(SCRIPT_URL, {
         method: 'POST', mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'deleteProduct', ma: product.ma })
+        body: JSON.stringify(body)
       });
-    } catch(e) {}
-    const idx = products.findIndex(p => p.ma === product.ma);
-    if (idx !== -1) products.splice(idx, 1);
-    localStorage.setItem('products_cache', JSON.stringify(products));
-    renderProductList(products);
-    renderManageProductList();
-    showToast('🗑️ Đã xóa: ' + product.ten);
+      await new Promise(r => setTimeout(r, 1500));
+      await fetchProductsFromServer();
+      showScreen('screen-products');
+      alert('✅ Đã xóa sản phẩm!');
+    } catch(e) {
+      alert('❌ Lỗi: ' + e.message);
+    }
   });
   document.getElementById('modal-yes').textContent = 'Xóa';
 }
@@ -1422,7 +1432,7 @@ function dtRenderProducts(list) {
   el.innerHTML = renderList.map(p => {
     const inCart = dtCart.some(i => i.product.ma === p.ma);
     const cartItem = inCart ? dtCart.find(i => i.product.ma === p.ma) : null;
-    const currentSl = cartItem ? cartItem.sl : 1;
+    const currentSl = cartItem ? cartItem.sl : '';
     const low = (p.tonkho || 0) <= 3;
     const slId = 'dt-sl-' + p.ma;
     return `<div class="dt-product-item${inCart ? ' in-cart' : ''}"
@@ -1437,12 +1447,12 @@ function dtRenderProducts(list) {
       <div style="flex-shrink:0;margin-left:8px;text-align:right;">
         <div style="font-size:12px;font-weight:600;color:${low ? '#f44336' : '#4CAF50'};">Tồn: ${fmt(p.tonkho)}</div>
         <div style="display:flex;align-items:center;gap:4px;margin-top:5px;justify-content:flex-end;">
-          <input id="${slId}" type="text" inputmode="numeric" value="${currentSl}"
+          <input id="${slId}" type="text" inputmode="numeric" value="${currentSl}" placeholder="1"
             onclick="event.stopPropagation()" oninput="sanitizeQty(this)"
-            style="width:40px;padding:4px;text-align:center;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;outline:none;" />
-          <button onclick="event.stopPropagation();dtAddToCart('${p.ma}',document.getElementById('${slId}').value||1)"
+            style="width:40px;padding:4px;text-align:center;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;outline:none;color:#333;" />
+          <button onclick="event.stopPropagation();dtAddToCart('${p.ma}',1)"
             style="width:28px;height:28px;border-radius:50%;background:#4CAF50;color:#fff;border:none;font-size:18px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            ${inCart ? '✓' : '+'}
+            +
           </button>
         </div>
       </div>
@@ -1455,7 +1465,7 @@ function dtAddToCart(ma, sl) {
   if (!product) return;
   const exists = dtCart.findIndex(item => item.product.ma === ma);
   if (exists !== -1) {
-    dtCart[exists].sl = parseInt(sl) || 1;
+    dtCart[exists].sl += parseInt(sl) || 1;
   } else {
     dtCart.push({ product: product, sl: parseInt(sl) || 1, gia: 0 });
   }
@@ -1494,36 +1504,27 @@ function dtRenderCart() {
   confirmBtn.textContent = `✅ Xác nhận ${dtMode} — ${dtCart.length} SP`;
 
   if (dtCart.length === 0) {
-    emptyEl.style.display = 'flex';
-    // clear only non-empty items
-    const items = listEl.querySelectorAll('.dt-cart-item');
-    items.forEach(el => el.remove());
+    listEl.innerHTML = '<div id="dt-cart-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#ccc;font-size:13px;gap:6px;padding:20px 0;"><div style="font-size:28px;">🛒</div><div>Chưa có sản phẩm</div><div style="font-size:11px;">Click "+" để chọn SP</div></div>';
     return;
   }
-  emptyEl.style.display = 'none';
-  listEl.innerHTML = '';
-  dtCart.forEach(item => {
+
+  // Pure innerHTML — no createElement/querySelector needed
+  listEl.innerHTML = dtCart.map(item => {
     const p = item.product;
     const safeId = p.ma.replace(/[^a-zA-Z0-9]/g, '_');
     const giaFmt = item.gia > 0 ? Number(item.gia).toLocaleString('en-US') : '';
     const sub = item.sl * item.gia;
-    const div = document.createElement('div');
-    div.className = 'dt-cart-item';
-    // Use data attribute for ma to avoid quote escaping in onclick
-    const btnDel = document.createElement('button');
-    btnDel.textContent = '×';
-    btnDel.setAttribute('data-ma', p.ma);
-    btnDel.style.cssText = 'background:none;border:none;color:#f44336;font-size:18px;cursor:pointer;padding:0 4px;flex-shrink:0;';
-    btnDel.onclick = function() { dtRemoveFromCart(this.getAttribute('data-ma')); };
-
-    div.innerHTML = `
+    const gv = currentRole === 'owner' && p.giavon
+      ? `<div style="font-size:11px;color:#f44336;">Vốn: ${fmtMoney(p.giavon)}</div>` : '';
+    return `<div class="dt-cart-item">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.ten}</div>
           <div style="font-size:11px;color:#aaa;">${p.ma}${p.ncc ? ' · ' + p.ncc : ''}</div>
-          ${currentRole === 'owner' && p.giavon ? `<div style="font-size:11px;color:#f44336;">Vốn: ${fmtMoney(p.giavon)}</div>` : ''}
+          ${gv}
         </div>
-        <span id="dt-del-${safeId}"></span>
+        <button onclick="dtRemoveFromCart('${p.ma}')"
+          style="background:none;border:none;color:#f44336;font-size:18px;cursor:pointer;padding:0 4px;flex-shrink:0;line-height:1;">×</button>
       </div>
       <div style="display:flex;align-items:center;gap:4px;">
         <input type="text" inputmode="numeric" value="${item.sl}"
@@ -1538,10 +1539,9 @@ function dtRenderCart() {
         <span id="dt-sub-${safeId}" style="font-size:12px;font-weight:600;color:#4CAF50;min-width:55px;text-align:right;">
           ${sub > 0 ? fmt(sub) + ' đ' : '—'}
         </span>
-      </div>`;
-    div.querySelector('#dt-del-' + safeId).appendChild(btnDel);
-    listEl.appendChild(div);
-  });
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function dtSetMode(mode) {
