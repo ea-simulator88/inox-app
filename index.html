@@ -422,6 +422,10 @@ const CONFIG = {
   <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:12px;padding:12px 20px;border:1px solid #e0e0e0;">
     <div style="font-size:17px;font-weight:600;">🏪 Hộ Kinh Doanh Hàng Gia Dụng</div>
     <div style="display:flex;align-items:center;gap:12px;">
+      <button id="dt-btn-manage" onclick="showScreen('screen-products')"
+        style="display:none;font-size:13px;padding:6px 14px;border-radius:8px;border:1px solid #e0e0e0;background:#fafafa;color:#555;cursor:pointer;">
+        ➕ Quản lý SP
+      </button>
       <span id="dt-role-badge" class="badge"></span>
       <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
     </div>
@@ -447,7 +451,7 @@ const CONFIG = {
         <div style="font-size:14px;font-weight:600;">🛒 Giỏ hàng</div>
         <span id="dt-cart-count" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#ffebee;color:#c62828;">0 SP</span>
       </div>
-      <div id="dt-cart-list" style="flex:1;overflow-y:auto;padding:8px;">
+      <div id="dt-cart-list" style="flex:1;overflow-y:auto;padding:8px;min-height:0;">
         <div id="dt-cart-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#ccc;font-size:13px;gap:6px;padding:20px 0;">
           <div style="font-size:28px;">🛒</div>
           <div>Chưa có sản phẩm</div>
@@ -526,6 +530,12 @@ function showScreen(id) {
   const isDesktop = window.innerWidth >= 768;
 
   if (isDesktop && currentRole) {
+    if (id === 'screen-products' || id === 'screen-product-form') {
+      document.getElementById('desktop-layout').style.display = 'none';
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      return;
+    }
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('desktop-layout').style.display = 'flex';
     return;
@@ -1380,6 +1390,8 @@ function dtInitLayout() {
   document.getElementById('dt-form-badge').className = cls;
   // hide Nhập button for staff
   document.getElementById('dt-btn-nhap').style.display = isOwner ? '' : 'none';
+  // show Quản lý SP button for owner
+  document.getElementById('dt-btn-manage').style.display = isOwner ? '' : 'none';
   dtCart = [];
   dtMode = 'Xuất';
   dtSetMode('Xuất');
@@ -1408,42 +1420,52 @@ function dtRenderProducts(list) {
   }
   el.innerHTML = list.map(p => {
     const inCart = dtCart.some(i => i.product.ma === p.ma);
+    const cartItem = inCart ? dtCart.find(i => i.product.ma === p.ma) : null;
+    const currentSl = cartItem ? cartItem.sl : 1;
     const low = (p.tonkho || 0) <= 3;
+    const safeId = 'dtq_' + p.ma.replace(/[^a-zA-Z0-9]/g, '_');
     return `<div class="dt-product-item${inCart ? ' in-cart' : ''}"
       style="padding:8px 10px;border-radius:8px;border:1px solid ${inCart ? '#a5d6a7' : 'transparent'};
-      margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;
+      margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;
       background:${inCart ? '#e8f5e9' : '#fff'};">
-      <div style="flex:1;min-width:0;" onclick="dtAddToCart(products.find(x=>x.ma==='${p.ma}'))">
+      <div style="flex:1;min-width:0;">
         <div style="font-size:11px;color:#aaa;">${p.ma}${p.ncc ? ' · ' + p.ncc : ''}</div>
         <div style="font-size:13px;font-weight:600;margin:1px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.ten}</div>
         <div style="font-size:11px;color:#aaa;">${[p.kichthuoc, p.motaSP].filter(Boolean).join(' · ')}</div>
       </div>
       <div style="flex-shrink:0;margin-left:8px;text-align:right;">
         <div style="font-size:12px;font-weight:600;color:${low ? '#f44336' : '#4CAF50'};">Tồn: ${fmt(p.tonkho)}</div>
-        <button onclick="dtAddToCart(products.find(x=>x.ma==='${p.ma}'))"
-          style="margin-top:4px;padding:4px 10px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;
-          border:1.5px solid ${inCart ? '#4CAF50' : '#1565c0'};
-          background:${inCart ? '#e8f5e9' : '#e3f2fd'};
-          color:${inCart ? '#2e7d32' : '#1565c0'};">
-          ${inCart ? '✓ Đã thêm' : '+ Thêm'}
-        </button>
+        <div style="display:flex;align-items:center;gap:4px;margin-top:5px;justify-content:flex-end;">
+          <input id="${safeId}" type="text" inputmode="numeric" value="${currentSl}"
+            onclick="event.stopPropagation()" oninput="sanitizeQty(this)"
+            style="width:40px;padding:4px;text-align:center;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;outline:none;" />
+          <button onclick="event.stopPropagation();dtAddToCart(products.find(x=>x.ma==='${p.ma}'),document.getElementById('${safeId}').value)"
+            style="width:28px;height:28px;border-radius:50%;background:#4CAF50;color:#fff;border:none;font-size:18px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            ${inCart ? '✓' : '+'}
+          </button>
+        </div>
       </div>
     </div>`;
   }).join('');
 }
 
-function dtAddToCart(product) {
+function dtAddToCart(product, qtyVal) {
   if (!product) return;
-  if (dtCart.some(i => i.product.ma === product.ma)) return;
-  dtCart.push({ product, sl: 1, gia: 0 });
+  const qty = Math.max(1, parseInt(String(qtyVal || '1').replace(/[^0-9]/g, '')) || 1);
+  const existing = dtCart.find(i => i.product.ma === product.ma);
+  if (existing) {
+    existing.sl = qty;
+  } else {
+    dtCart.push({ product, sl: qty, gia: 0 });
+  }
   dtRenderCart();
-  dtRenderProducts(products);
+  dtFilterProducts(); // preserve current search filter
 }
 
 function dtRemoveFromCart(ma) {
   dtCart = dtCart.filter(i => i.product.ma !== ma);
   dtRenderCart();
-  dtRenderProducts(products);
+  dtFilterProducts();
 }
 
 function dtUpdateCart(ma, field, value) {
@@ -1486,6 +1508,13 @@ function dtRenderCart() {
     const sub = item.sl * item.gia;
     const div = document.createElement('div');
     div.className = 'dt-cart-item';
+    // Use data attribute for ma to avoid quote escaping in onclick
+    const btnDel = document.createElement('button');
+    btnDel.textContent = '×';
+    btnDel.setAttribute('data-ma', p.ma);
+    btnDel.style.cssText = 'background:none;border:none;color:#f44336;font-size:18px;cursor:pointer;padding:0 4px;flex-shrink:0;';
+    btnDel.onclick = function() { dtRemoveFromCart(this.getAttribute('data-ma')); };
+
     div.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
         <div style="flex:1;min-width:0;">
@@ -1493,8 +1522,7 @@ function dtRenderCart() {
           <div style="font-size:11px;color:#aaa;">${p.ma}${p.ncc ? ' · ' + p.ncc : ''}</div>
           ${currentRole === 'owner' && p.giavon ? `<div style="font-size:11px;color:#f44336;">Vốn: ${fmtMoney(p.giavon)}</div>` : ''}
         </div>
-        <button onclick="dtRemoveFromCart('${p.ma}')"
-          style="background:none;border:none;color:#f44336;font-size:16px;cursor:pointer;padding:0 2px;flex-shrink:0;">✕</button>
+        <span id="dt-del-${safeId}"></span>
       </div>
       <div style="display:flex;align-items:center;gap:4px;">
         <input type="text" inputmode="numeric" value="${item.sl}"
@@ -1510,6 +1538,7 @@ function dtRenderCart() {
           ${sub > 0 ? fmt(sub) + ' đ' : '—'}
         </span>
       </div>`;
+    div.querySelector('#dt-del-' + safeId).appendChild(btnDel);
     listEl.appendChild(div);
   });
 }
