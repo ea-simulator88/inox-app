@@ -218,7 +218,9 @@ const CONFIG = {
     <div style="position:relative;">
       <input type="password" id="login-pass" placeholder="Nhập mật khẩu..." style="padding-right:44px;" />
       <button type="button" onclick="togglePassVis()" tabindex="-1"
-        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;line-height:1;padding:0;" id="btn-eye">👁</button>
+        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;line-height:1;padding:0;" id="btn-eye">
+          <svg id="btn-eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
     </div>
     <div class="error-msg" id="login-error">❌ Sai mật khẩu, thử lại!</div>
     <button class="btn-primary" id="btn-login" onclick="doLogin()">
@@ -720,9 +722,16 @@ document.getElementById('login-pass').addEventListener('keydown', function(e) {
 
 function togglePassVis() {
   const inp = document.getElementById('login-pass');
-  const btn = document.getElementById('btn-eye');
-  if (inp.type === 'password') { inp.type = 'text'; btn.style.opacity = '1'; }
-  else { inp.type = 'password'; btn.style.opacity = '0.4'; }
+  const icon = document.getElementById('btn-eye-icon');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    icon.style.stroke = '#4CAF50';
+  } else {
+    inp.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    icon.style.stroke = '#aaa';
+  }
 }
 
 // Auto-login khi F5 (nếu có cache hợp lệ)
