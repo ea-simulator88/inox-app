@@ -531,8 +531,8 @@ function renderProductList(list) {
       <div class="product-item-meta">
         <div class="product-item-tonkho${low ? ' low' : ''}">Tồn: ${fmt(p.tonkho)}</div>
         <div class="qty-stepper">
-          <input class="qty-input" id="${qid}" type="text" inputmode="numeric" value="1"
-            onclick="event.stopPropagation()" oninput="sanitizeQty(this)" />
+          <input class="qty-input" id="${qid}" type="text" inputmode="numeric" value=""
+            placeholder="1" onclick="event.stopPropagation()" oninput="sanitizeQty(this)" />
           <button class="btn-add-cart" onclick="addToCartQty(products.find(x=>x.ma==='${p.ma}'),'${qid}')">+</button>
         </div>
       </div>
@@ -574,7 +574,7 @@ function addToCartQty(product, qid) {
     cart.push({ product: product, sl: qty, gia: 0 });
     showToast('🛒 Đã thêm: ' + product.ten + (qty > 1 ? ' x' + qty : ''));
   }
-  if (input) input.value = '1';
+  if (input) input.value = '';
   updateCartBadge();
 }
 
