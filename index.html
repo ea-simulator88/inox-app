@@ -491,23 +491,27 @@ const CONFIG = {
           <button id="dt-btn-nhap" class="toggle-btn" onclick="dtSetMode('Nhập')">📥 Nhập hàng</button>
         </div>
 
-        <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;">Giao dịch <span style="color:#f44336;">*</span></label>
-        <select id="dt-giaodich" style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;margin-bottom:12px;">
-          <option value="">-- Chọn hình thức --</option>
-          <option value="Tiền mặt">Tiền mặt</option>
-          <option value="Chuyển khoản">Chuyển khoản</option>
-          <option value="Tiền mặt + Chuyển khoản">Tiền mặt + Chuyển khoản</option>
-        </select>
-
-        <div id="dt-row-phichanh">
-          <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;">Phí chành xe (không bắt buộc)</label>
-          <input type="text" id="dt-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)"
-            style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;margin-bottom:12px;" />
+        <div style="margin-bottom:12px;">
+          <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;margin-top:0;">Giao dịch <span style="color:#f44336;">*</span></label>
+          <select id="dt-giaodich" style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;">
+            <option value="">-- Chọn hình thức --</option>
+            <option value="Tiền mặt">Tiền mặt</option>
+            <option value="Chuyển khoản">Chuyển khoản</option>
+            <option value="Tiền mặt + Chuyển khoản">Tiền mặt + Chuyển khoản</option>
+          </select>
         </div>
 
-        <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;">Ghi chú (không bắt buộc)</label>
-        <input type="text" id="dt-ghichu" placeholder="Tên khách, đơn hàng..."
-          style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;margin-bottom:14px;" />
+        <div id="dt-row-phichanh" style="margin-bottom:12px;">
+          <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;margin-top:0;">Phí chành xe (không bắt buộc)</label>
+          <input type="text" id="dt-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)"
+            style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;" />
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;margin-top:0;">Ghi chú (không bắt buộc)</label>
+          <input type="text" id="dt-ghichu" placeholder="Tên khách, đơn hàng..."
+            style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;" />
+        </div>
 
         <button id="dt-btn-confirm" class="btn-confirm xuat" onclick="dtSubmit()" style="width:100%;">
           ✅ Xác nhận Xuất — 0 SP
