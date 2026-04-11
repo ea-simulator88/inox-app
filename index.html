@@ -153,15 +153,15 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 <script id="app-config">
 const CONFIG = {
   product_columns: [
-    { field: "ma",        sheet_name: "Mã SP",         show: false, owner_only: false, input_type: "text"   },
-    { field: "ncc",       sheet_name: "NCC",            show: true,  owner_only: false, input_type: "text"   },
-    { field: "ten",       sheet_name: "Tên SP",         show: true,  owner_only: false, input_type: "text"   },
-    { field: "kichthuoc", sheet_name: "Kích thước",     show: true,  owner_only: false, input_type: "text"   },
-    { field: "motaSP",    sheet_name: "Mô tả Sp",       show: true,  owner_only: false, input_type: "text"   },
-    { field: "giavon",    sheet_name: "Giá vốn",        show: true,  owner_only: true,  input_type: "number" },
-    { field: "dvt",       sheet_name: "Đơn vị tính",    show: true,  owner_only: false, input_type: "text"   },
-    { field: "tonkho",    sheet_name: "Tồn kho",        show: true,  owner_only: true,  input_type: "number" },
-    { field: "qr",        sheet_name: "QR",             show: false, owner_only: false, input_type: "formula" },
+    { field: "ma",        sheet_name: "Mã SP",         form_label: "Mã SP",        show: false, owner_only: false, input_type: "text"    },
+    { field: "ncc",       sheet_name: "NCC",            form_label: "NCC",          show: true,  owner_only: false, input_type: "text"    },
+    { field: "ten",       sheet_name: "Tên SP",         form_label: "Tên SP",       show: true,  owner_only: false, input_type: "text"    },
+    { field: "kichthuoc", sheet_name: "Kích thước",     form_label: "Kích thước",   show: true,  owner_only: false, input_type: "text"    },
+    { field: "motaSP",    sheet_name: "Mô tả Sp",       form_label: "Mô tả SP",     show: true,  owner_only: false, input_type: "text"    },
+    { field: "giavon",    sheet_name: "Giá vốn",        form_label: "Giá vốn",      show: true,  owner_only: true,  input_type: "number"  },
+    { field: "dvt",       sheet_name: "Đơn vị tính",    form_label: "Đơn vị tính",  show: true,  owner_only: false, input_type: "text"    },
+    { field: "tonkho",    sheet_name: "Tồn kho",        form_label: "Số lượng",     show: true,  owner_only: true,  input_type: "number"  },
+    { field: "qr",        sheet_name: "QR",             form_label: "QR",           show: false, owner_only: false, input_type: "formula" },
     ],
   export_columns: [
     { sheet_name: "Mã SP",        value: "product.ma"        },
@@ -1309,7 +1309,7 @@ function openProductForm(mode, product) {
     const locked = mode === 'edit' && col.field === 'ma';
     const required = col.field === 'ma' || col.field === 'ten';
     return `
-      <label style="margin-top:12px;">${col.sheet_name}${required ? ' <span style="color:#f44336;">*</span>' : ''}</label>
+      <label style="margin-top:12px;">${col.form_label || col.sheet_name}${required ? ' <span style="color:#f44336;">*</span>' : ''}</label>
       <input id="pf_${col.field}"
         type="text" inputmode="${isNum ? 'numeric' : 'text'}"
         value="${displayVal}"
@@ -1352,10 +1352,49 @@ async function submitProductForm() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
-    await new Promise(r => setTimeout(r, 1500));
+    await new Promise(r => setTimeout(r, 1000));
+
+    // Nếu là thêm mới và tonkho >= 1 → tự ghi thêm vào sheet Nhập
+    let successMsg = productFormMode === 'add' ? '✅ Đã thêm sản phẩm mới!' : '✅ Đã cập nhật sản phẩm!';
+    if (productFormMode === 'add') {
+      const tonkhoEl = document.getElementById('pf_tonkho');
+      const giavonEl = document.getElementById('pf_giavon');
+      const tonkho = parseInt((tonkhoEl ? tonkhoEl.value.replace(/,/g, '') : '') || '0') || 0;
+      if (tonkho >= 1) {
+        // Build product object từ form để map import_columns
+        const formProduct = {};
+        CONFIG.product_columns.filter(c => c.input_type !== 'formula').forEach(c => {
+          const el = document.getElementById('pf_' + c.field);
+          formProduct[c.field] = el ? el.value.trim() : '';
+        });
+        const giavon = parseInt((giavonEl ? giavonEl.value.replace(/,/g, '') : '') || '0') || 0;
+        const now = new Date();
+        const ts = now.toLocaleString('vi-VN');
+        const importRow = CONFIG.import_columns.map(col => {
+          if (col.value === 'auto_timestamp') return ts;
+          if (col.value === 'form.soluong')   return tonkho;
+          if (col.value === 'form.gia')        return giavon;
+          if (col.value === 'form.giaodich')   return '';
+          if (col.value === 'form.phichanh')   return '';
+          if (col.value === 'form.ghichu')     return 'Nhập kho ban đầu';
+          if (col.value.startsWith('product.')) return formProduct[col.value.replace('product.','')] || '';
+          return '';
+        });
+        await fetch(SCRIPT_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sheet: 'Nhập', row: importRow })
+        });
+        await new Promise(r => setTimeout(r, 800));
+        successMsg = `✅ Đã thêm SP và ghi nhập kho ${tonkho} ${formProduct.dvt || 'cái'}!`;
+      } else {
+        successMsg = '✅ Đã thêm SP (chưa có hàng trong kho)';
+      }
+    }
+
     await fetchProductsFromServer();
     showScreen('screen-products');
-    alert(productFormMode === 'add' ? '✅ Đã thêm sản phẩm mới!' : '✅ Đã cập nhật sản phẩm!');
+    alert(successMsg);
   } catch(e) {
     alert('❌ Lỗi: ' + e.message);
   } finally {
