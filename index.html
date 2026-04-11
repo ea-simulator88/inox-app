@@ -309,8 +309,8 @@ const CONFIG = {
 
   <div id="cart-footer" hidden>
     <div class="card">
-      <label style="margin-top:0;">Ghi chú (tên khách, tên NCC...)</label>
-      <input type="text" id="cart-ghichu" placeholder="Nhập ghi chú..." />
+      <label style="margin-top:0;">Ghi chú (không bắt buộc)</label>
+      <input type="text" id="cart-ghichu" placeholder="Tên khách, đơn hàng..." />
 
       <label>Hình thức giao dịch</label>
       <div class="toggle-row">
@@ -394,10 +394,10 @@ async function doLogin() {
       currentRole = role;
       err.style.display = 'none';
       const isOwner = role === 'owner';
-      document.getElementById('role-display').textContent = isOwner ? 'Chủ tiệm' : 'Nhân viên';
-      document.getElementById('role-badge').textContent = isOwner ? 'Chủ' : 'Nhân viên';
+      document.getElementById('role-display').textContent = isOwner ? 'Admin' : 'Staff';
+      document.getElementById('role-badge').textContent = isOwner ? 'Admin' : 'Staff';
       document.getElementById('role-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
-      document.getElementById('role-badge-cart').textContent = isOwner ? 'Chủ' : 'Nhân viên';
+      document.getElementById('role-badge-cart').textContent = isOwner ? 'Admin' : 'Staff';
       document.getElementById('role-badge-cart').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
       await loadProducts();
       renderProductList(products);
@@ -667,6 +667,7 @@ function updateCartBadge() {
 function goCart() {
   stopScan();
   renderCart();
+  document.getElementById('btn-nhap-cart').style.display = currentRole === 'owner' ? '' : 'none';
   showScreen('screen-cart');
 }
 
@@ -866,7 +867,7 @@ function showForm(product) {
   document.getElementById('form-dvt').textContent = product.dvt;
   document.getElementById('form-tonkho').textContent = fmt(product.tonkho) + ' ' + product.dvt;
   const isOwner = currentRole === 'owner';
-  document.getElementById('form-badge').textContent = isOwner ? 'Chủ' : 'Nhân viên';
+  document.getElementById('form-badge').textContent = isOwner ? 'Admin' : 'Staff';
   document.getElementById('form-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
   document.getElementById('row-giavon').style.display = isOwner ? 'flex' : 'none';
   document.getElementById('form-giavon').textContent = fmtMoney(product.giavon);
