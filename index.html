@@ -641,6 +641,7 @@ function renderCart() {
         <div>
           <div class="cart-item-name">${item.product.ten}</div>
           <div class="cart-item-size">${item.product.kichthuoc} &nbsp;·&nbsp; ${item.product.ma}</div>
+          ${currentRole === 'owner' && item.product.giavon ? `<div style="font-size:12px;color:#f44336;margin-top:3px;font-weight:600;">Giá vốn: ${fmtMoney(item.product.giavon)}</div>` : ''}
         </div>
         <button class="btn-delete" onclick="removeFromCart(${idx})">🗑</button>
       </div>
