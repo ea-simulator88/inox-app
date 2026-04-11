@@ -215,7 +215,11 @@ const CONFIG = {
       <option value="staff">👷 Staff</option>
     </select>
     <label>Mật khẩu</label>
-    <input type="password" id="login-pass" placeholder="Nhập mật khẩu..." />
+    <div style="position:relative;">
+      <input type="password" id="login-pass" placeholder="Nhập mật khẩu..." style="padding-right:44px;" />
+      <button type="button" onclick="togglePassVis()" tabindex="-1"
+        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;line-height:1;padding:0;" id="btn-eye">👁</button>
+    </div>
     <div class="error-msg" id="login-error">❌ Sai mật khẩu, thử lại!</div>
     <button class="btn-primary" id="btn-login" onclick="doLogin()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:6px;margin-bottom:2px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Đăng nhập
@@ -650,31 +654,55 @@ async function doLogin() {
   const err = document.getElementById('login-error');
   const loginBtn = document.getElementById('btn-login');
   if (!pass) { err.style.display = 'block'; return; }
+
+  function applyLogin(r) {
+    currentRole = r;
+    err.style.display = 'none';
+    const isOwner = r === 'owner';
+    document.getElementById('role-badge').textContent = isOwner ? 'Admin' : 'Staff';
+    document.getElementById('role-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
+    document.getElementById('role-badge-cart').textContent = isOwner ? 'Admin' : 'Staff';
+    document.getElementById('role-badge-cart').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
+    document.getElementById('btn-manage-products').style.display = r === 'owner' ? 'flex' : 'none';
+    if (window.innerWidth >= 768) {
+      dtInitLayout();
+      document.getElementById('desktop-layout').style.display = 'flex';
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    } else {
+      showScreen('screen-main');
+    }
+  }
+
+  // Nếu cache khớp → vào ngay, verify ngầm
+  try {
+    const cached = JSON.parse(localStorage.getItem('login_cache') || 'null');
+    if (cached && cached.role === role && cached.pass === pass) {
+      await loadProducts();
+      startAutoRefresh();
+      renderProductList(products);
+      applyLogin(role);
+      loginBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:6px;margin-bottom:2px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Đăng nhập';
+      loginBtn.disabled = false;
+      // Verify ngầm — nếu sai thì đăng xuất
+      fetch(`${SCRIPT_URL}?action=login&role=${role}&pass=${encodeURIComponent(pass)}`)
+        .then(r => r.json()).then(data => { if (!data.ok) { localStorage.removeItem('login_cache'); doLogout(); } })
+        .catch(() => {});
+      return;
+    }
+  } catch(e) {}
+
+  // Lần đầu: login bình thường
   loginBtn.innerHTML = '⏳ Đang đăng nhập...';
   loginBtn.disabled = true;
   try {
     const res = await fetch(`${SCRIPT_URL}?action=login&role=${role}&pass=${encodeURIComponent(pass)}`);
     const data = await res.json();
     if (data.ok) {
-      currentRole = role;
-      err.style.display = 'none';
-      const isOwner = role === 'owner';
-
-      document.getElementById('role-badge').textContent = isOwner ? 'Admin' : 'Staff';
-      document.getElementById('role-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
-      document.getElementById('role-badge-cart').textContent = isOwner ? 'Admin' : 'Staff';
-      document.getElementById('role-badge-cart').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
+      localStorage.setItem('login_cache', JSON.stringify({ role, pass }));
       await loadProducts();
       startAutoRefresh();
       renderProductList(products);
-      document.getElementById('btn-manage-products').style.display = currentRole === 'owner' ? 'flex' : 'none';
-      if (window.innerWidth >= 768) {
-        dtInitLayout();
-        document.getElementById('desktop-layout').style.display = 'flex';
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      } else {
-        showScreen('screen-main');
-      }
+      applyLogin(role);
     } else {
       err.style.display = 'block';
     }
@@ -690,6 +718,42 @@ document.getElementById('login-pass').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') doLogin();
 });
 
+function togglePassVis() {
+  const inp = document.getElementById('login-pass');
+  const btn = document.getElementById('btn-eye');
+  if (inp.type === 'password') { inp.type = 'text'; btn.style.opacity = '1'; }
+  else { inp.type = 'password'; btn.style.opacity = '0.4'; }
+}
+
+// Auto-login khi F5 (nếu có cache hợp lệ)
+(async function autoLoginOnLoad() {
+  try {
+    const cached = JSON.parse(localStorage.getItem('login_cache') || 'null');
+    if (!cached || !cached.role || !cached.pass) return;
+    currentRole = cached.role;
+    await loadProducts();
+    startAutoRefresh();
+    renderProductList(products);
+    const isOwner = cached.role === 'owner';
+    document.getElementById('role-badge').textContent = isOwner ? 'Admin' : 'Staff';
+    document.getElementById('role-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
+    document.getElementById('role-badge-cart').textContent = isOwner ? 'Admin' : 'Staff';
+    document.getElementById('role-badge-cart').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
+    document.getElementById('btn-manage-products').style.display = cached.role === 'owner' ? 'flex' : 'none';
+    if (window.innerWidth >= 768) {
+      dtInitLayout();
+      document.getElementById('desktop-layout').style.display = 'flex';
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    } else {
+      showScreen('screen-main');
+    }
+    // Verify ngầm
+    fetch(`${SCRIPT_URL}?action=login&role=${cached.role}&pass=${encodeURIComponent(cached.pass)}`)
+      .then(r => r.json()).then(data => { if (!data.ok) { localStorage.removeItem('login_cache'); doLogout(); } })
+      .catch(() => {});
+  } catch(e) {}
+})();
+
 function doLogout() {
   stopScan();
   stopAutoRefresh();
@@ -700,6 +764,7 @@ function doLogout() {
   dtCart = [];
   dtMode = 'Xuất';
   localStorage.removeItem('products_cache');
+  localStorage.removeItem('login_cache');
   document.getElementById('login-pass').value = '';
   document.getElementById('desktop-layout').style.display = 'none';
   updateCartBadge();
