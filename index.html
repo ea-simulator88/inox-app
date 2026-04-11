@@ -101,6 +101,11 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .btn-add-cart { width: 34px; height: 34px; background: #4CAF50; color: #fff; border: none; border-radius: 50%; font-size: 22px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .btn-add-cart:active { opacity: 0.7; transform: scale(0.92); }
 
+/* Qty stepper (Shopee style) */
+.qty-stepper { display: flex; align-items: center; gap: 5px; margin-top: 5px; justify-content: flex-end; }
+.qty-input { width: 44px; padding: 5px 4px; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-weight: 600; text-align: center; background: #fff; color: #1a1a1a; outline: none; }
+.qty-input:focus { border-color: #4CAF50; }
+
 .cart-item { background: #fff; border: 1px solid #e8e8e8; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
 .cart-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
 .cart-item-name { font-size: 15px; font-weight: 600; }
@@ -516,6 +521,7 @@ function renderProductList(list) {
   }
   el.innerHTML = list.map(p => {
     const low = (p.tonkho || 0) <= 3;
+    const qid = 'q_' + p.ma.replace(/[^a-zA-Z0-9]/g, '_');
     return `<div class="product-item">
       <div class="product-item-left" onclick="showForm(products.find(x=>x.ma==='${p.ma}'))">
         <div class="product-item-ma">${p.ma}${p.phanloai ? ' · ' + p.phanloai : ''}${p.nhanHieu ? ' · ' + p.nhanHieu : ''}</div>
@@ -524,9 +530,12 @@ function renderProductList(list) {
       </div>
       <div class="product-item-meta">
         <div class="product-item-tonkho${low ? ' low' : ''}">Tồn: ${fmt(p.tonkho)}</div>
-        <div style="font-size:11px;color:#aaa;">${p.dvt}</div>
+        <div class="qty-stepper">
+          <input class="qty-input" id="${qid}" type="text" inputmode="numeric" value="1"
+            onclick="event.stopPropagation()" oninput="sanitizeQty(this)" />
+          <button class="btn-add-cart" onclick="addToCartQty(products.find(x=>x.ma==='${p.ma}'),'${qid}')">+</button>
+        </div>
       </div>
-      <button class="btn-add-cart" onclick="addToCart(products.find(x=>x.ma==='${p.ma}'))">+</button>
     </div>`;
   }).join('');
 }
@@ -548,6 +557,27 @@ document.getElementById('manual-code').addEventListener('keydown', function(e) {
 });
 
 // ===== CART =====
+function sanitizeQty(el) {
+  const raw = el.value.replace(/[^0-9]/g, '');
+  el.value = raw === '' ? '' : String(Math.max(1, parseInt(raw)));
+}
+
+function addToCartQty(product, qid) {
+  if (!product) return;
+  const input = document.getElementById(qid);
+  const qty = Math.max(1, parseInt((input ? input.value.replace(/[^0-9]/g,'') : '1') || '1') || 1);
+  const existing = cart.find(i => i.product.ma === product.ma);
+  if (existing) {
+    existing.sl += qty;
+    showToast('➕ ' + product.ten + ' (SL: ' + existing.sl + ')');
+  } else {
+    cart.push({ product: product, sl: qty, gia: 0 });
+    showToast('🛒 Đã thêm: ' + product.ten + (qty > 1 ? ' x' + qty : ''));
+  }
+  if (input) input.value = '1';
+  updateCartBadge();
+}
+
 function showToast(msg) {
   const old = document.querySelector('.toast');
   if (old) old.remove();
