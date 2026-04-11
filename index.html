@@ -159,7 +159,7 @@ const CONFIG = {
     { field: "kichthuoc", sheet_name: "Kích thước",     form_label: "Kích thước",   show: true,  owner_only: false, input_type: "text"    },
     { field: "motaSP",    sheet_name: "Mô tả Sp",       form_label: "Mô tả SP",     show: true,  owner_only: false, input_type: "text"    },
     { field: "giavon",    sheet_name: "Giá vốn",        form_label: "Giá vốn",      show: true,  owner_only: true,  input_type: "number"  },
-    { field: "giasi",     sheet_name: "Giá sỉ",         form_label: "Giá sỉ",       show: true,  owner_only: true,  input_type: "number"  },
+    { field: "giasi",     sheet_name: "Giá sỉ",         form_label: "Giá sỉ",       show: true,  owner_only: false, input_type: "number"  },
     { field: "dvt",       sheet_name: "Đơn vị tính",    form_label: "Đơn vị tính",  show: true,  owner_only: false, input_type: "text"    },
     { field: "tonkho",    sheet_name: "Tồn kho",        form_label: "Số lượng",     show: true,  owner_only: true,  input_type: "number"  },
     { field: "qr",        sheet_name: "QR",             form_label: "QR",           show: false, owner_only: false, input_type: "formula" },
@@ -980,11 +980,9 @@ function renderCart() {
           <div class="cart-item-name">${item.product.ten}</div>
           <div class="cart-item-size">${item.product.ma}${item.product.ncc ? ' · ' + item.product.ncc : ''}</div>
           ${[item.product.kichthuoc, item.product.motaSP].filter(Boolean).length ? `<div style="font-size:12px;color:#aaa;margin-top:1px;">${[item.product.kichthuoc, item.product.motaSP].filter(Boolean).join(' · ')}</div>` : ''}
-          ${currentRole === 'owner'
-            ? (currentMode === 'Xuất'
-                ? (item.product.giasi ? `<div style="font-size:12px;color:#1565c0;margin-top:3px;font-weight:600;">Giá sỉ: ${fmtMoney(item.product.giasi)}</div>` : '')
-                : (item.product.giavon ? `<div style="font-size:12px;color:#f44336;margin-top:3px;font-weight:600;">Giá vốn: ${fmtMoney(item.product.giavon)}</div>` : ''))
-            : ''}
+          ${currentMode === 'Xuất'
+              ? (item.product.giasi ? `<div style="font-size:12px;color:#1565c0;margin-top:3px;font-weight:600;">Giá sỉ: ${fmtMoney(item.product.giasi)}</div>` : '')
+              : (currentRole === 'owner' && item.product.giavon ? `<div style="font-size:12px;color:#f44336;margin-top:3px;font-weight:600;">Giá vốn: ${fmtMoney(item.product.giavon)}</div>` : '')}
         </div>
         <button class="btn-delete" onclick="removeFromCart(${idx})">🗑</button>
       </div>
@@ -1198,7 +1196,7 @@ function setMode(mode) {
     bc.textContent = '✅ Xác nhận Xuất hàng';
     bc.className = 'btn-confirm xuat';
     document.getElementById('row-giavon').style.display = 'none';
-    document.getElementById('row-giasi').style.display = isOwner ? 'flex' : 'none';
+    document.getElementById('row-giasi').style.display = 'flex';
   } else {
     bn.className = 'toggle-btn active-nhap';
     bx.className = 'toggle-btn';
@@ -1689,11 +1687,9 @@ function dtRenderCart() {
     const safeId = p.ma.replace(/[^a-zA-Z0-9]/g, '_');
     const giaFmt = item.gia > 0 ? Number(item.gia).toLocaleString('en-US') : '';
     const sub = item.sl * item.gia;
-    const gv = currentRole === 'owner'
-      ? (dtMode === 'Xuất'
-          ? (p.giasi ? `<div style="font-size:11px;color:#1565c0;">Giá sỉ: ${fmtMoney(p.giasi)}</div>` : '')
-          : (p.giavon ? `<div style="font-size:11px;color:#f44336;">Vốn: ${fmtMoney(p.giavon)}</div>` : ''))
-      : '';
+    const gv = dtMode === 'Xuất'
+      ? (p.giasi ? `<div style="font-size:11px;color:#1565c0;">Giá sỉ: ${fmtMoney(p.giasi)}</div>` : '')
+      : (currentRole === 'owner' && p.giavon ? `<div style="font-size:11px;color:#f44336;">Vốn: ${fmtMoney(p.giavon)}</div>` : '');
     return `<div class="dt-cart-item">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
         <div style="flex:1;min-width:0;">
