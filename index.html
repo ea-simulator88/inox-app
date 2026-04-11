@@ -1637,11 +1637,13 @@ async function dtSubmit() {
       if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
       return '';
     });
+    const payload = { sheet: dtMode, row };
+    console.log('📤 Gửi row', idx, JSON.stringify(payload));
     return fetch(SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sheet: dtMode, row })
-    }).catch(() => {});
+      body: JSON.stringify(payload)
+    }).then(() => console.log('✅ Fetch', idx, 'done')).catch(err => console.error('❌ Fetch', idx, err));
   });
 
   await Promise.all(sends);
