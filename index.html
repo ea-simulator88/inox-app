@@ -363,7 +363,7 @@ const CONFIG = {
       <button onclick="doRefreshProducts()"
         style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 10px;font-size:12px;color:#4CAF50;cursor:pointer;font-weight:600;">🔄 Làm mới</button>
     </div>
-    <div id="manage-product-list"></div>
+    <div id="manage-product-list" style="overflow-y:auto;max-height:calc(100vh - 220px);"></div>
   </div>
 </div>
 
@@ -559,6 +559,23 @@ const CONFIG = {
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuMnQQXseZ6YtZgv7bOR0V5v0700bq8Vn_kNgpMjAPDX6x8dFmxvWgDsn6ch8hp7dNdg/exec';
 
 let currentRole = null;
+let _autoRefreshTimer = null;
+function startAutoRefresh() {
+  if (_autoRefreshTimer) clearInterval(_autoRefreshTimer);
+  _autoRefreshTimer = setInterval(() => {
+    if (!currentRole) return;
+    fetchProductsFromServer().then(() => {
+      // Chỉ re-render product list nếu giỏ hàng đang trống (tránh reset scroll khi đang chọn hàng)
+      if (window.innerWidth >= 768) { if (dtCart.length === 0) dtRenderProducts(products); }
+      else { if (cart.length === 0) renderProductList(products); }
+      renderManageProductList();
+      updateProductStats();
+    }).catch(() => {});
+  }, 10000);
+}
+function stopAutoRefresh() {
+  if (_autoRefreshTimer) { clearInterval(_autoRefreshTimer); _autoRefreshTimer = null; }
+}
 let products = [];
 let scanning = false;
 let stream = null;
@@ -648,6 +665,7 @@ async function doLogin() {
       document.getElementById('role-badge-cart').textContent = isOwner ? 'Admin' : 'Staff';
       document.getElementById('role-badge-cart').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
       await loadProducts();
+      startAutoRefresh();
       renderProductList(products);
       document.getElementById('btn-manage-products').style.display = currentRole === 'owner' ? 'flex' : 'none';
       if (window.innerWidth >= 768) {
@@ -674,6 +692,7 @@ document.getElementById('login-pass').addEventListener('keydown', function(e) {
 
 function doLogout() {
   stopScan();
+  stopAutoRefresh();
   currentRole = null;
   products = [];
   cart = [];
