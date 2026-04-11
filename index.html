@@ -253,7 +253,16 @@ const CONFIG = {
     <button onclick="lookupManual()">Tìm</button>
   </div>
 
-  <div id="product-list" style="margin-top:12px;"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 14px;margin-top:10px;margin-bottom:2px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;">
+    <div style="font-size:12px;color:#666;">
+      <span id="mobile-stats-count" style="font-weight:600;color:#1a1a1a;">0</span> SP
+      <span style="color:#ddd;margin:0 6px;">|</span>
+      Tồn: <span id="mobile-stats-tonkho" style="font-weight:600;color:#4CAF50;">0</span>
+    </div>
+    <button onclick="doRefreshProducts()"
+      style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 10px;font-size:12px;color:#4CAF50;cursor:pointer;font-weight:600;">🔄 Làm mới</button>
+  </div>
+  <div id="product-list" style="margin-top:8px;"></div>
 </div>
 
 <!-- FORM -->
@@ -342,9 +351,18 @@ const CONFIG = {
     <div style="width:60px;"></div>
   </div>
   <div style="max-width:680px;margin:0 auto;width:100%;">
-    <button class="btn-scan" onclick="openProductForm('add', null)" style="margin-bottom:12px;">
+    <button class="btn-scan" onclick="openProductForm('add', null)" style="margin-bottom:8px;">
       ➕ Thêm sản phẩm mới
     </button>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 14px;margin-bottom:10px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;">
+      <div style="font-size:12px;color:#666;">
+        <span id="manage-stats-count" style="font-weight:600;color:#1a1a1a;">0</span> SP
+        <span style="color:#ddd;margin:0 6px;">|</span>
+        Tồn: <span id="manage-stats-tonkho" style="font-weight:600;color:#4CAF50;">0</span>
+      </div>
+      <button onclick="doRefreshProducts()"
+        style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 10px;font-size:12px;color:#4CAF50;cursor:pointer;font-weight:600;">🔄 Làm mới</button>
+    </div>
     <div id="manage-product-list"></div>
   </div>
 </div>
@@ -449,7 +467,16 @@ const CONFIG = {
     <!-- CỘT TRÁI: danh sách SP -->
     <div style="width:650px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;height:100%;flex-shrink:0;">
       <div style="padding:12px 14px;border-bottom:1px solid #f0f0f0;flex-shrink:0;">
-        <div style="font-size:14px;font-weight:600;margin-bottom:8px;">📦 Sản phẩm</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:6px;">📦 Sản phẩm</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="font-size:12px;color:#666;">
+            <span id="dt-stats-count" style="font-weight:600;color:#1a1a1a;">0</span> SP
+            <span style="color:#ddd;margin:0 6px;">|</span>
+            Tồn: <span id="dt-stats-tonkho" style="font-weight:600;color:#4CAF50;">0</span>
+          </div>
+          <button id="dt-btn-refresh" onclick="doRefreshProducts()" title="Làm mới"
+            style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 10px;font-size:12px;color:#4CAF50;cursor:pointer;font-weight:600;">🔄 Làm mới</button>
+        </div>
         <input type="text" id="dt-search" placeholder="Tìm mã hoặc tên..."
           style="width:100%;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;"
           oninput="dtFilterProducts()" />
@@ -542,6 +569,40 @@ let cart = [];
 let cartGiaodich = 'Tiền mặt';
 
 // ===== SCREEN =====
+function updateProductStats() {
+  const count = (products || []).length;
+  const total = (products || []).reduce((s, p) => s + (Number(p.tonkho) || 0), 0);
+  ['mobile-stats-count','manage-stats-count','dt-stats-count'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = count;
+  });
+  ['mobile-stats-tonkho','manage-stats-tonkho','dt-stats-tonkho'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = fmt(total);
+  });
+}
+
+async function doRefreshProducts() {
+  const btns = document.querySelectorAll('[onclick="doRefreshProducts()"], #dt-btn-refresh');
+  btns.forEach(b => { b.style.opacity = '0.5'; b.style.pointerEvents = 'none'; });
+  await fetchProductsFromServer();
+  if (window.innerWidth >= 768) dtRenderProducts(products);
+  renderProductList(products);
+  renderManageProductList();
+  updateProductStats();
+  btns.forEach(b => { b.style.opacity = ''; b.style.pointerEvents = ''; });
+  showToast('✅ Đã cập nhật!');
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && currentRole) {
+    fetchProductsFromServer().then(() => {
+      if (window.innerWidth >= 768) dtRenderProducts(products);
+      else renderProductList(products);
+    }).catch(() => {});
+  }
+});
+
 function showScreen(id) {
   const isDesktop = window.innerWidth >= 768;
 
@@ -680,6 +741,7 @@ async function fetchProductsFromServer() {
       products = fetched;
       localStorage.setItem('products_cache', JSON.stringify(products));
       renderProductList(products);
+      updateProductStats();
     }
   } catch(e) {
     if (products.length === 0) {
@@ -1414,7 +1476,7 @@ async function submitProductForm() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise(r => setTimeout(r, 300));
 
     // Nếu là thêm mới và tonkho >= 1 → tự ghi thêm vào sheet Nhập
     let successMsg = productFormMode === 'add' ? '✅ Đã thêm sản phẩm mới!' : '✅ Đã cập nhật sản phẩm!';
@@ -1447,7 +1509,7 @@ async function submitProductForm() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sheet: 'Nhập', row: importRow })
         });
-        await new Promise(r => setTimeout(r, 800));
+        await new Promise(r => setTimeout(r, 200));
         successMsg = `✅ Đã thêm SP và ghi nhập kho ${tonkho} ${formProduct.dvt || 'cái'}!`;
       } else {
         successMsg = '✅ Đã thêm SP (chưa có hàng trong kho)';
@@ -1468,19 +1530,31 @@ async function submitProductForm() {
 function confirmDeleteProduct(product) {
   if (!product) return;
   showModal('Xóa ' + product.ten + '?', 'Hành động này không thể hoàn tác', async () => {
+    // Chuyển modal sang trạng thái loading — khóa toàn bộ thao tác
+    const overlay = document.getElementById('modal-overlay');
+    document.getElementById('modal-msg').textContent = '⏳ Đang xóa...';
+    document.getElementById('modal-sub').textContent = 'Vui lòng chờ';
+    document.getElementById('modal-yes').style.display = 'none';
+    document.getElementById('modal-no').style.display = 'none';
+    overlay.style.display = 'flex';
+    overlay.onclick = null; // không cho đóng bằng click nền
+
     const body = { sheet: 'Sản phẩm', action: 'delete', ma: product.ma };
-    console.log('deleteProduct body:', JSON.stringify(body));
     try {
       await fetch(SCRIPT_URL, {
         method: 'POST', mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, 300));
       await fetchProductsFromServer();
+      overlay.style.display = 'none';
+      document.getElementById('modal-no').style.display = '';
       showScreen('screen-products');
-      alert('✅ Đã xóa sản phẩm!');
+      showToast('✅ Đã xóa sản phẩm!');
     } catch(e) {
+      overlay.style.display = 'none';
+      document.getElementById('modal-no').style.display = '';
       alert('❌ Lỗi: ' + e.message);
     }
   });
