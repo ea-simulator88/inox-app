@@ -142,31 +142,41 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 const CONFIG = {
   product_columns: [
     { field: "ma",        sheet_name: "Mã SP",               show: true,  owner_only: false, input_type: "text"   },
+    { field: "ncc",       sheet_name: "NCC",                 show: true,  owner_only: false, input_type: "text"   },
     { field: "ten",       sheet_name: "Tên SP",              show: true,  owner_only: false, input_type: "text"   },
-    { field: "kichthuoc", sheet_name: "Kích thước DxRxCxS",  show: true,  owner_only: false, input_type: "text"   },
+    { field: "kichthuoc", sheet_name: "Kích thước",  show: true,  owner_only: false, input_type: "text"   },
+    { field: "motaSP",    sheet_name: "Mô tả Sp",            show: true,  owner_only: false, input_type: "text"   },
     { field: "giavon",    sheet_name: "Giá vốn",             show: true,  owner_only: true,  input_type: "number" },
     { field: "dvt",       sheet_name: "Đơn vị tính",         show: true,  owner_only: false, input_type: "text"   },
     { field: "tonkho",    sheet_name: "Tồn kho",             show: true,  owner_only: false, input_type: "number" },
   ],
   export_columns: [
-    { sheet_name: "Mã SP",       value: "product.ma"        },
-    { sheet_name: "Thời gian",   value: "auto_timestamp"    },
-    { sheet_name: "Mặt hàng",    value: "product.ten"       },
-    { sheet_name: "Kích thước",  value: "product.kichthuoc" },
-    { sheet_name: "Đơn vị tính", value: "product.dvt"       },
-    { sheet_name: "Số lượng",    value: "form.soluong"      },
-    { sheet_name: "Giá bán",     value: "form.gia"          },
-    { sheet_name: "Ghi chú",     value: "form.ghichu"       },
+    { sheet_name: "Mã SP",        value: "product.ma"        },
+    { sheet_name: "Thời gian",    value: "auto_timestamp"    },
+    { sheet_name: "NCC",          value: "product.ncc"       },
+    { sheet_name: "Mặt hàng",     value: "product.ten"       },
+    { sheet_name: "Kích thước",   value: "product.kichthuoc" },
+    { sheet_name: "Mô tả SP",     value: "product.motaSP"    },
+    { sheet_name: "Đơn vị tính",  value: "product.dvt"       },
+    { sheet_name: "Số lượng",     value: "form.soluong"      },
+    { sheet_name: "Giá bán",      value: "form.gia"          },
+    { sheet_name: "Giao dịch",    value: "form.giaodich"     },
+    { sheet_name: "Phí chành xe", value: "form.phichanh"     },
+    { sheet_name: "Ghi chú",      value: "form.ghichu"       },
   ],
   import_columns: [
-    { sheet_name: "Mã SP",       value: "product.ma"        },
-    { sheet_name: "Thời gian",   value: "auto_timestamp"    },
-    { sheet_name: "Mặt hàng",    value: "product.ten"       },
-    { sheet_name: "Kích thước",  value: "product.kichthuoc" },
-    { sheet_name: "Đơn vị tính", value: "product.dvt"       },
-    { sheet_name: "Số lượng",    value: "form.soluong"      },
-    { sheet_name: "Giá nhập",    value: "form.gia"          },
-    { sheet_name: "Ghi chú",     value: "form.ghichu"       },
+    { sheet_name: "Mã SP",        value: "product.ma"        },
+    { sheet_name: "Thời gian",    value: "auto_timestamp"    },
+    { sheet_name: "NCC",          value: "product.ncc"       },
+    { sheet_name: "Mặt hàng",     value: "product.ten"       },
+    { sheet_name: "Kích thước",   value: "product.kichthuoc" },
+    { sheet_name: "Mô tả SP",     value: "product.motaSP"    },
+    { sheet_name: "Đơn vị tính",  value: "product.dvt"       },
+    { sheet_name: "Số lượng",     value: "form.soluong"      },
+    { sheet_name: "Giá nhập",     value: "form.gia"          },
+    { sheet_name: "Giao dịch",    value: "form.giaodich"     },
+    { sheet_name: "Phí chành xe", value: "form.phichanh"     },
+    { sheet_name: "Ghi chú",      value: "form.ghichu"       },
   ]
 };
 </script>
@@ -244,6 +254,14 @@ const CONFIG = {
   <div class="card">
     <div class="product-name" id="form-name"></div>
     <div class="product-size" id="form-size"></div>
+    <div class="info-row" id="row-ncc" style="display:none;">
+      <span class="info-label">NCC</span>
+      <span class="info-value" id="form-ncc"></span>
+    </div>
+    <div class="info-row" id="row-motasp" style="display:none;">
+      <span class="info-label">Mô tả SP</span>
+      <span class="info-value" id="form-motasp"></span>
+    </div>
     <div class="info-row" id="row-nhanhieu" style="display:none;">
       <span class="info-label">Nhãn hiệu</span>
       <span class="info-value" id="form-nhanhieu"></span>
@@ -282,12 +300,15 @@ const CONFIG = {
     <label>Giao dịch <span style="color:#f44336;">*</span></label>
     <select id="form-giaodich">
       <option value="">-- Chọn hình thức --</option>
-      <option value="Tiền mặt">💵 Tiền mặt</option>
-      <option value="Chuyển khoản">🏦 Chuyển khoản</option>
+      <option value="Tiền mặt">Tiền mặt</option>
+      <option value="Chuyển khoản">Chuyển khoản</option>
+      <option value="Tiền mặt + Chuyển khoản">Tiền mặt + Chuyển khoản</option>
     </select>
 
-    <label id="label-phi-chanh" style="display:none;">Phí chành xe (không bắt buộc)</label>
-    <input type="text" id="form-phi-chanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)" style="display:none;" />
+    <div id="row-phichanh" style="display:none;">
+      <label>Phí chành xe (không bắt buộc)</label>
+      <input type="text" id="form-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)" />
+    </div>
 
     <label>Ghi chú (không bắt buộc)</label>
     <input type="text" id="form-ghichu" placeholder="Tên khách, đơn hàng..." />
@@ -590,6 +611,8 @@ function filterProductList() {
     removeDiacritics(p.ma).includes(q) ||
     removeDiacritics(p.ten).includes(q) ||
     removeDiacritics(p.kichthuoc).includes(q) ||
+    removeDiacritics(p.ncc).includes(q) ||
+    removeDiacritics(p.motaSP).includes(q) ||
     removeDiacritics(p.phanloai).includes(q) ||
     removeDiacritics(p.nhanHieu).includes(q)
   );
@@ -607,9 +630,9 @@ function renderProductList(list) {
     const qid = 'q_' + p.ma.replace(/[^a-zA-Z0-9]/g, '_');
     return `<div class="product-item">
       <div class="product-item-left" onclick="showForm(products.find(x=>x.ma==='${p.ma}'))">
-        <div class="product-item-ma">${p.ma}${p.phanloai ? ' · ' + p.phanloai : ''}${p.nhanHieu ? ' · ' + p.nhanHieu : ''}</div>
+        <div class="product-item-ma">${p.ma}${p.ncc ? ' · ' + p.ncc : ''}${p.phanloai ? ' · ' + p.phanloai : ''}</div>
         <div class="product-item-ten">${p.ten}</div>
-        <div class="product-item-size">${p.kichthuoc}</div>
+        <div class="product-item-size">${[p.kichthuoc, p.motaSP].filter(Boolean).join(' · ')}</div>
       </div>
       <div class="product-item-meta">
         <div class="product-item-tonkho${low ? ' low' : ''}">Tồn: ${fmt(p.tonkho)}</div>
@@ -724,7 +747,8 @@ function renderCart() {
       <div class="cart-item-header">
         <div>
           <div class="cart-item-name">${item.product.ten}</div>
-          <div class="cart-item-size">${item.product.kichthuoc} &nbsp;·&nbsp; ${item.product.ma}</div>
+          <div class="cart-item-size">${item.product.ma}${item.product.ncc ? ' · ' + item.product.ncc : ''}</div>
+          ${[item.product.kichthuoc, item.product.motaSP].filter(Boolean).length ? `<div style="font-size:12px;color:#aaa;margin-top:1px;">${[item.product.kichthuoc, item.product.motaSP].filter(Boolean).join(' · ')}</div>` : ''}
           ${currentRole === 'owner' && item.product.giavon ? `<div style="font-size:12px;color:#f44336;margin-top:3px;font-weight:600;">Giá vốn: ${fmtMoney(item.product.giavon)}</div>` : ''}
         </div>
         <button class="btn-delete" onclick="removeFromCart(${idx})">🗑</button>
@@ -883,6 +907,18 @@ function showForm(product) {
   currentProduct = product;
   document.getElementById('form-name').textContent = product.ten;
   document.getElementById('form-size').textContent = 'Kích thước: ' + product.kichthuoc + '  |  Mã: ' + product.ma;
+  if (product.ncc) {
+    document.getElementById('row-ncc').style.display = 'flex';
+    document.getElementById('form-ncc').textContent = product.ncc;
+  } else {
+    document.getElementById('row-ncc').style.display = 'none';
+  }
+  if (product.motaSP) {
+    document.getElementById('row-motasp').style.display = 'flex';
+    document.getElementById('form-motasp').textContent = product.motaSP;
+  } else {
+    document.getElementById('row-motasp').style.display = 'none';
+  }
   if (product.nhanHieu) {
     document.getElementById('row-nhanhieu').style.display = 'flex';
     document.getElementById('form-nhanhieu').textContent = product.nhanHieu;
@@ -906,7 +942,7 @@ function showForm(product) {
   document.getElementById('form-soluong').value = '';
   document.getElementById('form-gia').value = '';
   document.getElementById('form-giaodich').value = '';
-  document.getElementById('form-phi-chanh').value = '';
+  document.getElementById('form-phichanh').value = '';
   document.getElementById('form-ghichu').value = '';
   setMode('Xuất');
   showScreen('screen-form');
@@ -918,9 +954,7 @@ function setMode(mode) {
   const bn = document.getElementById('btn-nhap');
   const lbl = document.getElementById('label-gia');
   const bc = document.getElementById('btn-confirm');
-  const showPhi = mode === 'Xuất';
-  document.getElementById('label-phi-chanh').style.display = showPhi ? 'block' : 'none';
-  document.getElementById('form-phi-chanh').style.display = showPhi ? 'block' : 'none';
+  document.getElementById('row-phichanh').style.display = mode === 'Xuất' ? 'block' : 'none';
   if (mode === 'Xuất') {
     bx.className = 'toggle-btn active-xuat';
     bn.className = 'toggle-btn';
@@ -933,7 +967,7 @@ function setMode(mode) {
     lbl.innerHTML = 'Giá nhập (đồng) <span style="color:#f44336;">*</span>';
     bc.textContent = '✅ Xác nhận Nhập hàng';
     bc.className = 'btn-confirm';
-    document.getElementById('form-phi-chanh').value = '';
+    document.getElementById('form-phichanh').value = '';
   }
 }
 
@@ -945,7 +979,7 @@ async function submitForm() {
   const sl = getInputNum('form-soluong');
   const gia = getInputNum('form-gia');
   const giaodich = document.getElementById('form-giaodich').value;
-  const phiChanh = getInputNum('form-phi-chanh');
+  const phiChanh = getInputNum('form-phichanh');
   const ghichu = document.getElementById('form-ghichu').value;
 
   if (currentMode === 'Xuất') {
@@ -1004,8 +1038,20 @@ async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
   const now = new Date();
   const thoiGian = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
   const sheetName = currentMode === 'Xuất' ? 'Xuất' : 'Nhập';
-  const columns = currentMode === 'Xuất' ? CONFIG.export_columns : CONFIG.import_columns;
-  const row = buildRow(columns, { product: currentProduct, sl, gia, giaodich, ghichu, phiChanh, thoiGian });
+  const cols = currentMode === 'Xuất' ? CONFIG.export_columns : CONFIG.import_columns;
+  const row = cols.map(col => {
+    if (col.value === 'auto_timestamp')   return thoiGian;
+    if (col.value === 'form.soluong')     return sl;
+    if (col.value === 'form.gia')         return gia;
+    if (col.value === 'form.giaodich')    return giaodich;
+    if (col.value === 'form.phichanh')    return currentMode === 'Xuất' ? (phiChanh || '') : '';
+    if (col.value === 'form.ghichu')      return ghichu || '';
+    if (col.value.startsWith('product.')) {
+      const key = col.value.replace('product.', '');
+      return currentProduct[key] || '';
+    }
+    return '';
+  });
 
   try {
     await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sheet: sheetName, row }) });
