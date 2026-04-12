@@ -788,6 +788,8 @@ function togglePassVis() {
     startAutoRefresh();
     startInactivityWatch();
     renderProductList(products);
+    renderManageProductList();
+    updateProductStats();
     const isOwner = cached.role === 'owner';
     document.getElementById('role-badge').textContent = isOwner ? 'Admin' : 'Staff';
     document.getElementById('role-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
@@ -797,7 +799,7 @@ function togglePassVis() {
     const _lastScreen = sessionStorage.getItem('lastScreen') || 'screen-main';
     const _safeScreens = ['screen-main', 'screen-products'];
     const _targetScreen = _safeScreens.includes(_lastScreen) ? _lastScreen : 'screen-main';
-    if (window.innerWidth >= 768) { dtInitLayout(); }
+    if (window.innerWidth >= 768) { dtInitLayout(); dtRenderProducts(products); }
     showScreen(_targetScreen);
     // Verify ngầm
     fetch(`${SCRIPT_URL}?action=login&role=${cached.role}&pass=${encodeURIComponent(cached.pass)}&token=SECRET123`)
@@ -878,6 +880,7 @@ async function fetchProductsFromServer() {
       products = fetched;
       localStorage.setItem('products_cache', JSON.stringify(products));
       renderProductList(products);
+      renderManageProductList();
       updateProductStats();
     }
   } catch(e) {
