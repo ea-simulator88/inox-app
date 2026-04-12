@@ -667,7 +667,9 @@ let html5QrCode = null;
 let mobileFilterLow = false;
 let dtFilterLow = false;
 let manageFilterLow = false;
-// hidden products now synced via Google Sheet column "Ẩn"
+// hidden products synced via Google Sheet column "Ẩn"
+// giữ optimistic updates trong 15s để tránh background fetch ghi đè
+const pendingHiddenUpdates = {};
 
 let cart = [];
 let cartGiaodich = 'Tiền mặt';
@@ -722,6 +724,7 @@ async function toggleHideProduct(ma) {
   if (!p) return;
   const newVal = (p.an || '').trim() === 'Đang Ẩn' ? '' : 'Đang Ẩn';
   p.an = newVal; // cập nhật ngay (optimistic)
+  pendingHiddenUpdates[ma] = { value: newVal, ts: Date.now() };
   localStorage.setItem('products_cache', JSON.stringify(products));
   filterProductList();
   dtFilterProducts();
@@ -1065,6 +1068,17 @@ async function fetchProductsFromServer() {
     }).filter(p => p.ma);
     if (fetched.length > 0) {
       products = fetched;
+      // Áp lại các thay đổi ẩn/hiện chưa kịp sync lên sheet
+      const now = Date.now();
+      Object.keys(pendingHiddenUpdates).forEach(ma => {
+        const upd = pendingHiddenUpdates[ma];
+        if (now - upd.ts < 15000) {
+          const p = products.find(x => x.ma === ma);
+          if (p) p.an = upd.value;
+        } else {
+          delete pendingHiddenUpdates[ma];
+        }
+      });
       localStorage.setItem('products_cache', JSON.stringify(products));
       filterProductList();
       filterManageProducts();

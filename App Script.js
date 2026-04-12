@@ -4,6 +4,26 @@ function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
     const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // ── ẨN / HIỆN sản phẩm (ghi cột "Ẩn") ────────────
+    if (data.action === 'setHidden') {
+      const spSheet = ss.getSheetByName('Sản phẩm');
+      const headers = spSheet.getRange(1, 1, 1, spSheet.getLastColumn()).getValues()[0];
+      const maCol = headers.indexOf('Mã SP') + 1;
+      const anCol = headers.indexOf('Ẩn') + 1;
+      if (maCol > 0 && anCol > 0) {
+        const maData = spSheet.getRange(2, maCol, spSheet.getLastRow() - 1, 1).getValues();
+        for (let i = 0; i < maData.length; i++) {
+          if ((maData[i][0] || '').toString().trim() === data.ma.toString().trim()) {
+            spSheet.getRange(i + 2, anCol).setValue(data.value);
+            break;
+          }
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({ success: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     const sheet = ss.getSheetByName(data.sheet);
 
     if (!sheet) {
@@ -45,25 +65,6 @@ function doPost(e) {
         success: found,
         error: found ? null : 'Không tìm thấy mã: ' + data.ma
       })).setMimeType(ContentService.MimeType.JSON);
-    }
-
-    // ── ẨN / HIỆN sản phẩm (ghi cột "Ẩn") ────────────
-    if (data.action === 'setHidden') {
-      const spSheet = ss.getSheetByName('Sản phẩm');
-      const headers = spSheet.getRange(1, 1, 1, spSheet.getLastColumn()).getValues()[0];
-      const maCol = headers.indexOf('Mã SP') + 1;
-      const anCol = headers.indexOf('Ẩn') + 1;
-      if (maCol > 0 && anCol > 0) {
-        const maData = spSheet.getRange(2, maCol, spSheet.getLastRow() - 1, 1).getValues();
-        for (let i = 0; i < maData.length; i++) {
-          if ((maData[i][0] || '').toString().trim() === data.ma.toString().trim()) {
-            spSheet.getRange(i + 2, anCol).setValue(data.value);
-            break;
-          }
-        }
-      }
-      return ContentService.createTextOutput(JSON.stringify({ success: true }))
-        .setMimeType(ContentService.MimeType.JSON);
     }
 
     // ── XÓA sản phẩm theo Mã SP ────────────────────────
