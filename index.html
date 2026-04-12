@@ -604,7 +604,7 @@ const CONFIG = {
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuMnQQXseZ6YtZgv7bOR0V5v0700bq8Vn_kNgpMjAPDX6x8dFmxvWgDsn6ch8hp7dNdg/exec';
-const LOW_STOCK_THRESHOLD = 3; // Tồn kho thấp
+const LOW_STOCK_THRESHOLD = 2; // Tồn kho thấp
 
 let currentRole = null;
 let _autoRefreshTimer = null;
@@ -848,7 +848,7 @@ async function doLogin() {
       loginBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:6px;margin-bottom:2px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Đăng nhập';
       loginBtn.disabled = false;
       // Verify ngầm — nếu sai thì đăng xuất
-      fetch(`${SCRIPT_URL}?action=login&role=${role}&pass=${encodeURIComponent(pass)}&token=SECRET123`)
+      fetch(`${SCRIPT_URL}?action=login&role=${role}&pass=${encodeURIComponent(pass)}&token=inox2026xK9m`)
         .then(r => r.json()).then(data => { if (!data.ok) { localStorage.removeItem('login_cache'); doLogout(); } })
         .catch(() => {});
       return;
@@ -859,7 +859,7 @@ async function doLogin() {
   loginBtn.innerHTML = '⏳ Đang đăng nhập...';
   loginBtn.disabled = true;
   try {
-    const res = await fetch(`${SCRIPT_URL}?action=login&role=${role}&pass=${encodeURIComponent(pass)}&token=SECRET123`);
+    const res = await fetch(`${SCRIPT_URL}?action=login&role=${role}&pass=${encodeURIComponent(pass)}&token=inox2026xK9m`);
     const data = await res.json();
     if (data.ok) {
       localStorage.setItem('login_cache', JSON.stringify({ role, pass }));
@@ -925,7 +925,7 @@ function togglePassVis() {
       showScreen(_targetScreen);
     }
     // Verify ngầm
-    fetch(`${SCRIPT_URL}?action=login&role=${cached.role}&pass=${encodeURIComponent(cached.pass)}&token=SECRET123`)
+    fetch(`${SCRIPT_URL}?action=login&role=${cached.role}&pass=${encodeURIComponent(cached.pass)}&token=inox2026xK9m`)
       .then(r => r.json()).then(data => { if (!data.ok) { localStorage.removeItem('login_cache'); doLogout(); } })
       .catch(() => {});
   } catch(e) {}
@@ -970,7 +970,7 @@ async function fetchProductsFromServer() {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch(SCRIPT_URL + '?action=get&token=SECRET123', { signal: controller.signal, cache: 'no-store' });
+    const res = await fetch(SCRIPT_URL + '?action=get&token=inox2026xK9m', { signal: controller.signal, cache: 'no-store' });
     clearTimeout(timeoutId);
     const data = await res.json();
 
@@ -1381,10 +1381,10 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh) {
     });
   });
 
-  await fetch(SCRIPT_URL, {
+  await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sheet: mode, rows, token: 'SECRET123' })
+    body: JSON.stringify({ sheet: mode, rows, token: 'inox2026xK9m' })
   }).catch(() => {});
 
   const isXuat = mode === 'Xuất';
@@ -1568,7 +1568,7 @@ async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
   });
 
   try {
-    await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sheet: sheetName, row, token: 'SECRET123' }) });
+    await fetch(SCRIPT_URL + '?token=inox2026xK9m', { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sheet: sheetName, row, token: 'inox2026xK9m' }) });
   } catch(e) {}
 
   btn.disabled = false;
@@ -1761,10 +1761,10 @@ async function submitProductForm() {
   console.log('submitProductForm body:', JSON.stringify(body));
 
   try {
-    await fetch(SCRIPT_URL, {
+    await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...body, token: 'SECRET123' })
+      body: JSON.stringify({ ...body, token: 'inox2026xK9m' })
     });
     await new Promise(r => setTimeout(r, 300));
 
@@ -1794,10 +1794,10 @@ async function submitProductForm() {
           if (col.value.startsWith('product.')) return formProduct[col.value.replace('product.','')] || '';
           return '';
         });
-        await fetch(SCRIPT_URL, {
+        await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
           method: 'POST', mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sheet: 'Nhập', row: importRow, token: 'SECRET123' })
+          body: JSON.stringify({ sheet: 'Nhập', row: importRow, token: 'inox2026xK9m' })
         });
         await new Promise(r => setTimeout(r, 200));
         successMsg = `✅ Đã thêm SP và ghi nhập kho ${tonkho} ${formProduct.dvt || 'cái'}!`;
@@ -1831,10 +1831,10 @@ function confirmDeleteProduct(product) {
 
     const body = { sheet: 'Sản phẩm', action: 'delete', ma: product.ma };
     try {
-      await fetch(SCRIPT_URL, {
+      await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
         method: 'POST', mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...body, token: 'SECRET123' })
+        body: JSON.stringify({ ...body, token: 'inox2026xK9m' })
       });
       await new Promise(r => setTimeout(r, 300));
       await fetchProductsFromServer();
@@ -2071,10 +2071,10 @@ async function dtSubmit() {
     });
   });
 
-  await fetch(SCRIPT_URL, {
+  await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sheet: dtMode, rows, token: 'SECRET123' })
+    body: JSON.stringify({ sheet: dtMode, rows, token: 'inox2026xK9m' })
   }).catch(() => {});
 
   const count = dtCart.length;
