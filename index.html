@@ -267,8 +267,14 @@ const CONFIG = {
       <span style="color:#ddd;margin:0 6px;">|</span>
       Tồn: <span id="mobile-stats-tonkho" style="font-weight:600;color:#4CAF50;">0</span>
     </div>
-    <button onclick="doRefreshProducts()"
-      style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 10px;font-size:12px;color:#4CAF50;cursor:pointer;font-weight:600;">🔄 Làm mới</button>
+    <div style="display:flex;gap:5px;align-items:center;">
+      <button id="mob-tab-all" onclick="setMobileFilter('all')"
+        style="background:#e8f5e9;color:#2e7d32;border:1px solid #4CAF50;border-radius:8px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;">Tất cả</button>
+      <button id="mob-tab-low" onclick="setMobileFilter('low')"
+        style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;">🔴 <span id="mob-low-count">0</span></button>
+      <button onclick="doRefreshProducts()"
+        style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 10px;font-size:12px;color:#4CAF50;cursor:pointer;font-weight:600;">🔄</button>
+    </div>
   </div>
   <div id="product-list" style="margin-top:8px;overflow-y:auto;max-height:calc(100vh - 280px);"></div>
 </div>
@@ -369,16 +375,25 @@ const CONFIG = {
     <button class="btn-scan" onclick="openProductForm('add', null)" style="margin-bottom:8px;">
       ➕ Thêm sản phẩm mới
     </button>
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 14px;margin-bottom:10px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 14px;margin-bottom:8px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;">
       <div style="font-size:12px;color:#666;">
         <span id="manage-stats-count" style="font-weight:600;color:#1a1a1a;">0</span> SP
         <span style="color:#ddd;margin:0 6px;">|</span>
         Tồn: <span id="manage-stats-tonkho" style="font-weight:600;color:#4CAF50;">0</span>
       </div>
-      <button onclick="doRefreshProducts()"
-        style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 10px;font-size:12px;color:#4CAF50;cursor:pointer;font-weight:600;">🔄 Làm mới</button>
+      <div style="display:flex;gap:5px;align-items:center;">
+        <button id="manage-tab-all" onclick="setManageFilter('all')"
+          style="background:#e8f5e9;color:#2e7d32;border:1px solid #4CAF50;border-radius:8px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;">Tất cả</button>
+        <button id="manage-tab-low" onclick="setManageFilter('low')"
+          style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;">🔴 <span id="manage-low-count">0</span></button>
+        <button onclick="doRefreshProducts()"
+          style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 10px;font-size:12px;color:#4CAF50;cursor:pointer;font-weight:600;">🔄 Làm mới</button>
+      </div>
     </div>
-    <div id="manage-product-list" style="overflow-y:auto;max-height:calc(100vh - 220px);"></div>
+    <input type="text" id="manage-search" placeholder="Tìm mã, tên, kích thước, NCC..."
+      style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;margin-bottom:8px;"
+      oninput="filterManageProducts()" />
+    <div id="manage-product-list" style="overflow-y:auto;max-height:calc(100vh - 245px);"></div>
   </div>
 </div>
 
@@ -500,8 +515,14 @@ const CONFIG = {
             <span style="color:#ddd;margin:0 6px;">|</span>
             Tồn: <span id="dt-stats-tonkho" style="font-weight:600;color:#4CAF50;">0</span>
           </div>
-          <button id="dt-btn-refresh" onclick="doRefreshProducts()" title="Làm mới"
-            style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 10px;font-size:12px;color:#4CAF50;cursor:pointer;font-weight:600;">🔄 Làm mới</button>
+          <div style="display:flex;gap:5px;align-items:center;">
+            <button id="dt-tab-all" onclick="setDtFilter('all')"
+              style="background:#e8f5e9;color:#2e7d32;border:1px solid #4CAF50;border-radius:8px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;">Tất cả</button>
+            <button id="dt-tab-low" onclick="setDtFilter('low')"
+              style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;">🔴 <span id="dt-low-count">0</span></button>
+            <button id="dt-btn-refresh" onclick="doRefreshProducts()" title="Làm mới"
+              style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 10px;font-size:12px;color:#4CAF50;cursor:pointer;font-weight:600;">🔄 Làm mới</button>
+          </div>
         </div>
         <input type="text" id="dt-search" placeholder="Tìm mã hoặc tên..."
           style="width:100%;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;"
@@ -583,6 +604,7 @@ const CONFIG = {
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuMnQQXseZ6YtZgv7bOR0V5v0700bq8Vn_kNgpMjAPDX6x8dFmxvWgDsn6ch8hp7dNdg/exec';
+const LOW_STOCK_THRESHOLD = 3; // Tồn kho thấp
 
 let currentRole = null;
 let _autoRefreshTimer = null;
@@ -592,9 +614,9 @@ function startAutoRefresh() {
     if (!currentRole) return;
     fetchProductsFromServer().then(() => {
       // Chỉ re-render product list nếu giỏ hàng đang trống (tránh reset scroll khi đang chọn hàng)
-      if (window.innerWidth >= 768) { if (dtCart.length === 0) dtRenderProducts(products); }
-      else { if (cart.length === 0) renderProductList(products); }
-      renderManageProductList();
+      if (window.innerWidth >= 768) { if (dtCart.length === 0) dtFilterProducts(); }
+      else { if (cart.length === 0) filterProductList(); }
+      filterManageProducts();
       updateProductStats();
     }).catch(() => {});
   }, 10000);
@@ -629,6 +651,11 @@ let stream = null;
 let usingFallbackProducts = false;
 let html5QrCode = null;
 
+let mobileFilterLow = false;
+let dtFilterLow = false;
+let manageFilterLow = false;
+let hiddenProducts = new Set(JSON.parse(localStorage.getItem('hidden_products') || '[]'));
+
 let cart = [];
 let cartGiaodich = 'Tiền mặt';
 
@@ -644,15 +671,107 @@ function updateProductStats() {
     const el = document.getElementById(id);
     if (el) el.textContent = fmt(total);
   });
+  updateLowStockBadges();
+}
+
+// ===== HIGHLIGHT / HIDDEN / LOW-STOCK HELPERS =====
+function highlightText(text, kw) {
+  if (!kw || !text) return text || '';
+  const stripped = removeDiacritics(text);
+  const strippedKw = removeDiacritics(kw);
+  let result = '';
+  let i = 0;
+  while (i < stripped.length) {
+    const idx = stripped.indexOf(strippedKw, i);
+    if (idx === -1) { result += text.slice(i); break; }
+    result += text.slice(i, idx);
+    result += '<mark style="background:#FFF176;color:#5D4037;border-radius:2px;padding:0 1px">' + text.slice(idx, idx + strippedKw.length) + '</mark>';
+    i = idx + strippedKw.length;
+  }
+  return result;
+}
+
+function isHidden(ma) { return hiddenProducts.has(ma); }
+function saveHiddenProducts() {
+  localStorage.setItem('hidden_products', JSON.stringify([...hiddenProducts]));
+}
+function toggleHideProduct(ma) {
+  if (hiddenProducts.has(ma)) hiddenProducts.delete(ma);
+  else hiddenProducts.add(ma);
+  saveHiddenProducts();
+  filterProductList();
+  dtFilterProducts();
+  filterManageProducts();
+}
+
+function getLowStockCount() {
+  return (products || []).filter(p => (p.tonkho || 0) <= LOW_STOCK_THRESHOLD).length;
+}
+
+function updateLowStockBadges() {
+  const n = getLowStockCount();
+  ['mob-low-count','dt-low-count','manage-low-count'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = n;
+  });
+}
+
+function _setTabActive(allId, lowId, isLow) {
+  const allEl = document.getElementById(allId);
+  const lowEl = document.getElementById(lowId);
+  if (allEl) {
+    allEl.style.background = isLow ? '#f5f5f5' : '#e8f5e9';
+    allEl.style.color = isLow ? '#888' : '#2e7d32';
+    allEl.style.fontWeight = isLow ? '400' : '700';
+    allEl.style.border = isLow ? '1px solid #e0e0e0' : '1px solid #4CAF50';
+  }
+  if (lowEl) {
+    lowEl.style.background = isLow ? '#ffebee' : '#f5f5f5';
+    lowEl.style.color = isLow ? '#f44336' : '#888';
+    lowEl.style.fontWeight = isLow ? '700' : '400';
+    lowEl.style.border = isLow ? '1px solid #f44336' : '1px solid #e0e0e0';
+  }
+}
+
+function setMobileFilter(mode) {
+  mobileFilterLow = (mode === 'low');
+  _setTabActive('mob-tab-all','mob-tab-low', mobileFilterLow);
+  filterProductList();
+}
+function setDtFilter(mode) {
+  dtFilterLow = (mode === 'low');
+  _setTabActive('dt-tab-all','dt-tab-low', dtFilterLow);
+  dtFilterProducts();
+}
+function setManageFilter(mode) {
+  manageFilterLow = (mode === 'low');
+  _setTabActive('manage-tab-all','manage-tab-low', manageFilterLow);
+  filterManageProducts();
+}
+
+function filterManageProducts() {
+  const rawQ = (document.getElementById('manage-search') ? document.getElementById('manage-search').value : '') || '';
+  const q = removeDiacritics(rawQ).trim();
+  let list = products || [];
+  if (manageFilterLow) list = list.filter(p => (p.tonkho || 0) <= LOW_STOCK_THRESHOLD);
+  if (q) {
+    list = list.filter(p =>
+      removeDiacritics(p.ma).includes(q) ||
+      removeDiacritics(p.ten).includes(q) ||
+      removeDiacritics(p.kichthuoc).includes(q) ||
+      removeDiacritics(p.ncc).includes(q)
+    );
+  }
+  renderManageProductList(list, rawQ.trim());
 }
 
 async function doRefreshProducts() {
   const btns = document.querySelectorAll('[onclick="doRefreshProducts()"], #dt-btn-refresh');
   btns.forEach(b => { b.style.opacity = '0.5'; b.style.pointerEvents = 'none'; });
   await fetchProductsFromServer();
-  if (window.innerWidth >= 768) dtRenderProducts(products);
-  renderProductList(products);
-  renderManageProductList();
+  if (window.innerWidth >= 768) dtFilterProducts();
+  filterProductList();
+  filterManageProducts();
   updateProductStats();
   btns.forEach(b => { b.style.opacity = ''; b.style.pointerEvents = ''; });
   showToast('✅ Đã cập nhật!');
@@ -661,8 +780,8 @@ async function doRefreshProducts() {
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && currentRole) {
     fetchProductsFromServer().then(() => {
-      if (window.innerWidth >= 768) dtRenderProducts(products);
-      else renderProductList(products);
+      if (window.innerWidth >= 768) dtFilterProducts();
+      else filterProductList();
     }).catch(() => {});
   }
 });
@@ -724,7 +843,7 @@ async function doLogin() {
       await loadProducts();
       startAutoRefresh();
       startInactivityWatch();
-      renderProductList(products);
+      filterProductList();
       applyLogin(role);
       loginBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:6px;margin-bottom:2px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Đăng nhập';
       loginBtn.disabled = false;
@@ -747,7 +866,7 @@ async function doLogin() {
       await loadProducts();
       startAutoRefresh();
       startInactivityWatch();
-      renderProductList(products);
+      filterProductList();
       applyLogin(role);
     } else {
       err.style.display = 'block';
@@ -787,8 +906,8 @@ function togglePassVis() {
     await loadProducts();
     startAutoRefresh();
     startInactivityWatch();
-    renderProductList(products);
-    renderManageProductList();
+    filterProductList();
+    filterManageProducts();
     updateProductStats();
     const isOwner = cached.role === 'owner';
     document.getElementById('role-badge').textContent = isOwner ? 'Admin' : 'Staff';
@@ -799,7 +918,7 @@ function togglePassVis() {
     const _lastScreen = sessionStorage.getItem('lastScreen') || 'screen-main';
     const _safeScreens = ['screen-main', 'screen-products', 'screen-product-form'];
     const _targetScreen = _safeScreens.includes(_lastScreen) ? _lastScreen : 'screen-main';
-    if (window.innerWidth >= 768) { dtInitLayout(); dtRenderProducts(products); }
+    if (window.innerWidth >= 768) { dtInitLayout(); dtFilterProducts(); }
     if (_targetScreen === 'screen-product-form') {
       openProductForm('add', null, true); // render form ngay, không chờ server
     } else {
@@ -883,8 +1002,8 @@ async function fetchProductsFromServer() {
     if (fetched.length > 0) {
       products = fetched;
       localStorage.setItem('products_cache', JSON.stringify(products));
-      renderProductList(products);
-      renderManageProductList();
+      filterProductList();
+      filterManageProducts();
       updateProductStats();
     }
   } catch(e) {
@@ -980,36 +1099,42 @@ function genMaSP(ten) {
 }
 
 function filterProductList() {
-  const q = removeDiacritics(document.getElementById('manual-code').value || '').trim();
-  if (!q) { renderProductList(products); return; }
-  const filtered = products.filter(p =>
-    removeDiacritics(p.ma).includes(q) ||
-    removeDiacritics(p.ten).includes(q) ||
-    removeDiacritics(p.kichthuoc).includes(q) ||
-    removeDiacritics(p.ncc).includes(q) ||
-    removeDiacritics(p.motaSP).includes(q) ||
-    removeDiacritics(p.phanloai).includes(q) ||
-    removeDiacritics(p.nhanHieu).includes(q)
-  );
-  renderProductList(filtered);
+  const rawQ = document.getElementById('manual-code').value || '';
+  const q = removeDiacritics(rawQ).trim();
+  let list = (products || []).filter(p => !isHidden(p.ma));
+  if (mobileFilterLow) list = list.filter(p => (p.tonkho || 0) <= LOW_STOCK_THRESHOLD);
+  if (q) {
+    list = list.filter(p =>
+      removeDiacritics(p.ma).includes(q) ||
+      removeDiacritics(p.ten).includes(q) ||
+      removeDiacritics(p.kichthuoc).includes(q) ||
+      removeDiacritics(p.ncc).includes(q) ||
+      removeDiacritics(p.motaSP).includes(q) ||
+      removeDiacritics(p.phanloai).includes(q) ||
+      removeDiacritics(p.nhanHieu).includes(q)
+    );
+  }
+  renderProductList(list, rawQ.trim());
 }
 
-function renderProductList(list) {
+function renderProductList(list, kw) {
   const el = document.getElementById('product-list');
   if (!list || list.length === 0) {
     el.innerHTML = '<div class="loading">Không tìm thấy sản phẩm</div>';
     return;
   }
   el.innerHTML = list.map(p => {
-    const low = (p.tonkho || 0) <= 3;
+    const low = (p.tonkho || 0) <= LOW_STOCK_THRESHOLD;
     const qid = 'q_' + p.ma.replace(/[^a-zA-Z0-9]/g, '_');
     const cartItem = cart.find(i => i.product.ma === p.ma);
     const cartSl = cartItem ? cartItem.sl : '';
+    const maLine = [p.ma, p.ncc, p.phanloai].filter(Boolean).join(' · ');
+    const sizeLine = [p.kichthuoc, p.motaSP].filter(Boolean).join(' · ');
     return `<div class="product-item">
       <div class="product-item-left" onclick="showForm(products.find(x=>x.ma==='${p.ma}'))">
-        <div class="product-item-ma">${p.ma}${p.ncc ? ' · ' + p.ncc : ''}${p.phanloai ? ' · ' + p.phanloai : ''}</div>
-        <div class="product-item-ten">${p.ten}</div>
-        <div class="product-item-size">${[p.kichthuoc, p.motaSP].filter(Boolean).join(' · ')}</div>
+        <div class="product-item-ma">${highlightText(maLine, kw)}</div>
+        <div class="product-item-ten">${highlightText(p.ten, kw)}</div>
+        <div class="product-item-size">${highlightText(sizeLine, kw)}</div>
       </div>
       <div class="product-item-meta">
         <div class="product-item-tonkho${low ? ' low' : ''}">Tồn: ${fmt(p.tonkho)}</div>
@@ -1523,26 +1648,42 @@ let productFormMode = 'add';
 let editingProduct = null;
 
 function showManageProducts() {
-  renderManageProductList();
+  filterManageProducts();
   showScreen('screen-products');
 }
 
-function renderManageProductList() {
+function renderManageProductList(list, kw) {
   const el = document.getElementById('manage-product-list');
   if (!products || products.length === 0) {
     el.innerHTML = '<div class="loading">Chưa có sản phẩm nào.</div>';
     return;
   }
-  el.innerHTML = products.map(p => `
-    <div class="card" style="margin-bottom:10px;">
+  const renderList = list !== undefined ? list : products;
+  if (renderList.length === 0) {
+    el.innerHTML = '<div class="loading">Không tìm thấy sản phẩm</div>';
+    return;
+  }
+  el.innerHTML = renderList.map(p => {
+    const hidden = isHidden(p.ma);
+    const low = (p.tonkho || 0) <= LOW_STOCK_THRESHOLD;
+    const cardStyle = hidden
+      ? 'margin-bottom:10px;opacity:0.5;border:1.5px dashed #aaa;'
+      : 'margin-bottom:10px;';
+    return `
+    <div class="card" style="${cardStyle}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
         <div style="flex:1;min-width:0;">
-          <div style="font-size:12px;color:#888;">${p.ma}</div>
-          <div style="font-size:15px;font-weight:600;margin:2px 0;">${p.ten}</div>
-          <div style="font-size:12px;color:#aaa;">${p.kichthuoc}</div>
-          <div style="font-size:13px;color:#4CAF50;margin-top:4px;">Tồn kho: ${fmt(p.tonkho)} ${p.dvt}</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="font-size:12px;color:#888;">${highlightText(p.ma, kw)}</div>
+            ${hidden ? '<span style="font-size:10px;background:#e0e0e0;color:#888;border-radius:4px;padding:1px 5px;font-weight:600;">Ẩn</span>' : ''}
+          </div>
+          <div style="font-size:15px;font-weight:600;margin:2px 0;">${highlightText(p.ten, kw)}</div>
+          <div style="font-size:12px;color:#aaa;">${highlightText(p.kichthuoc, kw)}</div>
+          <div style="font-size:13px;color:${low ? '#f44336' : '#4CAF50'};font-weight:${low ? '700' : '400'};margin-top:4px;">Tồn kho: ${fmt(p.tonkho)} ${p.dvt}</div>
         </div>
-        <div style="display:flex;gap:8px;flex-shrink:0;margin-left:8px;">
+        <div style="display:flex;gap:8px;flex-shrink:0;margin-left:8px;align-items:center;">
+          <button onclick="toggleHideProduct('${p.ma}')" title="${hidden ? 'Hiện sản phẩm' : 'Ẩn sản phẩm'}"
+            style="padding:8px 10px;border:1.5px solid ${hidden ? '#9e9e9e' : '#bdbdbd'};border-radius:10px;background:${hidden ? '#eeeeee' : '#fafafa'};color:${hidden ? '#616161' : '#aaa'};font-size:14px;cursor:pointer;">${hidden ? '🙈' : '👁️'}</button>
           <button onclick="openProductForm('edit', products.find(x=>x.ma==='${p.ma}'))"
             style="padding:8px 14px;border:1.5px solid #1565c0;border-radius:10px;background:#e3f2fd;color:#1565c0;font-size:14px;font-weight:600;cursor:pointer;">✏️</button>
           <button onclick="confirmDeleteProduct(products.find(x=>x.ma==='${p.ma}'))"
@@ -1550,7 +1691,7 @@ function renderManageProductList() {
         </div>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 async function openProductForm(mode, product, skipFetch = false) {
@@ -1729,25 +1870,29 @@ function dtInitLayout() {
   dtCart = [];
   dtMode = 'Xuất';
   dtSetMode('Xuất');
-  dtRenderProducts(products);
+  dtFilterProducts();
   dtRenderCart();
 }
 
 function dtFilterProducts() {
-  const q = removeDiacritics(document.getElementById('dt-search').value || '').trim();
-  if (!q) { dtRenderProducts(products); return; }
-  const filtered = products.filter(p =>
-    removeDiacritics(p.ma).includes(q) ||
-    removeDiacritics(p.ten).includes(q) ||
-    removeDiacritics(p.kichthuoc).includes(q) ||
-    removeDiacritics(p.ncc).includes(q) ||
-    removeDiacritics(p.motaSP).includes(q)
-  );
-  dtRenderProducts(filtered);
+  const rawQ = document.getElementById('dt-search') ? (document.getElementById('dt-search').value || '') : '';
+  const q = removeDiacritics(rawQ).trim();
+  let list = (products || []).filter(p => !isHidden(p.ma));
+  if (dtFilterLow) list = list.filter(p => (p.tonkho || 0) <= LOW_STOCK_THRESHOLD);
+  if (q) {
+    list = list.filter(p =>
+      removeDiacritics(p.ma).includes(q) ||
+      removeDiacritics(p.ten).includes(q) ||
+      removeDiacritics(p.kichthuoc).includes(q) ||
+      removeDiacritics(p.ncc).includes(q) ||
+      removeDiacritics(p.motaSP).includes(q)
+    );
+  }
+  dtRenderProducts(list, rawQ.trim());
 }
 
-function dtRenderProducts(list) {
-  const renderList = list !== undefined ? list : products;
+function dtRenderProducts(list, kw) {
+  const renderList = list !== undefined ? list : (products || []).filter(p => !isHidden(p.ma));
   const el = document.getElementById('dt-product-list');
   if (!renderList || renderList.length === 0) {
     el.innerHTML = '<div style="text-align:center;color:#aaa;font-size:13px;padding:16px;">Không tìm thấy</div>';
@@ -1757,16 +1902,18 @@ function dtRenderProducts(list) {
     const inCart = dtCart.some(i => i.product.ma === p.ma);
     const cartItem = inCart ? dtCart.find(i => i.product.ma === p.ma) : null;
     const currentSl = cartItem ? cartItem.sl : '';
-    const low = (p.tonkho || 0) <= 3;
+    const low = (p.tonkho || 0) <= LOW_STOCK_THRESHOLD;
     const slId = 'dt-sl-' + p.ma;
+    const maLine = p.ma + (p.ncc ? ' · ' + p.ncc : '');
+    const sizeLine = [p.kichthuoc, p.motaSP].filter(Boolean).join(' · ');
     return `<div class="dt-product-item${inCart ? ' in-cart' : ''}"
       style="padding:8px 10px;border-radius:8px;border:1px solid ${inCart ? '#a5d6a7' : 'transparent'};
       margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;
       background:${inCart ? '#e8f5e9' : '#fff'};">
       <div style="flex:1;min-width:0;">
-        <div style="font-size:11px;color:#1565c0;">${p.ma}${p.ncc ? ' · ' + p.ncc : ''}</div>
-        <div style="font-size:13px;font-weight:600;margin:1px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.ten}</div>
-        <div style="font-size:11px;color:#555;">${[p.kichthuoc, p.motaSP].filter(Boolean).join(' · ')}</div>
+        <div style="font-size:11px;color:#1565c0;">${highlightText(maLine, kw)}</div>
+        <div style="font-size:13px;font-weight:600;margin:1px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${highlightText(p.ten, kw)}</div>
+        <div style="font-size:11px;color:#555;">${highlightText(sizeLine, kw)}</div>
       </div>
       <div style="flex-shrink:0;margin-left:8px;text-align:right;">
         <div style="font-size:12px;font-weight:600;color:${low ? '#f44336' : '#4CAF50'};">Tồn: ${fmt(p.tonkho)}</div>
@@ -1794,7 +1941,7 @@ function dtAddToCart(ma, sl) {
     dtCart.push({ product: product, sl: parseInt(sl) || 1, gia: 0 });
   }
   dtRenderCart();
-  dtRenderProducts();
+  dtFilterProducts();
 }
 
 function dtRemoveFromCart(ma) {
@@ -1940,7 +2087,7 @@ async function dtSubmit() {
   btn.disabled = false;
   dtSetMode(dtMode);
   dtRenderCart();
-  fetchProductsFromServer().then(() => dtRenderProducts(products));
+  fetchProductsFromServer().then(() => dtFilterProducts());
   showToast(`✅ Đã ghi ${count} SP vào sheet ${modeLabel}!`);
 }
 
