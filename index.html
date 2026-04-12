@@ -667,7 +667,7 @@ let html5QrCode = null;
 let mobileFilterLow = false;
 let dtFilterLow = false;
 let manageFilterLow = false;
-let hiddenProducts = new Set(JSON.parse(localStorage.getItem('hidden_products') || '[]'));
+// hidden products now synced via Google Sheet column "Ẩn"
 
 let cart = [];
 let cartGiaodich = 'Tiền mặt';
@@ -712,17 +712,26 @@ function highlightText(text, kw) {
   return result;
 }
 
-function isHidden(ma) { return hiddenProducts.has(ma); }
-function saveHiddenProducts() {
-  localStorage.setItem('hidden_products', JSON.stringify([...hiddenProducts]));
+function isHidden(ma) {
+  const p = (products || []).find(x => x.ma === ma);
+  return p ? (p.an || '').trim() === 'Đang Ẩn' : false;
 }
-function toggleHideProduct(ma) {
-  if (hiddenProducts.has(ma)) hiddenProducts.delete(ma);
-  else hiddenProducts.add(ma);
-  saveHiddenProducts();
+
+async function toggleHideProduct(ma) {
+  const p = (products || []).find(x => x.ma === ma);
+  if (!p) return;
+  const newVal = (p.an || '').trim() === 'Đang Ẩn' ? '' : 'Đang Ẩn';
+  p.an = newVal; // cập nhật ngay (optimistic)
+  localStorage.setItem('products_cache', JSON.stringify(products));
   filterProductList();
   dtFilterProducts();
   filterManageProducts();
+  // Ghi lên Google Sheet
+  fetch(SCRIPT_URL + '?token=inox2026xK9m', {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'setHidden', ma: ma, value: newVal, token: 'inox2026xK9m' })
+  }).catch(() => {});
 }
 
 function getLowStockCount() {
@@ -1035,9 +1044,10 @@ async function fetchProductsFromServer() {
       const i = hIdx(col.sheet_name);
       if (i !== -1) colIdx[col.field] = i;
     });
-    // nhanHieu & phanloai dùng trong search/render, không có trong CONFIG
+    // nhanHieu & phanloai & an dùng trong search/render, không có trong CONFIG
     const nhanHieuIdx = hIdx('Nhãn hiệu');
     const phanLoaiIdx = hIdx('Phân loại');
+    const anIdx       = hIdx('Ẩn');
 
     const fetched = data.slice(1).map(r => {
       const p = {};
@@ -1050,6 +1060,7 @@ async function fetchProductsFromServer() {
       p.tonkho   = Number(colIdx.tonkho !== undefined ? r[colIdx.tonkho] : 0) || 0;
       p.nhanHieu = nhanHieuIdx !== -1 ? (r[nhanHieuIdx] || '') : '';
       p.phanloai = phanLoaiIdx !== -1 ? (r[phanLoaiIdx] || '') : '';
+      p.an       = anIdx       !== -1 ? (r[anIdx]       || '') : '';
       return p;
     }).filter(p => p.ma);
     if (fetched.length > 0) {
