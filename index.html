@@ -797,10 +797,14 @@ function togglePassVis() {
     document.getElementById('role-badge-cart').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
     document.getElementById('btn-manage-products').style.display = cached.role === 'owner' ? 'flex' : 'none';
     const _lastScreen = sessionStorage.getItem('lastScreen') || 'screen-main';
-    const _safeScreens = ['screen-main', 'screen-products'];
+    const _safeScreens = ['screen-main', 'screen-products', 'screen-product-form'];
     const _targetScreen = _safeScreens.includes(_lastScreen) ? _lastScreen : 'screen-main';
     if (window.innerWidth >= 768) { dtInitLayout(); dtRenderProducts(products); }
-    showScreen(_targetScreen);
+    if (_targetScreen === 'screen-product-form') {
+      openProductForm('add', null, true); // render form ngay, không chờ server
+    } else {
+      showScreen(_targetScreen);
+    }
     // Verify ngầm
     fetch(`${SCRIPT_URL}?action=login&role=${cached.role}&pass=${encodeURIComponent(cached.pass)}&token=SECRET123`)
       .then(r => r.json()).then(data => { if (!data.ok) { localStorage.removeItem('login_cache'); doLogout(); } })
@@ -1549,12 +1553,12 @@ function renderManageProductList() {
   `).join('');
 }
 
-async function openProductForm(mode, product) {
+async function openProductForm(mode, product, skipFetch = false) {
   productFormMode = mode;
   editingProduct = product || null;
   document.getElementById('product-form-title').textContent = mode === 'add' ? 'Thêm SP mới' : 'Sửa sản phẩm';
 
-  if (mode === 'add') {
+  if (mode === 'add' && !skipFetch) {
     await fetchProductsFromServer();
   }
 
