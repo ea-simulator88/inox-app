@@ -273,7 +273,9 @@ const CONFIG = {
       <button id="mob-tab-low" onclick="setMobileFilter('low')"
         style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;">🔴 <span id="mob-low-count">0</span></button>
       <button onclick="doRefreshProducts()"
-        style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 10px;font-size:12px;color:#4CAF50;cursor:pointer;font-weight:600;">🔄</button>
+        style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 8px;color:#4CAF50;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+      </button>
     </div>
   </div>
   <div id="product-list" style="margin-top:8px;overflow-y:auto;max-height:calc(100vh - 280px);"></div>
@@ -389,7 +391,9 @@ const CONFIG = {
         <button id="manage-tab-low" onclick="setManageFilter('low')"
           style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;">🔴 <span id="manage-low-count">0</span></button>
         <button onclick="doRefreshProducts()"
-          style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 10px;font-size:12px;color:#4CAF50;cursor:pointer;font-weight:600;">🔄 Làm mới</button>
+          style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 8px;color:#4CAF50;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+        </button>
       </div>
     </div>
     <input type="text" id="manage-search" placeholder="Tìm mã, tên, kích thước, NCC..."
@@ -434,38 +438,36 @@ const CONFIG = {
       <button class="toggle-btn" id="cart-btn-nhap" onclick="setCartMode('Nhập')">📥 Nhập hàng</button>
     </div>
   </div>
+  <!-- Cart items + footer đều cuộn -->
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:2rem;">
+    <div id="cart-empty" class="cart-empty" hidden>
+      🛒<br>Giỏ hàng trống.<br>Thêm sản phẩm từ màn hình chính.
+    </div>
+    <div id="cart-items"></div>
 
-  <div id="cart-empty" class="cart-empty" hidden>
-    🛒<br>Giỏ hàng trống.<br>Thêm sản phẩm từ màn hình chính.
-  </div>
+    <div id="cart-footer" hidden>
+      <div class="card">
+        <label style="margin-top:0;">Giao dịch <span style="color:#f44336;">*</span></label>
+        <select id="cart-giaodich" onchange="setGiaodich(this.value)">
+          <option value="">-- Chọn hình thức --</option>
+          <option value="Tiền mặt">Tiền mặt</option>
+          <option value="Chuyển khoản">Chuyển khoản</option>
+          <option value="Tiền mặt + Chuyển khoản">Tiền mặt + Chuyển khoản</option>
+        </select>
 
-  <div id="cart-items"></div>
+        <label>Phí chành xe (không bắt buộc)</label>
+        <input type="text" id="cart-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)" />
 
-  <div id="cart-footer" hidden>
-    <div class="card">
-      <label style="margin-top:0;">Phí chành xe (không bắt buộc)</label>
-      <input type="text" id="cart-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)" />
-
-      <label>Ghi chú (không bắt buộc)</label>
-      <input type="text" id="cart-ghichu" placeholder="Tên khách, đơn hàng..." />
-
-      <label>Hình thức giao dịch</label>
-      <div class="toggle-row">
-        <button class="toggle-btn active-nhap" id="btn-tienmat" onclick="setGiaodich('Tiền mặt')">💵 Tiền mặt</button>
-        <button class="toggle-btn" id="btn-chuyenkhoan" onclick="setGiaodich('Chuyển khoản')">🏦 Chuyển khoản</button>
+        <label>Ghi chú (không bắt buộc)</label>
+        <input type="text" id="cart-ghichu" placeholder="Tên khách, đơn hàng..." />
       </div>
+
+      <button class="btn-confirm xuat" id="btn-cart-confirm" onclick="submitCart(cartMode)" style="width:100%;">✅ Xác nhận Xuất</button>
+      <div style="text-align:center;font-size:13px;color:#4CAF50;font-weight:600;padding:6px 0 4px;">
+        Tổng tiền <span id="cart-total-val">0</span> đ
+      </div>
+      <div style="height:0.5rem;"></div>
     </div>
-
-    <div class="cart-total-wrap">
-      <div class="cart-total-label">Tổng tiền</div>
-      <div class="cart-total"><span id="cart-total-val">0</span> đ</div>
-    </div>
-
-    <button class="btn-confirm xuat" id="btn-cart-confirm" onclick="submitCart(cartMode)" style="width:100%;">✅ Xác nhận Xuất</button>
-    <div style="height:1rem;"></div>
-  </div>
-
   </div>
 </div>
 
@@ -530,7 +532,9 @@ const CONFIG = {
             <button id="dt-tab-low" onclick="setDtFilter('low')"
               style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;">🔴 <span id="dt-low-count">0</span></button>
             <button id="dt-btn-refresh" onclick="doRefreshProducts()" title="Làm mới"
-              style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 10px;font-size:12px;color:#4CAF50;cursor:pointer;font-weight:600;">🔄 Làm mới</button>
+              style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 8px;color:#4CAF50;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+            </button>
           </div>
         </div>
         <input type="text" id="dt-search" placeholder="Tìm mã hoặc tên..."
@@ -668,6 +672,13 @@ let hiddenProducts = new Set(JSON.parse(localStorage.getItem('hidden_products') 
 let cart = [];
 let cartGiaodich = 'Tiền mặt';
 let cartMode = 'Xuất';
+
+function saveCart() {
+  try {
+    localStorage.setItem('cart', JSON.stringify(cart));
+    localStorage.setItem('dtCart', JSON.stringify(dtCart));
+  } catch(e) {}
+}
 
 // ===== SCREEN =====
 function updateProductStats() {
@@ -831,6 +842,21 @@ async function doLogin() {
   function applyLogin(r) {
     currentRole = r;
     err.style.display = 'none';
+    // Restore cart from localStorage
+    try {
+      const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const savedDtCart = JSON.parse(localStorage.getItem('dtCart') || '[]');
+      // Re-link product refs to live products array
+      cart = savedCart.map(i => {
+        const p = products.find(p => p.ma === i.product.ma);
+        return p ? { product: p, sl: i.sl, gia: i.gia } : null;
+      }).filter(Boolean);
+      dtCart = savedDtCart.map(i => {
+        const p = products.find(p => p.ma === i.product.ma);
+        return p ? { product: p, sl: i.sl, gia: i.gia } : null;
+      }).filter(Boolean);
+    } catch(e) { cart = []; dtCart = []; }
+    updateCartBadge();
     const isOwner = r === 'owner';
     document.getElementById('role-badge').textContent = isOwner ? 'Admin' : 'Staff';
     document.getElementById('role-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
@@ -914,6 +940,20 @@ function togglePassVis() {
     if (!cached || !cached.role || !cached.pass) return;
     currentRole = cached.role;
     await loadProducts();
+    // Restore cart
+    try {
+      const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
+      const savedDtCart = JSON.parse(localStorage.getItem('dtCart') || '[]');
+      cart = savedCart.map(i => {
+        const p = products.find(p => p.ma === i.product.ma);
+        return p ? { product: p, sl: i.sl, gia: i.gia } : null;
+      }).filter(Boolean);
+      dtCart = savedDtCart.map(i => {
+        const p = products.find(p => p.ma === i.product.ma);
+        return p ? { product: p, sl: i.sl, gia: i.gia } : null;
+      }).filter(Boolean);
+    } catch(e) { cart = []; dtCart = []; }
+    updateCartBadge();
     startAutoRefresh();
     startInactivityWatch();
     filterProductList();
@@ -926,13 +966,14 @@ function togglePassVis() {
     document.getElementById('role-badge-cart').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
     document.getElementById('btn-manage-products').style.display = cached.role === 'owner' ? 'flex' : 'none';
     const _lastScreen = sessionStorage.getItem('lastScreen') || 'screen-main';
-    const _safeScreens = ['screen-main', 'screen-products', 'screen-product-form'];
+    const _safeScreens = ['screen-main', 'screen-products', 'screen-product-form', 'screen-cart'];
     const _targetScreen = _safeScreens.includes(_lastScreen) ? _lastScreen : 'screen-main';
     if (window.innerWidth >= 768) { dtInitLayout(); dtFilterProducts(); }
     if (_targetScreen === 'screen-product-form') {
       openProductForm('add', null, true); // render form ngay, không chờ server
     } else {
       showScreen(_targetScreen);
+      if (_targetScreen === 'screen-cart') { setCartMode(cartMode); renderCart(); }
     }
     // Verify ngầm
     fetch(`${SCRIPT_URL}?action=login&role=${cached.role}&pass=${encodeURIComponent(cached.pass)}&token=inox2026xK9m`)
@@ -948,11 +989,13 @@ function doLogout() {
   currentRole = null;
   products = [];
   cart = [];
-  cartGiaodich = 'Tiền mặt';
+  cartGiaodich = '';
   dtCart = [];
   dtMode = 'Xuất';
   localStorage.removeItem('products_cache');
   localStorage.removeItem('login_cache');
+  localStorage.removeItem('cart');
+  localStorage.removeItem('dtCart');
   document.getElementById('login-pass').value = '';
   document.getElementById('desktop-layout').style.display = 'none';
   updateCartBadge();
@@ -1192,6 +1235,7 @@ function addToCartQty(product) {
   }
   updateCartBadge();
   filterProductList();
+  saveCart();
 }
 
 function showToast(msg) {
@@ -1216,6 +1260,7 @@ function addToCart(product) {
     updateCartBadge();
     showToast('🛒 Đã thêm: ' + product.ten);
   }
+  saveCart();
 }
 
 function updateCartBadge() {
@@ -1274,7 +1319,8 @@ function renderCart() {
   footerEl.hidden = false;
 
   itemsEl.innerHTML = cart.map((item, idx) => {
-    const sub = item.sl * item.gia;
+    const effGia = effectiveGia(item, cartMode);
+    const sub = item.sl * effGia;
     const giaFormatted = item.gia > 0 ? Number(item.gia).toLocaleString('en-US') : '';
     const gs = Number(item.product.giasi) || 0;
     const gv = Number(item.product.giavon) || 0;
@@ -1322,6 +1368,7 @@ function removeFromCart(idx) {
   cart.splice(idx, 1);
   updateCartBadge();
   renderCart();
+  saveCart();
 }
 
 function updateCartSl(idx, val) {
@@ -1330,6 +1377,7 @@ function updateCartSl(idx, val) {
   refreshSubTotal(idx);
   updateCartTotal();
   updateCartBadge();
+  saveCart();
   const warnEl = document.getElementById('ci-warn-sl-' + idx);
   if (warnEl && cartMode === 'Xuất') {
     const tonkho = Number(cart[idx].product.tonkho) || 0;
@@ -1344,6 +1392,7 @@ function updateCartGia(idx, val) {
   cart[idx].gia = parseInt(val.replace(/[^0-9]/g, '')) || 0;
   refreshSubTotal(idx);
   updateCartTotal();
+  saveCart();
   const warnEl = document.getElementById('ci-warn-gia-' + idx);
   if (warnEl && cartMode === 'Xuất') {
     const gia = cart[idx].gia;
@@ -1355,28 +1404,35 @@ function updateCartGia(idx, val) {
   }
 }
 
+// Giá hiệu lực: dùng giá sỉ/vốn mặc định khi ô giá trống
+function effectiveGia(item, mode) {
+  if (item.gia > 0) return item.gia;
+  return mode === 'Xuất' ? (Number(item.product.giasi) || 0) : (Number(item.product.giavon) || 0);
+}
+
 function refreshSubTotal(idx) {
   const el = document.getElementById('ci-sub-' + idx);
   if (!el) return;
-  const sub = cart[idx].sl * cart[idx].gia;
+  const sub = cart[idx].sl * effectiveGia(cart[idx], cartMode);
   el.textContent = sub > 0 ? fmt(sub) + ' đ' : '—';
 }
 
 function updateCartTotal() {
-  const total = cart.reduce((s, i) => s + i.sl * i.gia, 0);
+  const total = cart.reduce((s, i) => s + i.sl * effectiveGia(i, cartMode), 0);
   const el = document.getElementById('cart-total-val');
   if (el) el.textContent = fmt(total);
 }
 
 function setGiaodich(val) {
   cartGiaodich = val;
-  document.getElementById('btn-tienmat').className = 'toggle-btn' + (val === 'Tiền mặt' ? ' active-nhap' : '');
-  document.getElementById('btn-chuyenkhoan').className = 'toggle-btn' + (val === 'Chuyển khoản' ? ' active-nhap' : '');
 }
 
 async function submitCart(mode) {
   if (cart.length === 0) return;
 
+  const giaodichEl = document.getElementById('cart-giaodich');
+  if (giaodichEl) cartGiaodich = giaodichEl.value;
+  if (!cartGiaodich) { showInfoModal('Thiếu thông tin!', 'Vui lòng chọn hình thức Giao dịch.'); return; }
   const ghichu = document.getElementById('cart-ghichu').value.trim();
   const phiChanh = getInputNum('cart-phichanh');
 
@@ -1464,9 +1520,13 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh) {
   `;
 
   cart = [];
+  cartGiaodich = '';
   document.getElementById('cart-ghichu').value = '';
   document.getElementById('cart-phichanh').value = '';
+  const _gdt = document.getElementById('cart-giaodich');
+  if (_gdt) _gdt.value = '';
   updateCartBadge();
+  saveCart();
   if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = mode === 'Xuất' ? '✅ Xác nhận Xuất' : '✅ Xác nhận Nhập'; }
   showScreen('screen-success');
 }
@@ -1708,6 +1768,7 @@ function addToCartFromForm() {
     cart.push({ product: currentProduct, sl: sl, gia: gia });
   }
   updateCartBadge();
+  saveCart();
   showToast('🛒 Đã thêm vào giỏ: ' + currentProduct.ten);
   goBack();
 }
@@ -1978,7 +2039,6 @@ function dtInitLayout() {
   document.getElementById('dt-btn-nhap').style.display = isOwner ? '' : 'none';
   // show Quản lý SP button for owner
   document.getElementById('dt-btn-manage').style.display = isOwner ? '' : 'none';
-  dtCart = [];
   dtMode = 'Xuất';
   dtSetMode('Xuất');
   dtFilterProducts();
@@ -2053,12 +2113,14 @@ function dtAddToCart(ma, sl) {
   }
   dtRenderCart();
   dtFilterProducts();
+  saveCart();
 }
 
 function dtRemoveFromCart(ma) {
   dtCart = dtCart.filter(i => i.product.ma !== ma);
   dtRenderCart();
   dtFilterProducts();
+  saveCart();
 }
 
 function dtUpdateCart(ma, field, value) {
@@ -2068,12 +2130,12 @@ function dtUpdateCart(ma, field, value) {
   if (field === 'sl') item.sl = num < 1 ? 1 : num;
   if (field === 'gia') item.gia = num;
   // update subtotal display
-  const sub = item.sl * item.gia;
+  const sub = item.sl * effectiveGia(item, dtMode);
   const safeId = ma.replace(/[^a-zA-Z0-9]/g, '_');
   const subEl = document.getElementById('dt-sub-' + safeId);
   if (subEl) subEl.textContent = sub > 0 ? fmt(sub) + ' đ' : '—';
   // update total
-  const total = dtCart.reduce((s, i) => s + i.sl * i.gia, 0);
+  const total = dtCart.reduce((s, i) => s + i.sl * effectiveGia(i, dtMode), 0);
   document.getElementById('dt-total').textContent = fmt(total) + ' đ';
   // Cảnh báo real-time (chỉ Xuất)
   if (dtMode === 'Xuất') {
@@ -2094,12 +2156,13 @@ function dtUpdateCart(ma, field, value) {
       } else { warnGia.style.display = 'none'; }
     }
   }
+  saveCart();
 }
 
 function dtRenderCart() {
   const listEl = document.getElementById('dt-cart-list');
   const emptyEl = document.getElementById('dt-cart-empty');
-  const total = dtCart.reduce((s, i) => s + i.sl * i.gia, 0);
+  const total = dtCart.reduce((s, i) => s + i.sl * effectiveGia(i, dtMode), 0);
   document.getElementById('dt-cart-count').textContent = dtCart.length + ' SP';
   document.getElementById('dt-total').textContent = fmt(total) + ' đ';
   const confirmBtn = document.getElementById('dt-btn-confirm');
@@ -2115,7 +2178,7 @@ function dtRenderCart() {
     const p = item.product;
     const safeId = p.ma.replace(/[^a-zA-Z0-9]/g, '_');
     const giaFmt = item.gia > 0 ? Number(item.gia).toLocaleString('en-US') : '';
-    const sub = item.sl * item.gia;
+    const sub = item.sl * effectiveGia(item, dtMode);
     const gs = Number(p.giasi) || 0;
     const gvNum = Number(p.giavon) || 0;
     const giaPlaceholder = dtMode === 'Xuất'
