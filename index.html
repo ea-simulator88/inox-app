@@ -1190,22 +1190,25 @@ async function doSubmitCart(mode, giaodich, ghichu) {
   const totalAmount = cart.reduce((s, i) => s + i.sl * i.gia, 0);
   const totalItems = cart.length;
 
-  const sends = cart.map((item) => fetch(SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sheet: mode,
-      row: [
-        item.product.ma, thoiGian,
-        item.product.nhanHieu || '', item.product.phanloai || '',
-        item.product.ten, item.product.kichthuoc, item.product.dvt,
-        item.sl, item.gia, giaodich, '', '', ghichu
-      ]
-    })
-  }).catch(() => {}));
+  const cols = mode === 'Xuất' ? CONFIG.export_columns : CONFIG.import_columns;
+  const rows = cart.map((item, idx) => {
+    return cols.map(col => {
+      if (col.value === 'auto_timestamp')   return thoiGian;
+      if (col.value === 'form.soluong')     return item.sl;
+      if (col.value === 'form.gia')         return item.gia;
+      if (col.value === 'form.giaodich')    return giaodich;
+      if (col.value === 'form.phichanh')    return idx === 0 ? (item.phichanh || '') : '';
+      if (col.value === 'form.ghichu')      return ghichu;
+      if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
+      return '';
+    });
+  });
 
-  await Promise.all(sends);
+  await fetch(SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sheet: mode, rows })
+  }).catch(() => {});
 
   const isXuat = mode === 'Xuất';
   document.getElementById('success-title').textContent = isXuat ? '📤 Xuất hàng thành công!' : '📥 Nhập hàng thành công!';
