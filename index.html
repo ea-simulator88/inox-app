@@ -112,7 +112,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .cart-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
 .cart-item-name { font-size: 15px; font-weight: 600; }
 .cart-item-size { font-size: 12px; color: #1565c0; margin-top: 2px; }
-.cart-item-inputs { display: flex; align-items: center; gap: 6px; }
+.cart-item-inputs { display: flex; align-items: flex-start; gap: 6px; }
 .ci-sl { width: 60px; padding: 9px 6px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; text-align: center; background: #fafafa; outline: none; color: #1a1a1a; flex-shrink: 0; }
 .ci-sl:focus { border-color: #4CAF50; background: #fff; }
 .ci-gia { flex: 1; padding: 9px 10px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; background: #fafafa; outline: none; color: #1a1a1a; }
@@ -335,10 +335,12 @@ const CONFIG = {
     </div>
 
     <label>Số lượng <span style="color:#f44336;">*</span></label>
-    <input type="text" id="form-soluong" placeholder="Nhập số lượng..." inputmode="numeric" oninput="fmtInput(this)" />
+    <input type="text" id="form-soluong" placeholder="Nhập số lượng..." inputmode="numeric" oninput="fmtInput(this);checkFormWarnings()" />
+    <div id="form-warn-sl" style="display:none;font-size:12px;color:#f44336;margin-top:2px;padding-left:2px;"></div>
 
     <label id="label-gia">Giá bán (đồng) <span style="color:#f44336;">*</span></label>
-    <input type="text" id="form-gia" placeholder="Nhập giá..." inputmode="numeric" oninput="fmtInput(this)" />
+    <input type="text" id="form-gia" placeholder="Nhập giá..." inputmode="numeric" oninput="fmtInput(this);checkFormWarnings()" />
+    <div id="form-warn-gia" style="display:none;font-size:12px;color:#e65100;margin-top:2px;padding-left:2px;"></div>
 
     <label>Giao dịch <span style="color:#f44336;">*</span></label>
     <select id="form-giaodich">
@@ -1243,6 +1245,14 @@ function renderCart() {
   itemsEl.innerHTML = cart.map((item, idx) => {
     const sub = item.sl * item.gia;
     const giaFormatted = item.gia > 0 ? Number(item.gia).toLocaleString('en-US') : '';
+    const gs = Number(item.product.giasi) || 0;
+    const gv = Number(item.product.giavon) || 0;
+    const giaPlaceholder = currentMode === 'Xuất'
+      ? (gs > 0 ? `Giá sỉ: ${gs.toLocaleString('en-US')}đ` : 'Nhập giá...')
+      : (gv > 0 ? `Giá vốn: ${gv.toLocaleString('en-US')}đ` : 'Nhập giá...');
+    const tonkho = Number(item.product.tonkho) || 0;
+    const showWarnSl = currentMode === 'Xuất' && item.sl > 0 && item.sl > tonkho;
+    const showWarnGia = currentMode === 'Xuất' && item.gia > 0 && gs > 0 && item.gia < gs;
     return `<div class="cart-item">
       <div class="cart-item-header">
         <div>
@@ -1256,14 +1266,20 @@ function renderCart() {
         <button class="btn-delete" onclick="removeFromCart(${idx})">🗑</button>
       </div>
       <div class="cart-item-inputs">
-        <input class="ci-sl" type="text" inputmode="numeric" value="${item.sl}"
-          oninput="fmtInput(this);updateCartSl(${idx},this.value)" />
-        <span class="ci-sep">×</span>
-        <input class="ci-gia" type="text" inputmode="numeric" value="${giaFormatted}"
-          placeholder="Nhập giá..."
-          oninput="fmtInput(this);updateCartGia(${idx},this.value)" />
-        <span class="ci-sep">=</span>
-        <span class="ci-sub" id="ci-sub-${idx}">${sub > 0 ? fmt(sub) + ' đ' : '—'}</span>
+        <div style="display:flex;flex-direction:column;gap:1px;">
+          <input class="ci-sl" type="text" inputmode="numeric" value="${item.sl}"
+            oninput="fmtInput(this);updateCartSl(${idx},this.value)" />
+          <div id="ci-warn-sl-${idx}" style="display:${showWarnSl ? 'block' : 'none'};font-size:10px;color:#f44336;white-space:nowrap;">${showWarnSl ? `❌ Vượt tồn (còn ${fmt(tonkho)})` : ''}</div>
+        </div>
+        <span class="ci-sep" style="margin-top:9px;">×</span>
+        <div style="flex:1;display:flex;flex-direction:column;gap:1px;">
+          <input class="ci-gia" type="text" inputmode="numeric" value="${giaFormatted}"
+            placeholder="${giaPlaceholder}"
+            oninput="fmtInput(this);updateCartGia(${idx},this.value)" />
+          <div id="ci-warn-gia-${idx}" style="display:${showWarnGia ? 'block' : 'none'};font-size:10px;color:#e65100;white-space:nowrap;">${showWarnGia ? '⚠️ Thấp hơn giá sỉ' : ''}</div>
+        </div>
+        <span class="ci-sep" style="margin-top:9px;">=</span>
+        <span class="ci-sub" id="ci-sub-${idx}" style="margin-top:9px;">${sub > 0 ? fmt(sub) + ' đ' : '—'}</span>
       </div>
     </div>`;
   }).join('');
@@ -1283,12 +1299,29 @@ function updateCartSl(idx, val) {
   refreshSubTotal(idx);
   updateCartTotal();
   updateCartBadge();
+  const warnEl = document.getElementById('ci-warn-sl-' + idx);
+  if (warnEl && currentMode === 'Xuất') {
+    const tonkho = Number(cart[idx].product.tonkho) || 0;
+    if (n > 0 && n > tonkho) {
+      warnEl.textContent = `❌ Vượt tồn (còn ${fmt(tonkho)})`;
+      warnEl.style.display = 'block';
+    } else { warnEl.style.display = 'none'; }
+  }
 }
 
 function updateCartGia(idx, val) {
   cart[idx].gia = parseInt(val.replace(/[^0-9]/g, '')) || 0;
   refreshSubTotal(idx);
   updateCartTotal();
+  const warnEl = document.getElementById('ci-warn-gia-' + idx);
+  if (warnEl && currentMode === 'Xuất') {
+    const gia = cart[idx].gia;
+    const giasi = Number(cart[idx].product.giasi) || 0;
+    if (gia > 0 && giasi > 0 && gia < giasi) {
+      warnEl.textContent = '⚠️ Thấp hơn giá sỉ';
+      warnEl.style.display = 'block';
+    } else { warnEl.style.display = 'none'; }
+  }
 }
 
 function refreshSubTotal(idx) {
@@ -1321,6 +1354,10 @@ async function submitCart(mode) {
     if (!item.sl || item.sl <= 0) {
       showInfoModal('Thiếu thông tin!', 'Vui lòng nhập số lượng cho: ' + item.product.ten);
       return;
+    }
+    // Giá mặc định nếu để trống
+    if (!item.gia || item.gia <= 0) {
+      item.gia = mode === 'Xuất' ? (Number(item.product.giasi) || 0) : (Number(item.product.giavon) || 0);
     }
     if (!item.gia || item.gia <= 0) {
       showInfoModal('Thiếu thông tin!', (mode === 'Xuất' ? 'Vui lòng nhập giá bán cho: ' : 'Vui lòng nhập giá nhập cho: ') + item.product.ten);
@@ -1482,6 +1519,18 @@ function setMode(mode) {
     document.getElementById('row-giavon').style.display = isOwner ? 'flex' : 'none';
     document.getElementById('row-giasi').style.display = 'none';
   }
+  // Update placeholder ô giá
+  const giaInput = document.getElementById('form-gia');
+  if (giaInput && currentProduct) {
+    if (mode === 'Xuất') {
+      const gs = Number(currentProduct.giasi) || 0;
+      giaInput.placeholder = gs > 0 ? `Giá sỉ: ${gs.toLocaleString('en-US')}đ` : 'Nhập giá bán...';
+    } else {
+      const gv = Number(currentProduct.giavon) || 0;
+      giaInput.placeholder = gv > 0 ? `Giá vốn: ${gv.toLocaleString('en-US')}đ` : 'Nhập giá nhập...';
+    }
+  }
+  checkFormWarnings();
   if (typeof renderCart === 'function') renderCart();
 }
 
@@ -1489,9 +1538,41 @@ function getInputNum(id) {
   return parseInt((document.getElementById(id).value || '').replace(/[^0-9]/g, '')) || 0;
 }
 
-async function submitForm() {
+function checkFormWarnings() {
+  const warnSl = document.getElementById('form-warn-sl');
+  const warnGia = document.getElementById('form-warn-gia');
+  if (!warnSl || !warnGia || !currentProduct) {
+    if (warnSl) warnSl.style.display = 'none';
+    if (warnGia) warnGia.style.display = 'none';
+    return;
+  }
   const sl = getInputNum('form-soluong');
   const gia = getInputNum('form-gia');
+  const tonkho = Number(currentProduct.tonkho) || 0;
+  const giasi = Number(currentProduct.giasi) || 0;
+  // SL warning (chỉ Xuất)
+  if (currentMode === 'Xuất' && sl > 0 && sl > tonkho) {
+    warnSl.textContent = `❌ Vượt tồn kho (còn ${fmt(tonkho)} ${currentProduct.dvt || 'cái'})`;
+    warnSl.style.display = 'block';
+  } else {
+    warnSl.style.display = 'none';
+  }
+  // Giá warning (chỉ Xuất)
+  if (currentMode === 'Xuất' && gia > 0 && giasi > 0 && gia < giasi) {
+    warnGia.textContent = '⚠️ Thấp hơn giá sỉ';
+    warnGia.style.display = 'block';
+  } else {
+    warnGia.style.display = 'none';
+  }
+}
+
+async function submitForm() {
+  const sl = getInputNum('form-soluong');
+  let gia = getInputNum('form-gia');
+  // Giá mặc định nếu để trống
+  if (!gia || gia <= 0) {
+    gia = currentMode === 'Xuất' ? (Number(currentProduct.giasi) || 0) : (Number(currentProduct.giavon) || 0);
+  }
   const giaodich = document.getElementById('form-giaodich').value;
   const phiChanh = getInputNum('form-phichanh');
   const ghichu = document.getElementById('form-ghichu').value;
@@ -1681,13 +1762,15 @@ function renderManageProductList(list, kw) {
           <div style="font-size:12px;color:#aaa;">${highlightText(p.kichthuoc, kw)}</div>
           <div style="font-size:13px;color:${low ? '#f44336' : '#4CAF50'};font-weight:${low ? '700' : '400'};margin-top:4px;">Tồn kho: ${fmt(p.tonkho)} ${p.dvt}</div>
         </div>
-        <div style="display:flex;gap:8px;flex-shrink:0;margin-left:8px;align-items:center;">
+        <div style="flex-shrink:0;margin-left:8px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+          <div style="display:flex;gap:8px;">
+            <button onclick="openProductForm('edit', products.find(x=>x.ma==='${p.ma}'))"
+              style="padding:8px 14px;border:1.5px solid #1565c0;border-radius:10px;background:#e3f2fd;color:#1565c0;font-size:14px;font-weight:600;cursor:pointer;">✏️</button>
+            <button onclick="confirmDeleteProduct(products.find(x=>x.ma==='${p.ma}'))"
+              style="padding:8px 14px;border:1.5px solid #f44336;border-radius:10px;background:#ffebee;color:#f44336;font-size:14px;font-weight:600;cursor:pointer;">🗑️</button>
+          </div>
           <button onclick="toggleHideProduct('${p.ma}')" title="${hidden ? 'Hiện sản phẩm' : 'Ẩn sản phẩm'}"
-            style="padding:8px 10px;border:1.5px solid ${hidden ? '#9e9e9e' : '#bdbdbd'};border-radius:10px;background:${hidden ? '#eeeeee' : '#fafafa'};color:${hidden ? '#616161' : '#aaa'};font-size:14px;cursor:pointer;">${hidden ? '🙈' : '👁️'}</button>
-          <button onclick="openProductForm('edit', products.find(x=>x.ma==='${p.ma}'))"
-            style="padding:8px 14px;border:1.5px solid #1565c0;border-radius:10px;background:#e3f2fd;color:#1565c0;font-size:14px;font-weight:600;cursor:pointer;">✏️</button>
-          <button onclick="confirmDeleteProduct(products.find(x=>x.ma==='${p.ma}'))"
-            style="padding:8px 14px;border:1.5px solid #f44336;border-radius:10px;background:#ffebee;color:#f44336;font-size:14px;font-weight:600;cursor:pointer;">🗑️</button>
+            style="width:100%;padding:6px 10px;border:1.5px solid ${hidden ? '#9e9e9e' : '#bdbdbd'};border-radius:10px;background:${hidden ? '#eeeeee' : '#fafafa'};color:${hidden ? '#616161' : '#888'};font-size:13px;cursor:pointer;text-align:center;">${hidden ? '🙈 Hiện' : '👁️ Ẩn'}</button>
         </div>
       </div>
     </div>
@@ -1958,11 +2041,31 @@ function dtUpdateCart(ma, field, value) {
   if (field === 'gia') item.gia = num;
   // update subtotal display
   const sub = item.sl * item.gia;
-  const subEl = document.getElementById('dt-sub-' + ma.replace(/[^a-zA-Z0-9]/g, '_'));
+  const safeId = ma.replace(/[^a-zA-Z0-9]/g, '_');
+  const subEl = document.getElementById('dt-sub-' + safeId);
   if (subEl) subEl.textContent = sub > 0 ? fmt(sub) + ' đ' : '—';
   // update total
   const total = dtCart.reduce((s, i) => s + i.sl * i.gia, 0);
   document.getElementById('dt-total').textContent = fmt(total) + ' đ';
+  // Cảnh báo real-time (chỉ Xuất)
+  if (dtMode === 'Xuất') {
+    const tonkho = Number(item.product.tonkho) || 0;
+    const giasi = Number(item.product.giasi) || 0;
+    const warnSl = document.getElementById('dt-warn-sl-' + safeId);
+    const warnGia = document.getElementById('dt-warn-gia-' + safeId);
+    if (warnSl) {
+      if (item.sl > 0 && item.sl > tonkho) {
+        warnSl.textContent = `❌ Vượt tồn (còn ${fmt(tonkho)})`;
+        warnSl.style.display = 'block';
+      } else { warnSl.style.display = 'none'; }
+    }
+    if (warnGia) {
+      if (item.gia > 0 && giasi > 0 && item.gia < giasi) {
+        warnGia.textContent = '⚠️ Thấp hơn giá sỉ';
+        warnGia.style.display = 'block';
+      } else { warnGia.style.display = 'none'; }
+    }
+  }
 }
 
 function dtRenderCart() {
@@ -1985,6 +2088,14 @@ function dtRenderCart() {
     const safeId = p.ma.replace(/[^a-zA-Z0-9]/g, '_');
     const giaFmt = item.gia > 0 ? Number(item.gia).toLocaleString('en-US') : '';
     const sub = item.sl * item.gia;
+    const gs = Number(p.giasi) || 0;
+    const gvNum = Number(p.giavon) || 0;
+    const giaPlaceholder = dtMode === 'Xuất'
+      ? (gs > 0 ? `Giá sỉ: ${gs.toLocaleString('en-US')}đ` : 'Nhập giá...')
+      : (gvNum > 0 ? `Giá vốn: ${gvNum.toLocaleString('en-US')}đ` : 'Nhập giá...');
+    const tonkho = Number(p.tonkho) || 0;
+    const showWarnSl = dtMode === 'Xuất' && item.sl > 0 && item.sl > tonkho;
+    const showWarnGia = dtMode === 'Xuất' && item.gia > 0 && gs > 0 && item.gia < gs;
     const gv = dtMode === 'Xuất'
       ? (p.giasi ? `<div style="font-size:11px;color:#2e7d32;">Giá sỉ: ${fmtMoney(p.giasi)}</div>` : '')
       : (currentRole === 'owner' && p.giavon ? `<div style="font-size:11px;color:#f44336;">Vốn: ${fmtMoney(p.giavon)}</div>` : '');
@@ -1998,17 +2109,24 @@ function dtRenderCart() {
         <button onclick="dtRemoveFromCart('${p.ma}')"
           style="background:none;border:none;color:#f44336;font-size:18px;cursor:pointer;padding:0 4px;flex-shrink:0;line-height:1;">×</button>
       </div>
-      <div style="display:flex;align-items:center;gap:4px;">
-        <input type="text" inputmode="numeric" value="${item.sl}"
-          style="width:44px;padding:5px 4px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;text-align:center;outline:none;"
-          oninput="fmtInput(this);dtUpdateCart('${p.ma}','sl',this.value)" />
-        <span style="font-size:12px;color:#aaa;">×</span>
-        <input type="text" inputmode="numeric" value="${giaFmt}"
-          placeholder="Nhập giá..."
-          style="flex:1;padding:5px 7px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;"
-          oninput="fmtInput(this);dtUpdateCart('${p.ma}','gia',this.value)" />
-        <span style="font-size:12px;color:#aaa;">=</span>
-        <span id="dt-sub-${safeId}" style="font-size:12px;font-weight:600;color:#4CAF50;min-width:55px;text-align:right;">
+      <div style="display:flex;align-items:flex-start;gap:4px;">
+        <div style="display:flex;flex-direction:column;gap:1px;">
+          <input type="text" inputmode="numeric" value="${item.sl}"
+            style="width:44px;padding:5px 4px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;text-align:center;outline:none;"
+            oninput="fmtInput(this);dtUpdateCart('${p.ma}','sl',this.value)" />
+          <div id="dt-warn-sl-${safeId}" style="display:${showWarnSl?'block':'none'};font-size:10px;color:#f44336;white-space:nowrap;">${showWarnSl?`❌ Vượt tồn (còn ${fmt(tonkho)})`:''}
+          </div>
+        </div>
+        <span style="font-size:12px;color:#aaa;margin-top:5px;">×</span>
+        <div style="flex:1;display:flex;flex-direction:column;gap:1px;">
+          <input type="text" inputmode="numeric" value="${giaFmt}"
+            placeholder="${giaPlaceholder}"
+            style="width:100%;padding:5px 7px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;"
+            oninput="fmtInput(this);dtUpdateCart('${p.ma}','gia',this.value)" />
+          <div id="dt-warn-gia-${safeId}" style="display:${showWarnGia?'block':'none'};font-size:10px;color:#e65100;white-space:nowrap;">${showWarnGia?'⚠️ Thấp hơn giá sỉ':''}</div>
+        </div>
+        <span style="font-size:12px;color:#aaa;margin-top:5px;">=</span>
+        <span id="dt-sub-${safeId}" style="font-size:12px;font-weight:600;color:#4CAF50;min-width:55px;text-align:right;margin-top:5px;">
           ${sub > 0 ? fmt(sub) + ' đ' : '—'}
         </span>
       </div>
@@ -2046,6 +2164,10 @@ async function dtSubmit() {
 
   for (const item of dtCart) {
     if (!item.sl || item.sl <= 0) { showInfoModal('Thiếu SL!', 'Vui lòng nhập số lượng cho: ' + item.product.ten); return; }
+    // Giá mặc định nếu để trống
+    if (!item.gia || item.gia <= 0) {
+      item.gia = dtMode === 'Xuất' ? (Number(item.product.giasi) || 0) : (Number(item.product.giavon) || 0);
+    }
     if (!item.gia || item.gia <= 0) { showInfoModal('Thiếu giá!', (dtMode === 'Xuất' ? 'Giá bán' : 'Giá nhập') + ' cho: ' + item.product.ten); return; }
   }
   if (!giaodich) { showInfoModal('Thiếu thông tin!', 'Vui lòng chọn hình thức Giao dịch.'); return; }
