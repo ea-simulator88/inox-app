@@ -309,7 +309,7 @@ const CONFIG = {
     </div>
     <div class="info-row" id="row-giasi">
       <span class="info-label">Giá sỉ</span>
-      <span class="info-value" style="color:#1565c0;" id="form-giasi"></span>
+      <span class="info-value" style="color:#2e7d32;" id="form-giasi"></span>
     </div>
     <div class="info-row">
       <span class="info-label">Đơn vị tính</span>
@@ -359,10 +359,10 @@ const CONFIG = {
 <!-- MANAGE PRODUCTS -->
 <div id="screen-products" class="screen">
   <div class="header">
-    <div style="max-width:800px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;">
-      <button class="btn-back" onclick="goMain()" style="min-width:80px;">← Quay lại</button>
-      <div class="header-title" style="flex:1;text-align:center;">Quản lý Sản phẩm</div>
-      <div style="min-width:80px;"></div>
+    <div style="max-width:800px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;position:relative;">
+      <button class="btn-back" onclick="goMain()" style="flex-shrink:0;position:relative;z-index:1;">← Quay lại</button>
+      <div class="header-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;">Quản lý Sản phẩm</div>
+      <button onclick="goHome()" title="Trang chủ" style="background:none;border:none;cursor:pointer;padding:4px;color:#4CAF50;display:flex;align-items:center;flex-shrink:0;position:relative;z-index:1;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>
     </div>
   </div>
   <div style="max-width:800px;margin:0 auto;width:100%;">
@@ -385,13 +385,13 @@ const CONFIG = {
 <!-- PRODUCT FORM -->
 <div id="screen-product-form" class="screen">
   <div class="header">
-    <div style="max-width:800px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;">
-      <button class="btn-back" onclick="showScreen('screen-products')" style="min-width:80px;">← Quay lại</button>
-      <div class="header-title" id="product-form-title" style="flex:1;text-align:center;">Thêm SP mới</div>
-      <div style="min-width:80px;"></div>
+    <div style="max-width:650px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;position:relative;">
+      <button class="btn-back" onclick="showScreen('screen-products')" style="flex-shrink:0;position:relative;z-index:1;">← Quay lại</button>
+      <div class="header-title" id="product-form-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;">Thêm SP mới</div>
+      <button onclick="goHome()" title="Trang chủ" style="background:none;border:none;cursor:pointer;padding:4px;color:#4CAF50;display:flex;align-items:center;flex-shrink:0;position:relative;z-index:1;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>
     </div>
   </div>
-  <div style="max-width:520px;margin:0 auto;width:100%;">
+  <div style="max-width:650px;margin:0 auto;width:100%;">
     <div class="card">
       <div id="product-form-fields"></div>
       <button class="btn-confirm" id="btn-save-product" onclick="submitProductForm()" style="margin-top:16px;">✅ Lưu sản phẩm</button>
@@ -1118,7 +1118,7 @@ function renderCart() {
           <div class="cart-item-size">${item.product.ma}${item.product.ncc ? ' · ' + item.product.ncc : ''}</div>
           ${[item.product.kichthuoc, item.product.motaSP].filter(Boolean).length ? `<div style="font-size:12px;color:#555;margin-top:1px;">${[item.product.kichthuoc, item.product.motaSP].filter(Boolean).join(' · ')}</div>` : ''}
           ${currentMode === 'Xuất'
-              ? (item.product.giasi ? `<div style="font-size:12px;color:#1565c0;margin-top:3px;font-weight:600;">Giá sỉ: ${fmtMoney(item.product.giasi)}</div>` : '')
+              ? (item.product.giasi ? `<div style="font-size:12px;color:#2e7d32;margin-top:3px;font-weight:600;">Giá sỉ: ${fmtMoney(item.product.giasi)}</div>` : '')
               : (currentRole === 'owner' && item.product.giavon ? `<div style="font-size:12px;color:#f44336;margin-top:3px;font-weight:600;">Giá vốn: ${fmtMoney(item.product.giavon)}</div>` : '')}
         </div>
         <button class="btn-delete" onclick="removeFromCart(${idx})">🗑</button>
@@ -1832,7 +1832,7 @@ function dtRenderCart() {
     const giaFmt = item.gia > 0 ? Number(item.gia).toLocaleString('en-US') : '';
     const sub = item.sl * item.gia;
     const gv = dtMode === 'Xuất'
-      ? (p.giasi ? `<div style="font-size:11px;color:#1565c0;">Giá sỉ: ${fmtMoney(p.giasi)}</div>` : '')
+      ? (p.giasi ? `<div style="font-size:11px;color:#2e7d32;">Giá sỉ: ${fmtMoney(p.giasi)}</div>` : '')
       : (currentRole === 'owner' && p.giavon ? `<div style="font-size:11px;color:#f44336;">Vốn: ${fmtMoney(p.giavon)}</div>` : '');
     return `<div class="dt-cart-item">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
