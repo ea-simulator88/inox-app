@@ -426,6 +426,14 @@ const CONFIG = {
       <button onclick="goHome()" title="Trang chủ" style="background:none;border:none;cursor:pointer;padding:4px;color:#4CAF50;display:flex;align-items:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>
     </div>
   </div>
+  <!-- Toggle Xuất/Nhập — freeze, không cuộn -->
+  <div id="cart-mode-bar" style="flex-shrink:0;padding:7px 14px 8px;background:#fff;border-bottom:1px solid #f0f0f0;">
+    <div style="font-size:11px;color:#aaa;margin-bottom:5px;">Hãy chọn Xuất hoặc Nhập</div>
+    <div class="toggle-row" style="margin:0;">
+      <button class="toggle-btn active-xuat" id="cart-btn-xuat" onclick="setCartMode('Xuất')">📤 Xuất hàng</button>
+      <button class="toggle-btn" id="cart-btn-nhap" onclick="setCartMode('Nhập')">📥 Nhập hàng</button>
+    </div>
+  </div>
   <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:2rem;">
 
   <div id="cart-empty" class="cart-empty" hidden>
@@ -454,8 +462,7 @@ const CONFIG = {
       <div class="cart-total"><span id="cart-total-val">0</span> đ</div>
     </div>
 
-    <button class="btn-confirm" id="btn-nhap-cart" onclick="submitCart('Nhập')">📥 Nhập hàng</button>
-    <button class="btn-confirm xuat" id="btn-xuat-cart" onclick="submitCart('Xuất')" style="margin-top:8px;">📤 Xuất hàng</button>
+    <button class="btn-confirm xuat" id="btn-cart-confirm" onclick="submitCart(cartMode)" style="width:100%;">✅ Xác nhận Xuất</button>
     <div style="height:1rem;"></div>
   </div>
 
@@ -660,6 +667,7 @@ let hiddenProducts = new Set(JSON.parse(localStorage.getItem('hidden_products') 
 
 let cart = [];
 let cartGiaodich = 'Tiền mặt';
+let cartMode = 'Xuất';
 
 // ===== SCREEN =====
 function updateProductStats() {
@@ -1220,10 +1228,33 @@ function updateCartBadge() {
   }
 }
 
+function setCartMode(mode) {
+  cartMode = mode;
+  const bx = document.getElementById('cart-btn-xuat');
+  const bn = document.getElementById('cart-btn-nhap');
+  if (bx) bx.className = 'toggle-btn' + (mode === 'Xuất' ? ' active-xuat' : '');
+  if (bn) bn.className = 'toggle-btn' + (mode === 'Nhập' ? ' active-nhap' : '');
+  const confirmBtn = document.getElementById('btn-cart-confirm');
+  if (confirmBtn) {
+    confirmBtn.textContent = mode === 'Xuất' ? '✅ Xác nhận Xuất' : '✅ Xác nhận Nhập';
+    confirmBtn.className = 'btn-confirm' + (mode === 'Xuất' ? ' xuat' : '');
+  }
+  renderCart();
+}
+
 function goCart() {
   stopScan();
+  cartMode = 'Xuất';
+  const bx = document.getElementById('cart-btn-xuat');
+  const bn = document.getElementById('cart-btn-nhap');
+  if (bx) bx.className = 'toggle-btn active-xuat';
+  if (bn) {
+    bn.style.display = currentRole === 'owner' ? '' : 'none';
+    bn.className = 'toggle-btn';
+  }
+  const confirmBtn = document.getElementById('btn-cart-confirm');
+  if (confirmBtn) { confirmBtn.textContent = '✅ Xác nhận Xuất'; confirmBtn.className = 'btn-confirm xuat'; }
   renderCart();
-  document.getElementById('btn-nhap-cart').style.display = currentRole === 'owner' ? '' : 'none';
   showScreen('screen-cart');
 }
 
@@ -1247,19 +1278,19 @@ function renderCart() {
     const giaFormatted = item.gia > 0 ? Number(item.gia).toLocaleString('en-US') : '';
     const gs = Number(item.product.giasi) || 0;
     const gv = Number(item.product.giavon) || 0;
-    const giaPlaceholder = currentMode === 'Xuất'
+    const giaPlaceholder = cartMode === 'Xuất'
       ? (gs > 0 ? `Giá sỉ: ${gs.toLocaleString('en-US')}đ` : 'Nhập giá...')
       : (gv > 0 ? `Giá vốn: ${gv.toLocaleString('en-US')}đ` : 'Nhập giá...');
     const tonkho = Number(item.product.tonkho) || 0;
-    const showWarnSl = currentMode === 'Xuất' && item.sl > 0 && item.sl > tonkho;
-    const showWarnGia = currentMode === 'Xuất' && item.gia > 0 && gs > 0 && item.gia < gs;
+    const showWarnSl = cartMode === 'Xuất' && item.sl > 0 && item.sl > tonkho;
+    const showWarnGia = cartMode === 'Xuất' && item.gia > 0 && gs > 0 && item.gia < gs;
     return `<div class="cart-item">
       <div class="cart-item-header">
         <div>
           <div class="cart-item-name">${item.product.ten}</div>
           <div class="cart-item-size">${item.product.ma}${item.product.ncc ? ' · ' + item.product.ncc : ''}</div>
           ${[item.product.kichthuoc, item.product.motaSP].filter(Boolean).length ? `<div style="font-size:12px;color:#555;margin-top:1px;">${[item.product.kichthuoc, item.product.motaSP].filter(Boolean).join(' · ')}</div>` : ''}
-          ${currentMode === 'Xuất'
+          ${cartMode === 'Xuất'
               ? (item.product.giasi ? `<div style="font-size:12px;color:#2e7d32;margin-top:3px;font-weight:600;">Giá sỉ: ${fmtMoney(item.product.giasi)}</div>` : '')
               : (currentRole === 'owner' && item.product.giavon ? `<div style="font-size:12px;color:#f44336;margin-top:3px;font-weight:600;">Giá vốn: ${fmtMoney(item.product.giavon)}</div>` : '')}
         </div>
@@ -1300,7 +1331,7 @@ function updateCartSl(idx, val) {
   updateCartTotal();
   updateCartBadge();
   const warnEl = document.getElementById('ci-warn-sl-' + idx);
-  if (warnEl && currentMode === 'Xuất') {
+  if (warnEl && cartMode === 'Xuất') {
     const tonkho = Number(cart[idx].product.tonkho) || 0;
     if (n > 0 && n > tonkho) {
       warnEl.textContent = `❌ Vượt tồn (còn ${fmt(tonkho)})`;
@@ -1314,7 +1345,7 @@ function updateCartGia(idx, val) {
   refreshSubTotal(idx);
   updateCartTotal();
   const warnEl = document.getElementById('ci-warn-gia-' + idx);
-  if (warnEl && currentMode === 'Xuất') {
+  if (warnEl && cartMode === 'Xuất') {
     const gia = cart[idx].gia;
     const giasi = Number(cart[idx].product.giasi) || 0;
     if (gia > 0 && giasi > 0 && gia < giasi) {
@@ -1393,10 +1424,8 @@ async function submitCart(mode) {
 }
 
 async function doSubmitCart(mode, giaodich, ghichu, phiChanh) {
-  const btnNhap = document.getElementById('btn-nhap-cart');
-  const btnXuat = document.getElementById('btn-xuat-cart');
-  btnNhap.disabled = true; btnNhap.textContent = '⏳ Đang ghi...';
-  btnXuat.disabled = true; btnXuat.textContent = '⏳ Đang ghi...';
+  const confirmBtn = document.getElementById('btn-cart-confirm');
+  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = '⏳ Đang ghi...'; }
 
   const now = new Date();
   const thoiGian = fmtTime(now);
@@ -1438,8 +1467,7 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh) {
   document.getElementById('cart-ghichu').value = '';
   document.getElementById('cart-phichanh').value = '';
   updateCartBadge();
-  btnNhap.disabled = false; btnNhap.textContent = '📥 Nhập hàng';
-  btnXuat.disabled = false; btnXuat.textContent = '📤 Xuất hàng';
+  if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = mode === 'Xuất' ? '✅ Xác nhận Xuất' : '✅ Xác nhận Nhập'; }
   showScreen('screen-success');
 }
 
