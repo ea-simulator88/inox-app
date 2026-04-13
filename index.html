@@ -1562,7 +1562,8 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh) {
     <div class="info-row"><span class="info-label">Số loại sản phẩm</span><span class="info-value">${totalItems}</span></div>
     <div class="info-row"><span class="info-label">Tổng tiền</span><span class="info-value green">${fmt(totalAmount)} đ</span></div>
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
-    ${ghichu ? `<div class="info-row"><span class="info-label">Ghi chú</span><span class="info-value">${ghichu}</span></div>` : ''}
+    ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí chành xe</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
+    ${ghichu ? `<div class="info-row"><span class="info-label">${mode === 'Xuất' ? 'Tên khách' : 'Ghi chú'}</span><span class="info-value">${ghichu}</span></div>` : ''}
   `;
 
   cart = [];
@@ -2368,6 +2369,7 @@ async function dtSubmit() {
     <div class="info-row"><span class="info-label">Số loại sản phẩm</span><span class="info-value">${count}</span></div>
     <div class="info-row"><span class="info-label">Tổng tiền</span><span class="info-value green">${fmt(totalAmount)} đ</span></div>
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
+    ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí chành xe</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
     ${ghichu ? `<div class="info-row"><span class="info-label">${isXuat ? 'Tên khách' : 'Ghi chú'}</span><span class="info-value">${ghichu}</span></div>` : ''}
   `;
   document.getElementById('dt-success-overlay').style.display = 'flex';
