@@ -179,7 +179,7 @@ const CONFIG = {
     { sheet_name: "Giao dịch",    value: "form.giaodich"     },
     { sheet_name: "Phí chành xe", value: "form.phichanh"     },
     { sheet_name: "Tổng",         value: "sheet_formula"     },
-    { sheet_name: "Ghi chú",      value: "form.ghichu"       },
+    { sheet_name: "Tên khách",    value: "form.ghichu"       },
   ],
   import_columns: [
     { sheet_name: "Mã SP",        value: "product.ma"        },
@@ -357,7 +357,7 @@ const CONFIG = {
       <input type="text" id="form-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)" />
     </div>
 
-    <label>Ghi chú (không bắt buộc)</label>
+    <label id="form-ghichu-label">Ghi chú (không bắt buộc)</label>
     <input type="text" id="form-ghichu" placeholder="Tên khách, đơn hàng..." />
 
     <button class="btn-add-cart-form" onclick="addToCartFromForm()">🛒 Thêm vào giỏ</button>
@@ -458,7 +458,7 @@ const CONFIG = {
         <label>Phí chành xe (không bắt buộc)</label>
         <input type="text" id="cart-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)" />
 
-        <label>Ghi chú (không bắt buộc)</label>
+        <label id="cart-ghichu-label">Ghi chú (không bắt buộc)</label>
         <input type="text" id="cart-ghichu" placeholder="Tên khách, đơn hàng..." />
       </div>
 
@@ -595,7 +595,7 @@ const CONFIG = {
         </div>
 
         <div style="margin-bottom:14px;">
-          <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;margin-top:0;">Ghi chú (không bắt buộc)</label>
+          <label id="dt-ghichu-label" style="font-size:12px;color:#888;display:block;margin-bottom:6px;margin-top:0;">Ghi chú (không bắt buộc)</label>
           <input type="text" id="dt-ghichu" placeholder="Tên khách, đơn hàng..."
             style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;" />
         </div>
@@ -1309,6 +1309,11 @@ function setCartMode(mode) {
     confirmBtn.textContent = mode === 'Xuất' ? '✅ Xác nhận Xuất' : '✅ Xác nhận Nhập';
     confirmBtn.className = 'btn-confirm' + (mode === 'Xuất' ? ' xuat' : '');
   }
+  const cgLbl = document.getElementById('cart-ghichu-label');
+  if (cgLbl) {
+    if (mode === 'Xuất') cgLbl.innerHTML = 'Tên khách <span style="color:#f44336;">*</span>';
+    else cgLbl.textContent = 'Ghi chú (không bắt buộc)';
+  }
   renderCart();
 }
 
@@ -1459,6 +1464,7 @@ async function submitCart(mode) {
   if (giaodichEl) cartGiaodich = giaodichEl.value;
   if (!cartGiaodich) { showInfoModal('Thiếu thông tin!', 'Vui lòng chọn hình thức Giao dịch.'); return; }
   const ghichu = document.getElementById('cart-ghichu').value.trim();
+  if (mode === 'Xuất' && !ghichu) { showInfoModal('Thiếu thông tin!', 'Vui lòng nhập Tên khách.'); return; }
   const phiChanh = getInputNum('cart-phichanh');
 
   // Validate từng item
@@ -1614,6 +1620,7 @@ function setMode(mode) {
   const bc = document.getElementById('btn-confirm');
   document.getElementById('row-phichanh').style.display = 'block';
   const isOwner = currentRole === 'owner';
+  const gcLbl = document.getElementById('form-ghichu-label');
   if (mode === 'Xuất') {
     bx.className = 'toggle-btn active-xuat';
     bn.className = 'toggle-btn';
@@ -1622,6 +1629,7 @@ function setMode(mode) {
     bc.className = 'btn-confirm xuat';
     document.getElementById('row-giavon').style.display = 'none';
     document.getElementById('row-giasi').style.display = 'flex';
+    if (gcLbl) gcLbl.innerHTML = 'Tên khách <span style="color:#f44336;">*</span>';
   } else {
     bn.className = 'toggle-btn active-nhap';
     bx.className = 'toggle-btn';
@@ -1631,6 +1639,7 @@ function setMode(mode) {
     document.getElementById('form-phichanh').value = '';
     document.getElementById('row-giavon').style.display = isOwner ? 'flex' : 'none';
     document.getElementById('row-giasi').style.display = 'none';
+    if (gcLbl) gcLbl.textContent = 'Ghi chú (không bắt buộc)';
   }
   // Update placeholder ô giá
   const giaInput = document.getElementById('form-gia');
@@ -1704,6 +1713,7 @@ async function submitForm() {
   if (!sl || sl <= 0) { showInfoModal('Thiếu thông tin!', 'Vui lòng nhập Số lượng.'); return; }
   if (!gia || gia <= 0) { showInfoModal('Thiếu thông tin!', currentMode === 'Xuất' ? 'Vui lòng nhập Giá bán.' : 'Vui lòng nhập Giá nhập.'); return; }
   if (!giaodich) { showInfoModal('Thiếu thông tin!', 'Vui lòng chọn hình thức Giao dịch.'); return; }
+  if (currentMode === 'Xuất' && !ghichu.trim()) { showInfoModal('Thiếu thông tin!', 'Vui lòng nhập Tên khách.'); return; }
 
   if (currentMode === 'Xuất') {
     const giavon = parseNum(currentProduct.giavon);
@@ -2264,6 +2274,11 @@ function dtSetMode(mode) {
   }
   document.getElementById('dt-row-phichanh').style.display = 'block';
   document.getElementById('dt-confirm-hint').textContent = `Mỗi SP ghi 1 dòng vào sheet ${mode}`;
+  const dgLbl = document.getElementById('dt-ghichu-label');
+  if (dgLbl) {
+    if (mode === 'Xuất') dgLbl.innerHTML = 'Tên khách <span style="color:#f44336;">*</span>';
+    else dgLbl.textContent = 'Ghi chú (không bắt buộc)';
+  }
   dtRenderCart();
   const btn = document.getElementById('dt-btn-confirm');
   if (btn) {
@@ -2277,6 +2292,7 @@ async function dtSubmit() {
   const giaodich = document.getElementById('dt-giaodich').value;
   const ghichu = document.getElementById('dt-ghichu').value.trim();
   const phiChanh = parseInt((document.getElementById('dt-phichanh').value || '').replace(/[^0-9]/g,'')) || 0;
+  if (dtMode === 'Xuất' && !ghichu) { showInfoModal('Thiếu thông tin!', 'Vui lòng nhập Tên khách.'); return; }
 
   for (const item of dtCart) {
     if (!item.sl || item.sl <= 0) { showInfoModal('Thiếu SL!', 'Vui lòng nhập số lượng cho: ' + item.product.ten); return; }
