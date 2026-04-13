@@ -1329,6 +1329,8 @@ function goCart() {
   }
   const confirmBtn = document.getElementById('btn-cart-confirm');
   if (confirmBtn) { confirmBtn.textContent = '✅ Xác nhận Xuất'; confirmBtn.className = 'btn-confirm xuat'; }
+  const cgLbl = document.getElementById('cart-ghichu-label');
+  if (cgLbl) cgLbl.innerHTML = 'Tên khách <span style="color:#f44336;">*</span>';
   renderCart();
   showScreen('screen-cart');
 }
