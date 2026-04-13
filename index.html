@@ -30,7 +30,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 /* Buttons */
 .btn-primary { width: 100%; padding: 14px; background: #4CAF50; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 12px; }
 .btn-primary:active { opacity: 0.85; }
-.btn-scan { width: 100%; padding: 18px; background: #e8f5e9; color: #2e7d32; border: 1.5px solid #a5d6a7; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+.btn-scan { width: 100%; padding: 13px; background: #e8f5e9; color: #2e7d32; border: 1.5px solid #a5d6a7; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
 .btn-scan:active { opacity: 0.85; }
 .btn-back { background: none; border: none; color: #888; font-size: 14px; cursor: pointer; padding: 0; }
 .btn-confirm { width: 100%; padding: 16px; background: #4CAF50; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 8px; }
@@ -43,7 +43,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .header-title { font-size: 18px; font-weight: 600; }
 
 /* Badge role */
-.badge { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+.badge { font-size: 10px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
 .badge-owner { background: #fff3e0; color: #e65100; }
 .badge-staff { background: #e3f2fd; color: #1565c0; }
 
@@ -75,10 +75,10 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .scan-hint { text-align: center; font-size: 13px; color: #888; margin-bottom: 12px; }
 
 /* Manual input */
-.divider { text-align: center; font-size: 12px; color: #bbb; margin: 14px 0; }
-.manual-row { display: flex; gap: 8px; }
+.divider { text-align: center; font-size: 12px; color: #bbb; margin: 5px 0; }
+.manual-row { display: flex; gap: 9px; }
 .manual-row input { margin-bottom: 0; flex: 1; }
-.manual-row button { padding: 11px 18px; background: #1565c0; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.manual-row button { padding: 10px 20px; background: #1565c0; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 
 /* Logout */
 .logout-btn { font-size: 12px; color: #aaa; background: none; border: none; cursor: pointer; }
@@ -234,11 +234,13 @@ const CONFIG = {
 <!-- MAIN -->
 <div id="screen-main" class="screen">
   <div class="header">
-    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
-      <span class="badge" id="role-badge"></span>
-      <button class="cart-btn" onclick="goCart()" title="Giỏ hàng">
+    <button id="btn-manage-products" onclick="showManageProducts()" style="display:none;font-size:12px;padding:4px 12px;border-radius:30px;border:1px solid #c8e6c9;background:#e8f5e9;color:#065a0a;font-weight:500;cursor:pointer;">📦 Quản lý SP</button>
+    <div style="display:flex;align-items:center;gap:5px;margin-left:auto;">
+    <span class="badge" id="role-badge"></span>
+        <button class="cart-btn" onclick="goCart()" title="Giỏ hàng">
         🛒<span class="badge-cart" id="cart-badge" style="display:none;">0</span>
       </button>
+
       <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
     </div>
   </div>
@@ -251,17 +253,13 @@ const CONFIG = {
     Quét mã QR
   </button>
 
-  <button class="btn-scan" id="btn-manage-products" onclick="showManageProducts()" style="display:none;background:#fafafa;border-color:#e0e0e0;color:#555;margin-top:10px;">
-    ➕ Quản lý Sản phẩm
-  </button>
-
   <div class="divider">— hoặc nhập mã thủ công —</div>
   <div class="manual-row">
-    <input type="text" id="manual-code" placeholder="VD: IN001 hoặc tìm theo tên..." autocomplete="off" autocapitalize="characters" oninput="filterProductList()" />
+    <input type="text" id="manual-code" placeholder="Tìm mã hoặc theo tên..." autocomplete="off" autocapitalize="characters" oninput="filterProductList()" />
     <button onclick="lookupManual()">Tìm</button>
   </div>
 
-  <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 14px;margin-top:10px;margin-bottom:2px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;margin-top:10px;margin-bottom:2px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;">
     <div style="font-size:12px;color:#666;">
       <span id="mobile-stats-count" style="font-weight:600;color:#1a1a1a;">0</span> SP
       <span style="color:#ddd;margin:0 6px;">|</span>
@@ -379,7 +377,7 @@ const CONFIG = {
     <button class="btn-scan" onclick="openProductForm('add', null)" style="margin-bottom:8px;">
       ➕ Thêm sản phẩm mới
     </button>
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 14px;margin-bottom:8px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;margin-bottom:8px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;">
       <div style="font-size:12px;color:#666;">
         <span id="manage-stats-count" style="font-weight:600;color:#1a1a1a;">0</span> SP
         <span style="color:#ddd;margin:0 6px;">|</span>
@@ -518,13 +516,14 @@ const CONFIG = {
 <div id="desktop-layout" style="display:none;flex-direction:column;gap:12px;height:calc(100vh - 2rem);">
 
   <!-- Header -->
-  <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:12px;padding:12px 20px;border:1px solid #e0e0e0;flex-shrink:0;">
-    <div style="font-size:17px;font-weight:600;">🏪 Hộ Kinh Doanh Hàng Gia Dụng</div>
-    <div style="display:flex;align-items:center;gap:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:12px 12px 0 0;padding:10px 20px;border:1px solid #e0e0e0;border-bottom:2.5px solid #4CAF50;flex-shrink:0;">
+    <div>
+      <div style="font-size:16px;font-weight:600;color:#1a1a1a;">🏪 Hộ Kinh Doanh Hàng Gia Dụng</div>
+      <div style="font-size:11px;color:#aaa;margin-top:2px;">Quản lý xuất nhập kho</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:13px;">
       <button id="dt-btn-manage" onclick="showManageProducts()"
-        style="display:none;font-size:13px;padding:6px 14px;border-radius:8px;border:1px solid #e0e0e0;background:#fafafa;color:#555;cursor:pointer;">
-        ➕ Quản lý SP
-      </button>
+        style="display:none;font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#e8f5e9;color:#065a0a;font-weight:500;cursor:pointer;">📦 Quản lý SP</button>
       <span id="dt-role-badge" class="badge"></span>
       <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
     </div>
@@ -535,8 +534,8 @@ const CONFIG = {
 
     <!-- CỘT TRÁI: danh sách SP -->
     <div style="width:650px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;height:100%;flex-shrink:0;">
-      <div style="padding:12px 14px;border-bottom:1px solid #f0f0f0;flex-shrink:0;">
-        <div style="font-size:14px;font-weight:600;margin-bottom:6px;">📦 Sản phẩm</div>
+      <div style="padding:12px 13px;border-bottom:1px solid #f0f0f0;flex-shrink:0;">
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px;">📦 Sản phẩm</div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <div style="font-size:12px;color:#666;">
             <span id="dt-stats-count" style="font-weight:600;color:#1a1a1a;">0</span> SP
@@ -1965,7 +1964,7 @@ async function openProductForm(mode, product, skipFetch = false) {
   document.getElementById('product-form-title').textContent = mode === 'add' ? 'Thêm SP mới' : 'Sửa sản phẩm';
 
   if (mode === 'add' && !skipFetch) {
-    await fetchProductsFromServer();
+    fetchProductsFromServer().catch(() => {}); // chạy nền, không chờ
   }
 
   const fieldsEl = document.getElementById('product-form-fields');
