@@ -253,16 +253,10 @@ const CONFIG = {
     Quét mã QR
   </button>
 
-  <div class="divider">— hoặc nhập mã thủ công —</div>
-  <div class="manual-row">
-    <input type="text" id="manual-code" placeholder="Tìm mã hoặc theo tên..." autocomplete="off" autocapitalize="characters" oninput="filterProductList()" />
-    <button onclick="lookupManual()">Tìm</button>
-  </div>
-
-  <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;margin-top:10px;margin-bottom:2px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;margin-top:10px;margin-bottom:6px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;">
     <div style="font-size:12px;color:#666;">
       <span id="mobile-stats-count" style="font-weight:600;color:#1a1a1a;">0</span> SP
-      <span style="color:#ddd;margin:0 6px;">|</span>
+      <span style="color:#ddd;margin:0 2px;">|</span>
       Tồn: <span id="mobile-stats-tonkho" style="font-weight:600;color:#4CAF50;">0</span>
     </div>
     <div style="display:flex;gap:5px;align-items:center;">
@@ -276,7 +270,13 @@ const CONFIG = {
       </button>
     </div>
   </div>
-  <div id="product-list" style="margin-top:8px;overflow-y:auto;max-height:calc(100vh - 280px);"></div>
+  <div class="manual-row" style="margin-bottom:6px;">
+    <input type="text" id="manual-code" placeholder="Tìm mã hoặc theo tên..." autocomplete="off" autocapitalize="characters" oninput="filterProductList()" />
+    <input type="number" id="mob-tonkho-filter" placeholder="Tồn ≤" min="0"
+      style="flex:0 0 68px;width:68px;box-sizing:border-box;padding:11px 6px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;outline:none;text-align:center;"
+      oninput="onMobTonkhoInput()" />
+  </div>
+  <div id="product-list" style="overflow-y:auto;max-height:calc(100vh - 280px);"></div>
 </div>
 
 <!-- FORM -->
@@ -380,16 +380,17 @@ const CONFIG = {
     <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;margin-bottom:8px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;">
       <div style="font-size:12px;color:#666;">
         <span id="manage-stats-count" style="font-weight:600;color:#1a1a1a;">0</span> SP
-        <span style="color:#ddd;margin:0 6px;">|</span>
+        <span style="color:#ddd;margin:0 2px;">|</span>
         Tồn: <span id="manage-stats-tonkho" style="font-weight:600;color:#4CAF50;">0</span>
       </div>
       <div style="display:flex;gap:5px;align-items:center;">
-        <button id="manage-tab-visible" onclick="setManageFilter('visible')"
-          style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;">Hiện <span id="manage-visible-count">0</span></button>
-        <button id="manage-tab-hidden" onclick="setManageFilter('hidden')"
-          style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;">Ẩn <span id="manage-hidden-count2">0</span></button>
         <button id="manage-tab-all" onclick="setManageFilter('all')"
           style="background:#e8f5e9;color:#2e7d32;border:1px solid #4CAF50;border-radius:8px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;">Tất cả</button>
+        <button id="manage-tab-visible" onclick="setManageFilter('visible')"
+          style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;">👁️ <span id="manage-visible-count">0</span></button>
+        <button id="manage-tab-hidden" onclick="setManageFilter('hidden')"
+          style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;">🙈 <span id="manage-hidden-count2">0</span></button>
+
         <button id="manage-tab-low" onclick="setManageFilter('low')"
           style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;"><span style="color:#f44336;font-weight:700;">Tồn </span><span id="manage-low-count" style="color:#f44336;font-weight:700;">0</span></button>
         <button onclick="doRefreshProducts()"
@@ -398,9 +399,14 @@ const CONFIG = {
         </button>
       </div>
     </div>
-    <input type="text" id="manage-search" placeholder="Tìm mã, tên, kích thước, NCC..."
-      style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;margin-bottom:8px;"
-      oninput="filterManageProducts()" />
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <input type="text" id="manage-search" placeholder="Tìm mã, tên, kích thước, NCC..."
+        style="flex:1;box-sizing:border-box;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;"
+        oninput="filterManageProducts()" />
+      <input type="number" id="manage-tonkho-filter" placeholder="Tồn ≤" min="0"
+        style="width:68px;box-sizing:border-box;padding:7px 6px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;text-align:center;"
+        oninput="onManageTonkhoInput()" />
+    </div>
     <div id="manage-product-list" style="overflow-y:auto;max-height:calc(100vh - 245px);"></div>
   </div>
 </div>
@@ -539,7 +545,7 @@ const CONFIG = {
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <div style="font-size:12px;color:#666;">
             <span id="dt-stats-count" style="font-weight:600;color:#1a1a1a;">0</span> SP
-            <span style="color:#ddd;margin:0 6px;">|</span>
+            <span style="color:#ddd;margin:0 2px;">|</span>
             Tồn: <span id="dt-stats-tonkho" style="font-weight:600;color:#4CAF50;">0</span>
           </div>
           <div style="display:flex;gap:5px;align-items:center;">
@@ -553,9 +559,14 @@ const CONFIG = {
             </button>
           </div>
         </div>
-        <input type="text" id="dt-search" placeholder="Tìm mã hoặc tên..."
-          style="width:100%;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;"
-          oninput="dtFilterProducts()" />
+        <div style="display:flex;gap:6px;">
+          <input type="text" id="dt-search" placeholder="Tìm mã hoặc tên..."
+            style="flex:1;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;"
+            oninput="dtFilterProducts()" />
+          <input type="number" id="dt-tonkho-filter" placeholder="Tồn ≤" min="0"
+            style="width:68px;padding:7px 6px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;text-align:center;"
+            oninput="onDtTonkhoInput()" />
+        </div>
       </div>
       <div id="dt-product-list" style="flex:1;overflow-y:auto;padding:8px;min-height:0;"></div>
     </div>
@@ -815,12 +826,16 @@ function setMobileFilter(mode) {
   mobileFilterLow = (mode === 'low');
   mobileFilterHidden = (mode === 'hidden');
   _applyFilterStyle('mob', mode);
+  const el = document.getElementById('mob-tonkho-filter');
+  if (el) el.value = '';
   filterProductList();
 }
 function setDtFilter(mode) {
   dtFilterLow = (mode === 'low');
   dtFilterHidden = (mode === 'hidden');
   _applyFilterStyle('dt', mode);
+  const el = document.getElementById('dt-tonkho-filter');
+  if (el) el.value = '';
   dtFilterProducts();
 }
 function setManageFilter(mode) {
@@ -828,6 +843,36 @@ function setManageFilter(mode) {
   manageFilterHidden = (mode === 'hidden');
   manageFilterVisible = (mode === 'visible');
   _applyFilterStyle('manage', mode);
+  const el = document.getElementById('manage-tonkho-filter');
+  if (el) el.value = '';
+  filterManageProducts();
+}
+function onMobTonkhoInput() {
+  const el = document.getElementById('mob-tonkho-filter');
+  if (el && el.value !== '') {
+    mobileFilterLow = false;
+    mobileFilterHidden = false;
+    _applyFilterStyle('mob', 'all');
+  }
+  filterProductList();
+}
+function onDtTonkhoInput() {
+  const el = document.getElementById('dt-tonkho-filter');
+  if (el && el.value !== '') {
+    dtFilterLow = false;
+    dtFilterHidden = false;
+    _applyFilterStyle('dt', 'all');
+  }
+  dtFilterProducts();
+}
+function onManageTonkhoInput() {
+  const el = document.getElementById('manage-tonkho-filter');
+  if (el && el.value !== '') {
+    manageFilterLow = false;
+    manageFilterHidden = false;
+    manageFilterVisible = false;
+    _applyFilterStyle('manage', 'all');
+  }
   filterManageProducts();
 }
 
@@ -847,19 +892,42 @@ function filterManageProducts() {
       removeDiacritics(p.ncc).includes(q)
     );
   }
+  const tonkhoFilterEl = document.getElementById('manage-tonkho-filter');
+  if (tonkhoFilterEl && tonkhoFilterEl.value !== '') {
+    const maxTon = Number(tonkhoFilterEl.value);
+    list = list.filter(p => (Number(p.tonkho) || 0) <= maxTon);
+  }
   renderManageProductList(list, rawQ.trim());
 }
 
-async function doRefreshProducts() {
-  const btns = document.querySelectorAll('[onclick="doRefreshProducts()"], #dt-btn-refresh');
-  btns.forEach(b => { b.style.opacity = '0.5'; b.style.pointerEvents = 'none'; });
-  await fetchProductsFromServer();
+function doRefreshProducts() {
+  // Clear ô tìm kiếm + reset filter về mặc định (4 nơi), KHÔNG xóa giỏ hàng
+  const clearIds = ['manual-code','mob-tonkho-filter','dt-search','dt-tonkho-filter','manage-search','manage-tonkho-filter'];
+  clearIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  mobileFilterLow = false; mobileFilterHidden = false; _applyFilterStyle('mob', 'all');
+  dtFilterLow = false; dtFilterHidden = false; _applyFilterStyle('dt', 'all');
+  manageFilterLow = false; manageFilterHidden = false; manageFilterVisible = false; _applyFilterStyle('manage', 'all');
+
+  // Render ngay từ cache (tức thì, không chờ mạng)
   if (window.innerWidth >= 768) dtFilterProducts();
   filterProductList();
   filterManageProducts();
   updateProductStats();
-  btns.forEach(b => { b.style.opacity = ''; b.style.pointerEvents = ''; });
-  showToast('✅ Đã cập nhật!');
+
+  // Fetch server nền — khi xong tự cập nhật lại
+  const btns = document.querySelectorAll('[onclick="doRefreshProducts()"], #dt-btn-refresh');
+  btns.forEach(b => { b.style.opacity = '0.5'; b.style.pointerEvents = 'none'; });
+  fetchProductsFromServer().then(() => {
+    if (window.innerWidth >= 768) dtFilterProducts();
+    filterProductList();
+    filterManageProducts();
+    updateProductStats();
+    showToast('✅ Đã cập nhật!');
+  }).catch(() => {
+    showToast('⚠️ Không thể kết nối server!');
+  }).finally(() => {
+    btns.forEach(b => { b.style.opacity = ''; b.style.pointerEvents = ''; });
+  });
 }
 
 document.addEventListener('visibilitychange', () => {
@@ -1246,6 +1314,8 @@ function filterProductList() {
       removeDiacritics(p.nhanHieu).includes(q)
     );
   }
+  const mobTonEl = document.getElementById('mob-tonkho-filter');
+  if (mobTonEl && mobTonEl.value !== '') list = list.filter(p => (Number(p.tonkho) || 0) <= Number(mobTonEl.value));
   renderProductList(list, rawQ.trim());
 }
 
@@ -1950,8 +2020,10 @@ function renderManageProductList(list, kw) {
             <button onclick="confirmDeleteProduct(products.find(x=>x.ma==='${p.ma}'))"
               style="padding:8px 14px;border:1.5px solid #f44336;border-radius:10px;background:#ffebee;color:#f44336;font-size:14px;font-weight:600;cursor:pointer;">🗑️</button>
           </div>
-          <button onclick="toggleHideProduct('${p.ma}')" title="${hidden ? 'Hiện sản phẩm' : 'Ẩn sản phẩm'}"
-            style="width:100%;padding:6px 10px;border:1.5px solid ${hidden ? '#9e9e9e' : '#bdbdbd'};border-radius:10px;background:${hidden ? '#eeeeee' : '#fafafa'};color:${hidden ? '#616161' : '#888'};font-size:13px;cursor:pointer;text-align:center;">${hidden ? '🙈 Hiện' : '👁️ Ẩn'}</button>
+          <button onclick="toggleHideProduct('${p.ma}')"title="${hidden ? 'Hiện sản phẩm' : 'Ẩn sản phẩm'}"style="width:100%;padding:6px 10px;border:1.5px solid ${hidden ? '#cfd8dc' : '#c8e6c9'};border-radius:10px;
+                background:${hidden ? '#f5f5f5' : '#e8f5e9'};color:${hidden ? '#607d8b' : '#2e7d32'};font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition: all 0.2s ease;"onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.08)'"
+            onmouseout="this.style.transform='none'; this.style.boxShadow='none'">${hidden? '<i class="fa-solid fa-eye"></i>🙈 Ẩn':'<i class="fa-solid fa-eye-slash"></i>👁️ Hiện'}
+            </button>
         </div>
       </div>
     </div>
@@ -2153,6 +2225,8 @@ function dtFilterProducts() {
       removeDiacritics(p.motaSP).includes(q)
     );
   }
+  const dtTonEl = document.getElementById('dt-tonkho-filter');
+  if (dtTonEl && dtTonEl.value !== '') list = list.filter(p => (Number(p.tonkho) || 0) <= Number(dtTonEl.value));
   dtRenderProducts(list, rawQ.trim());
 }
 
