@@ -484,6 +484,19 @@ const CONFIG = {
   <button class="btn-primary" onclick="goMain()" style="margin-top:1rem;">Tiếp tục</button>
 </div>
 
+<!-- DESKTOP SUCCESS OVERLAY -->
+<div id="dt-success-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:20px;padding:36px 32px 28px;max-width:420px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,0.18);text-align:center;">
+    <div style="width:64px;height:64px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div id="dt-success-title" class="success-title" style="margin-bottom:4px;"></div>
+    <div id="dt-success-sub" class="success-sub" style="margin-bottom:20px;"></div>
+    <div id="dt-success-detail" style="background:#f9f9f9;border-radius:12px;padding:14px 18px;text-align:left;margin-bottom:20px;"></div>
+    <button onclick="closeDtSuccess()" style="width:100%;padding:14px;background:#4CAF50;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;">Tiếp tục</button>
+  </div>
+</div>
+
 <!-- MODAL -->
 <div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:999;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:16px;padding:24px 20px;max-width:320px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
@@ -2334,17 +2347,34 @@ async function dtSubmit() {
   }).catch(() => {});
 
   const count = dtCart.length;
+  const totalAmount = dtCart.reduce((s, i) => s + i.sl * i.gia, 0);
   const modeLabel = dtMode;
+  const isXuat = dtMode === 'Xuất';
   dtCart = [];
   document.getElementById('dt-giaodich').value = '';
   document.getElementById('dt-phichanh').value = '';
   document.getElementById('dt-ghichu').value = '';
+  saveCart();
 
   btn.disabled = false;
   dtSetMode(dtMode);
   dtRenderCart();
   fetchProductsFromServer().then(() => dtFilterProducts());
-  showToast(`✅ Đã ghi ${count} SP vào sheet ${modeLabel}!`);
+
+  // Hiện success overlay
+  document.getElementById('dt-success-title').textContent = isXuat ? '📤 Xuất hàng thành công!' : '📥 Nhập hàng thành công!';
+  document.getElementById('dt-success-sub').textContent = thoiGian;
+  document.getElementById('dt-success-detail').innerHTML = `
+    <div class="info-row"><span class="info-label">Số loại sản phẩm</span><span class="info-value">${count}</span></div>
+    <div class="info-row"><span class="info-label">Tổng tiền</span><span class="info-value green">${fmt(totalAmount)} đ</span></div>
+    <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
+    ${ghichu ? `<div class="info-row"><span class="info-label">${isXuat ? 'Tên khách' : 'Ghi chú'}</span><span class="info-value">${ghichu}</span></div>` : ''}
+  `;
+  document.getElementById('dt-success-overlay').style.display = 'flex';
+}
+
+function closeDtSuccess() {
+  document.getElementById('dt-success-overlay').style.display = 'none';
 }
 
 function stopScan() {

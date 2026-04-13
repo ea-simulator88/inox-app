@@ -52,8 +52,8 @@ function doPost(e) {
       for (let i = 1; i < rows.length; i++) {
         if (rows[i][0].toString().trim() === data.ma.toString().trim()) {
           data.row.forEach((val, j) => {
-            // Bỏ qua cột Giá vốn (cột F = index 5) vì đang dùng công thức
-            if (j !== 5) {
+            // Bỏ qua cột Giá vốn (F=5) và Tồn kho (I=8) vì dùng công thức
+            if (j !== 5 && j !== 8) {
               sheet.getRange(i + 1, j + 1).setValue(val);
             }
           });
