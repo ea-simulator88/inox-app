@@ -1199,24 +1199,23 @@ async function fetchProductsFromServer() {
       p.an       = anIdx       !== -1 ? (r[anIdx]       || '') : '';
       return p;
     }).filter(p => p.ma);
-    if (fetched.length > 0) {
-      products = fetched;
-      // Áp lại các thay đổi ẩn/hiện chưa kịp sync lên sheet
-      const now = Date.now();
-      Object.keys(pendingHiddenUpdates).forEach(ma => {
-        const upd = pendingHiddenUpdates[ma];
-        if (now - upd.ts < 15000) {
-          const p = products.find(x => x.ma === ma);
-          if (p) p.an = upd.value;
-        } else {
-          delete pendingHiddenUpdates[ma];
-        }
-      });
-      localStorage.setItem('products_cache', JSON.stringify(products));
-      filterProductList();
-      filterManageProducts();
-      updateProductStats();
-    }
+    products = fetched;
+    // Áp lại các thay đổi ẩn/hiện chưa kịp sync lên sheet
+    const now = Date.now();
+    Object.keys(pendingHiddenUpdates).forEach(ma => {
+      const upd = pendingHiddenUpdates[ma];
+      if (now - upd.ts < 15000) {
+        const p = products.find(x => x.ma === ma);
+        if (p) p.an = upd.value;
+      } else {
+        delete pendingHiddenUpdates[ma];
+      }
+    });
+    localStorage.setItem('products_cache', JSON.stringify(products));
+    filterProductList();
+    filterManageProducts();
+    dtFilterProducts();
+    updateProductStats();
   } catch(e) {
     if (products.length === 0) {
       usingFallbackProducts = true;
