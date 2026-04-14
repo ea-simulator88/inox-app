@@ -670,18 +670,23 @@ const INACTIVITY_MS = 20 * 60 * 1000;
 let _inactivityTimer = null;
 function resetInactivityTimer() {
   if (!currentRole) return;
+  localStorage.setItem('last_activity', Date.now());
   clearTimeout(_inactivityTimer);
   _inactivityTimer = setTimeout(() => {
     if (currentRole) { showToast('⏰ Phiên hết hạn do không thao tác.'); doLogout(); }
   }, INACTIVITY_MS);
 }
+function _inactivityHandler() { resetInactivityTimer(); }
 function startInactivityWatch() {
   ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(ev =>
-    document.addEventListener(ev, resetInactivityTimer, { passive: true })
+    document.addEventListener(ev, _inactivityHandler, { passive: true })
   );
   resetInactivityTimer();
 }
 function stopInactivityWatch() {
+  ['mousemove','mousedown','keydown','touchstart','scroll','click'].forEach(ev =>
+    document.removeEventListener(ev, _inactivityHandler)
+  );
   clearTimeout(_inactivityTimer);
   _inactivityTimer = null;
 }
@@ -1070,6 +1075,13 @@ function togglePassVis() {
   try {
     const cached = JSON.parse(localStorage.getItem('login_cache') || 'null');
     if (!cached || !cached.role || !cached.pass) return;
+    // Kiểm tra nếu đã quá 20 phút không thao tác thì không auto-login
+    const lastActivity = parseInt(localStorage.getItem('last_activity') || '0', 10);
+    if (lastActivity > 0 && Date.now() - lastActivity > INACTIVITY_MS) {
+      localStorage.removeItem('login_cache');
+      localStorage.removeItem('last_activity');
+      return;
+    }
     currentRole = cached.role;
     await loadProducts();
     // Restore cart
@@ -1126,6 +1138,7 @@ function doLogout() {
   dtMode = 'Xuất';
   localStorage.removeItem('products_cache');
   localStorage.removeItem('login_cache');
+  localStorage.removeItem('last_activity');
   localStorage.removeItem('cart');
   localStorage.removeItem('dtCart');
   document.getElementById('login-pass').value = '';
