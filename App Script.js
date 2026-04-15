@@ -52,13 +52,34 @@ function doPost(e) {
       for (let i = 1; i < rows.length; i++) {
         if (rows[i][0].toString().trim() === data.ma.toString().trim()) {
           data.row.forEach((val, j) => {
-            // Bỏ qua cột Giá vốn (F=5) và Tồn kho (I=8) vì dùng công thức
-            if (j !== 5 && j !== 8) {
+            // Bỏ qua cột Tồn kho (I=8) vì dùng công thức SUMIFS
+            if (j !== 8) {
               sheet.getRange(i + 1, j + 1).setValue(val);
             }
           });
+          // Ghi ghi chú giá vào cột L (12) nếu có thay đổi
+          if (data.ghichu_gia && data.ghichu_gia.toString().trim()) {
+            sheet.getRange(i + 1, 12).setValue(data.ghichu_gia);
+          }
           found = true;
           break;
+        }
+      }
+      // Ghi điều chỉnh tồn kho vào sheet Nhập hoặc Xuất
+      const delta = Number(data.soluong_delta);
+      if (found && !isNaN(delta) && delta !== 0) {
+        const adjSheet = delta > 0 ? ss.getSheetByName('Nhập') : ss.getSheetByName('Xuất');
+        if (adjSheet) {
+          const dir  = delta > 0 ? 'tăng' : 'giảm';
+          const note = 'Điều chỉnh tồn kho (' + dir + ' từ ' + data.sl_cu + ' → ' + data.sl_moi + ')';
+          const adjRow = [
+            data.ma, new Date(), data.row[1], data.row[2], data.row[3],
+            data.row[4], data.row[7], Math.abs(delta), 0,
+            'Điều chỉnh', '', '', note
+          ];
+          adjSheet.appendRow(adjRow);
+          const nr = adjSheet.getLastRow();
+          adjSheet.getRange(nr, 12).setFormula('=H' + nr + '*I' + nr + '-K' + nr);
         }
       }
       return ContentService.createTextOutput(JSON.stringify({
@@ -114,6 +135,30 @@ function doPost(e) {
       const newRow = sheet.getLastRow();
       sheet.getRange(newRow, 12).setFormula('=H' + newRow + '*I' + newRow + '-K' + newRow);
     });
+
+    // Nếu là Nhập hàng: cập nhật Giá vốn (col F=6) nếu giá nhập > giá vốn hiện tại
+    if (data.sheet === 'Nhập') {
+      const spSheet = ss.getSheetByName('Sản phẩm');
+      if (spSheet) {
+        const spData = spSheet.getDataRange().getValues();
+        rowsToWrite.forEach(function(row) {
+          const ma       = (row[0] || '').toString().trim();
+          const giaNhap  = Number(row[8]) || 0;
+          if (!ma || giaNhap <= 0) return;
+          for (let i = 1; i < spData.length; i++) {
+            if ((spData[i][0] || '').toString().trim() === ma) {
+              const curGiavon = Number(spData[i][5]) || 0; // col F = index 5
+              if (giaNhap > curGiavon) {
+                spSheet.getRange(i + 1, 6).setValue(giaNhap); // ghi cột F
+                spData[i][5] = giaNhap; // cập nhật in-memory cho các dòng tiếp theo
+              }
+              break;
+            }
+          }
+        });
+      }
+    }
+
     return ContentService.createTextOutput(JSON.stringify({ success: true }))
       .setMimeType(ContentService.MimeType.JSON);
 

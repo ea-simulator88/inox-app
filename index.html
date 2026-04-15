@@ -10,7 +10,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 #app { max-width: 420px; margin: 0 auto; padding: 1rem; min-height: 100vh; }
 .screen { display: none; }
 .screen.active { display: block; }
-#screen-form, #screen-cart, #screen-history { flex-direction: column; height: 100vh; overflow: hidden; }
+#screen-form, #screen-cart, #screen-history { flex-direction: column; height: calc(100vh - 1rem); overflow: hidden; }
 #screen-form.active, #screen-cart.active, #screen-history.active { display: flex; }
 
 /* Logo */
@@ -509,14 +509,57 @@ const CONFIG = {
       <div style="width:70px;flex-shrink:0;"></div>
     </div>
   </div>
-  <div style="max-width:800px;margin:0 auto;width:100%;padding:12px 16px 0;flex-shrink:0;">
-    <div style="display:flex;gap:8px;margin-bottom:4px;">
-      <button id="hist-btn-all" onclick="histFilter('all')" style="flex:1;padding:8px;border-radius:20px;border:1.5px solid #4CAF50;background:#4CAF50;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Tất cả</button>
-      <button id="hist-btn-xuat" onclick="histFilter('xuat')" style="flex:1;padding:8px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:13px;font-weight:600;cursor:pointer;">Xuất</button>
-      <button id="hist-btn-nhap" onclick="histFilter('nhap')" style="flex:1;padding:8px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:13px;font-weight:600;cursor:pointer;">Nhập</button>
+  <div style="max-width:800px;margin:0 auto;width:100%;padding:10px 16px 0;flex-shrink:0;">
+    <div style="position:relative;display:flex;align-items:center;gap:6px;margin-bottom:4px;" id="hist-date-wrap">
+      <button id="hist-btn-all"  onclick="histFilter('all')"  style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #4CAF50;background:#4CAF50;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">Tất cả</button>
+      <button id="hist-btn-nhap" onclick="histFilter('nhap')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;">Nhập</button>
+      <button id="hist-btn-xuat" onclick="histFilter('xuat')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;">Xuất</button>
+      <button id="hist-date-toggle" onclick="toggleHistDatePanel(event)"
+        style="flex:0 0 auto;width:82px;padding:9px 9px;border-radius:20px;border:1.5px solid #bdbdbd;background:#f5f5f5;color:#555;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:2px;overflow:hidden;">
+        <span style="flex-shrink:0;font-size:12px;">&#128197;</span>
+        <span id="hist-date-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44px;">Tất cả</span>
+        <span id="hist-date-arrow" style="flex-shrink:0;font-size:9px;">&#9660;</span>
+      </button>
+      <div id="hist-date-panel" onclick="event.stopPropagation()"
+        style="display:none;position:absolute;top:calc(100% + 6px);right:0;width:min(340px,calc(100vw - 32px));background:#fff;border:1.5px solid #e0e0e0;border-radius:14px;padding:14px 12px;z-index:200;box-shadow:0 6px 24px rgba(0,0,0,0.13);">
+        <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;">CHỌN NHANH</div>
+        <div style="display:flex;gap:6px;margin-bottom:12px;">
+          <button id="hist-t-all"   onclick="histTimeFilter('all')"   style="flex:1;padding:6px 2px;border-radius:12px;border:1.5px solid #1976d2;background:#1976d2;color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Tất cả</button>
+          <button id="hist-t-today" onclick="histTimeFilter('today')" style="flex:1;padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Hôm nay</button>
+          <button id="hist-t-week"  onclick="histTimeFilter('week')"  style="flex:1;padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Tuần này</button>
+          <button id="hist-t-month" onclick="histTimeFilter('month')" style="flex:1;padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Tháng này</button>
+        </div>
+        <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;">KHOẢNG NGÀY TÙY CHỌN</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="date" id="hist-from-date" style="flex:1;padding:7px 8px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;outline:none;min-width:0;box-sizing:border-box;">
+          <span style="color:#aaa;flex-shrink:0;">&#8594;</span>
+          <input type="date" id="hist-to-date"   style="flex:1;padding:7px 8px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;outline:none;min-width:0;box-sizing:border-box;">
+          <button onclick="histApplyDateRange()" style="padding:7px 12px;background:#4CAF50;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;">&#10003;</button>
+        </div>
+      </div>
     </div>
   </div>
-  <div id="history-list" style="max-width:800px;margin:0 auto;width:100%;padding:8px 16px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-bottom:2rem;"></div>
+  <div id="history-list" style="max-width:800px;margin:0 auto;width:100%;padding:8px 16px 8px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;"></div>
+
+  <!-- SUMMARY BAR -->
+  <div style="flex-shrink:0;background:#fff;border-top:1.5px solid #e8e8e8;">
+    <div style="max-width:800px;margin:0 auto;padding:8px 16px;display:flex;gap:8px;">
+      <div style="flex:1;background:#e8f5e9;border-radius:10px;padding:8px 10px;">
+        <div style="font-size:11px;color:#388e3c;font-weight:700;margin-bottom:3px;">Nhập</div>
+        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+          <span id="hist-sum-nhap-sp"   style="font-size:15px;font-weight:700;color:#2e7d32;">0 SP</span>
+          <span id="hist-sum-nhap-tien" style="font-size:12px;font-weight:600;color:#388e3c;">0 đ</span>
+        </div>
+      </div>
+      <div style="flex:1;background:#ffebee;border-radius:10px;padding:8px 10px;">
+        <div style="font-size:11px;color:#c62828;font-weight:700;margin-bottom:3px;">Xuất</div>
+        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+          <span id="hist-sum-xuat-sp"   style="font-size:15px;font-weight:700;color:#c62828;">0 SP</span>
+          <span id="hist-sum-xuat-tien" style="font-size:12px;font-weight:600;color:#e53935;">0 đ</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- DESKTOP SUCCESS OVERLAY -->
@@ -1247,11 +1290,13 @@ function togglePassVis() {
     document.getElementById('role-badge-cart').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
     document.getElementById('btn-manage-products').style.display = cached.role === 'owner' ? 'flex' : 'none';
     const _lastScreen = sessionStorage.getItem('lastScreen') || 'screen-main';
-    const _safeScreens = ['screen-main', 'screen-products', 'screen-product-form', 'screen-cart'];
+    const _safeScreens = ['screen-main', 'screen-products', 'screen-product-form', 'screen-cart', 'screen-history'];
     const _targetScreen = _safeScreens.includes(_lastScreen) ? _lastScreen : 'screen-main';
     if (window.innerWidth >= 768) { dtInitLayout(); dtFilterProducts(); }
     if (_targetScreen === 'screen-product-form') {
       openProductForm('add', null, true); // render form ngay, không chờ server
+    } else if (_targetScreen === 'screen-history') {
+      showHistory();
     } else {
       showScreen(_targetScreen);
       if (_targetScreen === 'screen-cart') { setCartMode(cartMode); renderCart(); }
@@ -2239,9 +2284,32 @@ async function submitProductForm() {
     return isNum ? (parseInt(el.value.replace(/,/g, '')) || 0) : el.value.trim();
   });
 
-  const body = productFormMode === 'add'
-    ? { sheet: 'Sản phẩm', action: 'add', row: row }
-    : { sheet: 'Sản phẩm', action: 'update', ma: editingProduct.ma, row: row };
+  let body;
+  if (productFormMode === 'add') {
+    body = { sheet: 'Sản phẩm', action: 'add', row: row };
+  } else {
+    // Lấy giá trị cũ từ editingProduct
+    const oldGiavon = Number(editingProduct.giavon) || 0;
+    const oldGiasi  = Number(editingProduct.giasi)  || 0;
+    const oldTonkho = Number(editingProduct.tonkho) || 0;
+    // Lấy giá trị mới từ form
+    const newGiavon = parseInt((document.getElementById('pf_giavon')?.value  || '').replace(/,/g, '')) || 0;
+    const newGiasi  = parseInt((document.getElementById('pf_giasi')?.value   || '').replace(/,/g, '')) || 0;
+    const newTonkho = parseInt((document.getElementById('pf_tonkho')?.value  || '').replace(/,/g, '')) || 0;
+    // Xây chuỗi ghichu_gia
+    const _d = new Date();
+    const dateStr = _d.getDate() + '/' + (_d.getMonth() + 1) + '/' + _d.getFullYear();
+    const _parts = [];
+    if (newGiavon !== oldGiavon) _parts.push('Giá vốn: ' + fmt(oldGiavon) + '\u2192' + fmt(newGiavon));
+    if (newGiasi  !== oldGiasi)  _parts.push('Giá sỉ: '  + fmt(oldGiasi)  + '\u2192' + fmt(newGiasi));
+    const ghichu_gia = _parts.length ? _parts.join(' | ') + ' (' + dateStr + ')' : '';
+    // Tính delta tồn kho
+    const soluong_delta = newTonkho - oldTonkho;
+    body = {
+      sheet: 'Sản phẩm', action: 'update', ma: editingProduct.ma, row: row,
+      ghichu_gia, soluong_delta, sl_cu: oldTonkho, sl_moi: newTonkho
+    };
+  }
 
   console.log('submitProductForm body:', JSON.stringify(body));
 
@@ -2662,6 +2730,9 @@ function stopScan() {
 // ===== HISTORY =====
 let _historyData = [];
 let _historyFilter = 'all';
+let _historyTimeFilter = 'all';
+let _histDateFrom = null;
+let _histDateTo   = null;
 let _historyGroups = [];
 
 async function showHistory() {
@@ -2678,6 +2749,8 @@ async function showHistory() {
     const nhap = (data.nhap || []).map(r => _mapHistRow(r, 'Nhập'));
     _historyData = [...xuat, ...nhap].sort((a, b) => b.thoigian_raw - a.thoigian_raw);
     _historyFilter = 'all';
+    _historyTimeFilter = 'all';
+    _histDateFrom = null; _histDateTo = null;
     histFilter('all');
   } catch(e) {
     list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được lịch sử.</div>';
@@ -2718,12 +2791,113 @@ function histFilter(f) {
   _renderHistory();
 }
 
+function toggleHistDatePanel(e) {
+  if (e) e.stopPropagation();
+  const panel = document.getElementById('hist-date-panel');
+  const arrow = document.getElementById('hist-date-arrow');
+  if (!panel) return;
+  const open = panel.style.display === 'none' || panel.style.display === '';
+  panel.style.display = open ? 'block' : 'none';
+  if (arrow) arrow.textContent = open ? '\u25B4' : '\u25BE';
+}
+
+function _closeHistDatePanel() {
+  const panel = document.getElementById('hist-date-panel');
+  const arrow = document.getElementById('hist-date-arrow');
+  if (panel) panel.style.display = 'none';
+  if (arrow) arrow.textContent = '\u25BE';
+}
+
+function _updateHistDateLabel() {
+  const label  = document.getElementById('hist-date-label');
+  const toggle = document.getElementById('hist-date-toggle');
+  const labels = { all:'T\u1EA5t c\u1EA3 th\u1EDDi gian', today:'H\u00F4m nay', week:'Tu\u1EA7n n\u00E0y', month:'Th\u00E1ng n\u00E0y' };
+  let text;
+  if (_historyTimeFilter === 'custom') {
+    const fd = d => d ? d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear() : '?';
+    text = fd(_histDateFrom) + ' \u2192 ' + fd(_histDateTo);
+  } else {
+    text = labels[_historyTimeFilter] || labels.all;
+  }
+  if (label) label.textContent = text;
+  const active = _historyTimeFilter !== 'all';
+  if (toggle) {
+    toggle.style.background  = active ? '#1976d2' : '#e3f2fd';
+    toggle.style.color       = active ? '#fff'    : '#1976d2';
+  }
+}
+
+function histTimeFilter(f) {
+  _historyTimeFilter = f;
+  _histDateFrom = null;
+  _histDateTo   = null;
+  ['all','today','week','month'].forEach(k => {
+    const btn = document.getElementById('hist-t-' + k);
+    if (!btn) return;
+    const active = f === k;
+    btn.style.background  = active ? '#1976d2' : '#f5f5f5';
+    btn.style.color       = active ? '#fff'    : '#888';
+    btn.style.borderColor = active ? '#1976d2' : '#e0e0e0';
+  });
+  _updateHistDateLabel();
+  _closeHistDatePanel();
+  _renderHistory();
+}
+
+function histApplyDateRange() {
+  const fromVal = document.getElementById('hist-from-date')?.value;
+  const toVal   = document.getElementById('hist-to-date')?.value;
+  if (!fromVal && !toVal) { histTimeFilter('all'); return; }
+  _histDateFrom = fromVal ? new Date(fromVal) : null;
+  _histDateTo   = toVal   ? new Date(toVal)   : null;
+  _historyTimeFilter = 'custom';
+  ['all','today','week','month'].forEach(k => {
+    const btn = document.getElementById('hist-t-' + k);
+    if (!btn) return;
+    btn.style.background  = '#f5f5f5';
+    btn.style.color       = '#888';
+    btn.style.borderColor = '#e0e0e0';
+  });
+  _updateHistDateLabel();
+  _closeHistDatePanel();
+  _renderHistory();
+}
+
+// Đóng panel khi click ra ngoài
+document.addEventListener('click', _closeHistDatePanel);
+
 function _renderHistory() {
   const list = document.getElementById('history-list');
   if (!list) return;
   let filtered = _historyData;
   if (_historyFilter === 'xuat') filtered = _historyData.filter(r => r.loai === 'Xuất');
   else if (_historyFilter === 'nhap') filtered = _historyData.filter(r => r.loai === 'Nhập');
+
+  // Lọc theo thời gian
+  if (_historyTimeFilter !== 'all') {
+    const now = new Date();
+    let startTs, endTs;
+    if (_historyTimeFilter === 'today') {
+      startTs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      endTs   = startTs + 86400000;
+    } else if (_historyTimeFilter === 'week') {
+      const dow  = now.getDay() === 0 ? 6 : now.getDay() - 1; // Mon=0
+      startTs = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow).getTime();
+      endTs   = startTs + 7 * 86400000;
+    } else if (_historyTimeFilter === 'month') {
+      startTs = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+      endTs   = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
+    } else if (_historyTimeFilter === 'custom') {
+      if (_histDateFrom) startTs = new Date(_histDateFrom.getFullYear(), _histDateFrom.getMonth(), _histDateFrom.getDate()).getTime();
+      if (_histDateTo)   endTs   = new Date(_histDateTo.getFullYear(),   _histDateTo.getMonth(),   _histDateTo.getDate() + 1).getTime();
+    }
+    if (startTs !== undefined || endTs !== undefined) {
+      filtered = filtered.filter(r =>
+        (startTs === undefined || r.thoigian_raw >= startTs) &&
+        (endTs   === undefined || r.thoigian_raw <  endTs)
+      );
+    }
+  }
 
   // Gom nhóm theo thoigian + tenkhach + loai
   const groupMap = new Map();
@@ -2736,8 +2910,21 @@ function _renderHistory() {
   });
   _historyGroups = [...groupMap.values()].sort((a, b) => b.thoigian_raw - a.thoigian_raw);
 
+  // Cập nhật thanh tổng kết
+  let _nhapSP = 0, _nhapTien = 0, _xuatSP = 0, _xuatTien = 0;
+  _historyGroups.forEach(g => {
+    const tot = g.rows.reduce((s, r) => s + r.soluong * r.gia, 0);
+    if (g.loai === 'Nh\u1EADp') { _nhapSP += g.rows.length; _nhapTien += tot; }
+    else                         { _xuatSP += g.rows.length; _xuatTien += tot; }
+  });
+  const _se = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  _se('hist-sum-nhap-sp',   _nhapSP  + ' SP');
+  _se('hist-sum-nhap-tien', _nhapTien.toLocaleString('vi-VN') + ' \u0111');
+  _se('hist-sum-xuat-sp',   _xuatSP  + ' SP');
+  _se('hist-sum-xuat-tien', _xuatTien.toLocaleString('vi-VN') + ' \u0111');
+
   if (_historyGroups.length === 0) {
-    list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Chưa có dữ liệu.</div>';
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Ch\u01B0a c\u00F3 d\u1EEF li\u1EC7u.</div>';
     return;
   }
 
