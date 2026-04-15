@@ -97,8 +97,12 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .product-item-tonkho.low { color: #f44336; }
 
 /* ===== CART ===== */
-.cart-btn { position: relative; background: none; border: none; font-size: 24px; cursor: pointer; padding: 4px 6px; line-height: 1; }
+.cart-btn { position: relative; background: none; border: none; font-size: 24px; cursor: pointer; padding: 4px 6px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
 .badge-cart { position: absolute; top: -1px; right: -1px; background: #f44336; color: #fff; font-size: 10px; font-weight: 700; border-radius: 50%; min-width: 17px; height: 17px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
+.nav-icon-wrap { display: inline-flex; align-items: center; gap: 6px; }
+.nav-icon-svg { width: 18px; height: 18px; display: inline-block; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+.mini-icon-wrap { display: inline-flex; align-items: center; gap: 5px; }
+.mini-icon-svg { width: 14px; height: 14px; display: inline-block; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
 
 .btn-add-cart { width: 34px; height: 34px; background: #4CAF50; color: #fff; border: none; border-radius: 50%; font-size: 22px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .btn-add-cart:active { opacity: 0.7; transform: scale(0.92); }
@@ -137,6 +141,26 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 
 /* Toast */
 .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; z-index: 2000; white-space: nowrap; pointer-events: none; }
+
+/* History cards */
+.history-card { background: #fff; border-radius: 12px; padding: 13px 14px; margin-bottom: 9px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+.history-card-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.history-card-main { flex: 1; min-width: 0; }
+.history-card-time { font-size: 12px; color: #aaa; margin-bottom: 4px; }
+.history-card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.history-card-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.history-card-tools { display: flex; align-items: center; gap: 4px; }
+.history-invoice-btn { flex-shrink: 0; font-size: 12px; padding: 4px 10px; border-radius: 8px; border: 1px solid #1976d2; background: #e3f2fd; color: #1976d2; cursor: pointer; }
+.history-action-btn { width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
+.history-action-btn.edit { border: 1px solid #ffb74d; background: #fff8e1; color: #e65100; }
+.history-action-btn.delete { border: 1px solid #ef9a9a; background: #ffebee; color: #c62828; }
+
+@media (max-width: 767px) {
+  .history-card-row { align-items: flex-start; }
+  .history-card-actions { flex-direction: column; align-items: flex-end; gap: 6px; }
+  .history-card-tools { justify-content: flex-end; }
+  .history-invoice-btn { min-width: 40px; padding: 7px 9px; text-align: center; }
+}
 
 /* ===== DESKTOP RESPONSIVE ===== */
 @media (min-width: 768px) {
@@ -242,13 +266,12 @@ const CONFIG = {
 <!-- MAIN -->
 <div id="screen-main" class="screen">
   <div class="header">
-    <button id="btn-manage-products" onclick="showManageProducts()" style="display:none;font-size:12px;padding:4px 12px;border-radius:30px;border:1px solid #c8e6c9;background:#e8f5e9;color:#065a0a;font-weight:500;cursor:pointer;">📦 Quản lý SP</button>
     <div style="display:flex;align-items:center;gap:5px;margin-left:auto;">
-    <span class="badge" id="role-badge"></span>
-        <button class="cart-btn" onclick="goCart()" title="Giỏ hàng">
-        🛒<span class="badge-cart" id="cart-badge" style="display:none;">0</span>
+      <span class="badge" id="role-badge"></span>
+      <button id="btn-manage-products" onclick="showManageProducts()" title="Quản lý sản phẩm" style="display:none;background:none;border:none;cursor:pointer;font-size:18px;padding:4px 2px;line-height:1;color:#1a1a1a;"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7l8 4 8-4-8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg></button>
+      <button onclick="showHistory()" title="Lịch sử" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 2px;line-height:1;"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M9 4.5h6"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></button>
+      <button class="cart-btn" onclick="goCart()" title="Giỏ hàng"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true" style="width:19px;height:19px;"><circle cx="9" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/><path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H7"/></svg><span class="badge-cart" id="cart-badge" style="display:none;">0</span>
       </button>
-      <button onclick="showHistory()" title="Lịch sử" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 2px;line-height:1;">📋</button>
       <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
     </div>
   </div>
@@ -395,9 +418,9 @@ const CONFIG = {
         <button id="manage-tab-all" onclick="setManageFilter('all')"
           style="background:#e8f5e9;color:#2e7d32;border:1px solid #4CAF50;border-radius:8px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;">Tất cả</button>
         <button id="manage-tab-visible" onclick="setManageFilter('visible')"
-          style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;">👁️ <span id="manage-visible-count">0</span></button>
+          style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;"><span class="mini-icon-wrap"><svg class="mini-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.6"/></svg><span id="manage-visible-count">0</span></span></button>
         <button id="manage-tab-hidden" onclick="setManageFilter('hidden')"
-          style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;">🙈 <span id="manage-hidden-count2">0</span></button>
+          style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;"><span class="mini-icon-wrap"><svg class="mini-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 4l16 16"/></svg><span id="manage-hidden-count2">0</span></span></button>
 
         <button id="manage-tab-low" onclick="setManageFilter('low')"
           style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;"><span style="color:#f44336;font-weight:700;">Tồn </span><span id="manage-low-count" style="color:#f44336;font-weight:700;">0</span></button>
@@ -599,8 +622,8 @@ const CONFIG = {
     </div>
     <div style="display:flex;align-items:center;gap:13px;">
       <button id="dt-btn-manage" onclick="showManageProducts()"
-        style="display:none;font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#e8f5e9;color:#065a0a;font-weight:500;cursor:pointer;">📦 Quản lý SP</button>
-      <button onclick="showHistory()" style="font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#e3f2fd;color:#0d47a1;font-weight:500;cursor:pointer;">📋 Lịch sử</button>
+        style="display:none;font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#e8f5e9;color:#065a0a;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7l8 4 8-4-8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg><span>Quản lý SP</span></span></button>
+      <button onclick="showHistory()" style="font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#e3f2fd;color:#0d47a1;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M9 4.5h6"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg><span>Lịch sử</span></span></button>
       <span id="dt-role-badge" class="badge"></span>
       <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
     </div>
@@ -612,7 +635,7 @@ const CONFIG = {
     <!-- CỘT TRÁI: danh sách SP -->
     <div style="width:650px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;height:100%;flex-shrink:0;">
       <div style="padding:12px 13px;border-bottom:1px solid #f0f0f0;flex-shrink:0;">
-        <div style="font-size:13px;font-weight:600;margin-bottom:6px;">📦 Sản phẩm</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7l8 4 8-4-8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg><span>Sản phẩm</span></span></div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <div style="font-size:12px;color:#666;">
             <span id="dt-stats-count" style="font-weight:600;color:#1a1a1a;">0</span> SP
@@ -645,7 +668,7 @@ const CONFIG = {
     <!-- CỘT GIỮA: giỏ hàng -->
     <div style="width:650px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;display:flex;flex-direction:column;overflow:hidden;height:100%;flex-shrink:0;">
       <div style="padding:12px 14px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
-        <div style="font-size:14px;font-weight:600;">🛒 Giỏ hàng</div>
+        <div style="font-size:14px;font-weight:600;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true" style="width:19px;height:19px;"><circle cx="9" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/><path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H7"/></svg><span>Giỏ hàng</span></span></div>
         <span id="dt-cart-count" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#ffebee;color:#c62828;">0 SP</span>
       </div>
       <div id="dt-cart-list" style="flex:1;overflow-y:auto;padding:8px;min-height:0;">
@@ -2214,9 +2237,9 @@ function renderManageProductList(list, kw) {
             <button onclick="confirmDeleteProduct(products.find(x=>x.ma==='${p.ma}'))"
               style="padding:8px 14px;border:1.5px solid #f44336;border-radius:10px;background:#ffebee;color:#f44336;font-size:14px;font-weight:600;cursor:pointer;">🗑️</button>
           </div>
-          <button onclick="toggleHideProduct('${p.ma}')"title="${hidden ? 'Hiện sản phẩm' : 'Ẩn sản phẩm'}"style="width:100%;padding:6px 10px;border:1.5px solid ${hidden ? '#cfd8dc' : '#c8e6c9'};border-radius:10px;
+          <button onclick="toggleHideProduct('${p.ma}')"title="${hidden ? 'Sản phẩm đang Ẩn' : 'Sản phẩm đang Hiện'}"style="width:100%;padding:6px 10px;border:1.5px solid ${hidden ? '#cfd8dc' : '#c8e6c9'};border-radius:10px;
                 background:${hidden ? '#f5f5f5' : '#e8f5e9'};color:${hidden ? '#607d8b' : '#2e7d32'};font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition: all 0.2s ease;"onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.08)'"
-            onmouseout="this.style.transform='none'; this.style.boxShadow='none'">${hidden? '<i class="fa-solid fa-eye"></i>🙈 Ẩn':'<i class="fa-solid fa-eye-slash"></i>👁️ Hiện'}
+            onmouseout="this.style.transform='none'; this.style.boxShadow='none'">${hidden? '<span class="mini-icon-wrap"><svg class="mini-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 4l16 16"/></svg><span>Ẩn</span></span>':'<span class="mini-icon-wrap"><svg class="mini-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.6"/></svg><span>Hiện</span></span>'}
             </button>
         </div>
       </div>
@@ -2934,13 +2957,13 @@ function _renderHistory() {
     const loaiColor = isXuat ? '#e53935' : '#1976d2';
     const loaiBg    = isXuat ? '#ffebee' : '#e3f2fd';
     const invoiceBtn = isXuat
-      ? `<button onclick="showInvoice(${i})" style="flex-shrink:0;font-size:12px;padding:4px 10px;border-radius:14px;border:1px solid #1976d2;background:#e3f2fd;color:#1976d2;cursor:pointer;">🧾 Xem HĐ</button>`
+      ? `<button onclick="showInvoice(${i})" class="history-invoice-btn">Hóa Đơn</button>`
       : '';
-    return `<div style="background:#fff;border-radius:12px;padding:13px 14px;margin-bottom:9px;box-shadow:0 1px 4px rgba(0,0,0,0.07);">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:12px;color:#aaa;margin-bottom:4px;">${(d=>{const dt=new Date(d);return dt.getFullYear()+'-'+(dt.getMonth()+1)+'-'+dt.getDate()+' '+String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');})(g.thoigian_raw)}</div>
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+    return `<div class="history-card">
+      <div class="history-card-row">
+        <div class="history-card-main">
+          <div class="history-card-time">${(d=>{const dt=new Date(d);return dt.getFullYear()+'-'+(dt.getMonth()+1)+'-'+dt.getDate()+' '+String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');})(g.thoigian_raw)}</div>
+          <div class="history-card-meta">
             <span style="font-size:12px;padding:2px 8px;border-radius:10px;background:${loaiBg};color:${loaiColor};font-weight:600;">${g.loai}</span>
             <span style="font-size:13px;color:#555;">${g.rows.length} SP</span>
             <span style="font-size:13px;font-weight:600;color:#1a1a1a;">${total.toLocaleString('vi-VN')} đ</span>
@@ -2949,10 +2972,12 @@ function _renderHistory() {
             ${!isXuat && g.rows[0]?.ncc ? `<span style="font-size:12px;color:#1976d2;">· ${g.rows[0].ncc}</span>` : ''}
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+        <div class="history-card-actions">
           ${invoiceBtn}
-          <button onclick="histEditGroup(${i})" title="Sửa" style="width:32px;height:32px;border:1px solid #ffb74d;background:#fff8e1;color:#e65100;border-radius:8px;cursor:pointer;font-size:14px;padding:0;line-height:1;">✏️</button>
-          <button onclick="histDeleteGroup(${i})" title="Xóa" style="width:32px;height:32px;border:1px solid #ef9a9a;background:#ffebee;color:#c62828;border-radius:8px;cursor:pointer;font-size:14px;padding:0;line-height:1;">🗑️</button>
+          <div class="history-card-tools">
+            <button onclick="histEditGroup(${i})" title="Sửa" class="history-action-btn edit">✏️</button>
+            <button onclick="histDeleteGroup(${i})" title="Xóa" class="history-action-btn delete">🗑️</button>
+          </div>
         </div>
       </div>
     </div>`;
