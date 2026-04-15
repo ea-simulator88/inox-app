@@ -84,6 +84,29 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
+    // ── XÓA / CẬP NHẬT dòng lịch sử theo thời gian ───────
+    if (data.action === 'deleteHistoryRows' || data.action === 'updateHistoryRows') {
+      const targetTime = new Date(data.thoigian).getTime();
+      if (!isNaN(targetTime) && sheet) {
+        const vals = sheet.getDataRange().getValues();
+        for (let i = vals.length - 1; i >= 1; i--) {
+          const cv = vals[i][1];
+          if (!cv) continue;
+          const ct = cv instanceof Date ? cv.getTime() : new Date(cv).getTime();
+          if (ct === targetTime) sheet.deleteRow(i + 1);
+        }
+      }
+      if (data.action === 'updateHistoryRows' && Array.isArray(data.rows)) {
+        data.rows.forEach(function(row) {
+          sheet.appendRow(row);
+          const nr = sheet.getLastRow();
+          sheet.getRange(nr, 12).setFormula('=H' + nr + '*I' + nr + '-K' + nr);
+        });
+      }
+      return ContentService.createTextOutput(JSON.stringify({ success: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     // ── MẶC ĐỊNH: ghi Xuất / Nhập (logic cũ) ──────────
     const rowsToWrite = data.rows || [data.row];
     rowsToWrite.forEach(function(row) {
