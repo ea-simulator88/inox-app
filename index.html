@@ -10,8 +10,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 #app { max-width: 420px; margin: 0 auto; padding: 1rem; min-height: 100vh; }
 .screen { display: none; }
 .screen.active { display: block; }
-#screen-form, #screen-cart { flex-direction: column; height: 100vh; overflow: hidden; }
-#screen-form.active, #screen-cart.active { display: flex; }
+#screen-form, #screen-cart, #screen-history { flex-direction: column; height: 100vh; overflow: hidden; }
+#screen-form.active, #screen-cart.active, #screen-history.active { display: flex; }
 
 /* Logo */
 .logo { text-align: center; padding: 2.5rem 0 2rem; }
@@ -149,6 +149,14 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .dt-product-item:hover { background: #f5f5f5 !important; }
 .dt-product-item.in-cart { background: #e8f5e9 !important; border-color: #a5d6a7 !important; }
 .dt-cart-item { padding: 8px; border-radius: 8px; border: 1px solid #f0f0f0; margin-bottom: 6px; }
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  #app { display: none !important; }
+  #invoice-modal { display: flex !important; position: fixed; inset: 0; background: #fff !important; }
+  #invoice-print-area { max-height: none !important; overflow: visible !important; box-shadow: none !important; }
+  #invoice-modal-btns { display: none !important; }
+  @page { size: A5 portrait; margin: 8mm 10mm; }
+}
 </style>
 
 <!-- ====== CONFIG - ANH JAMES CHỈ SỬA TRONG KHỐI NÀY ====== -->
@@ -240,7 +248,7 @@ const CONFIG = {
         <button class="cart-btn" onclick="goCart()" title="Giỏ hàng">
         🛒<span class="badge-cart" id="cart-badge" style="display:none;">0</span>
       </button>
-
+      <button onclick="showHistory()" title="Lịch sử" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 2px;line-height:1;">📋</button>
       <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
     </div>
   </div>
@@ -492,6 +500,25 @@ const CONFIG = {
   <button class="btn-primary" onclick="goMain()" style="margin-top:1rem;">Tiếp tục</button>
 </div>
 
+<!-- HISTORY -->
+<div id="screen-history" class="screen">
+  <div class="header" style="flex-shrink:0;">
+    <div style="max-width:800px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;position:relative;">
+      <button class="btn-back" onclick="goMain()" style="flex-shrink:0;position:relative;z-index:1;">← Quay lại</button>
+      <div class="header-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;">Lịch sử</div>
+      <div style="width:70px;flex-shrink:0;"></div>
+    </div>
+  </div>
+  <div style="max-width:800px;margin:0 auto;width:100%;padding:12px 16px 0;flex-shrink:0;">
+    <div style="display:flex;gap:8px;margin-bottom:4px;">
+      <button id="hist-btn-all" onclick="histFilter('all')" style="flex:1;padding:8px;border-radius:20px;border:1.5px solid #4CAF50;background:#4CAF50;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">Tất cả</button>
+      <button id="hist-btn-xuat" onclick="histFilter('xuat')" style="flex:1;padding:8px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:13px;font-weight:600;cursor:pointer;">Xuất</button>
+      <button id="hist-btn-nhap" onclick="histFilter('nhap')" style="flex:1;padding:8px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:13px;font-weight:600;cursor:pointer;">Nhập</button>
+    </div>
+  </div>
+  <div id="history-list" style="max-width:800px;margin:0 auto;width:100%;padding:8px 16px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-bottom:2rem;"></div>
+</div>
+
 <!-- DESKTOP SUCCESS OVERLAY -->
 <div id="dt-success-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:20px;padding:36px 32px 28px;max-width:420px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,0.18);text-align:center;">
@@ -530,6 +557,7 @@ const CONFIG = {
     <div style="display:flex;align-items:center;gap:13px;">
       <button id="dt-btn-manage" onclick="showManageProducts()"
         style="display:none;font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#e8f5e9;color:#065a0a;font-weight:500;cursor:pointer;">📦 Quản lý SP</button>
+      <button onclick="showHistory()" style="font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#e3f2fd;color:#0d47a1;font-weight:500;cursor:pointer;">📋 Lịch sử</button>
       <span id="dt-role-badge" class="badge"></span>
       <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
     </div>
@@ -634,6 +662,66 @@ const CONFIG = {
           Mỗi SP ghi 1 dòng vào sheet Xuất
         </div>
       </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- INVOICE MODAL -->
+<div id="invoice-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:center;justify-content:center;padding:12px;overflow-y:auto;">
+  <div id="invoice-print-area" style="background:#fff;width:min(148mm,100%);padding:14mm 12mm;font-family:Arial,sans-serif;font-size:13px;line-height:1.5;">
+
+    <!-- Header -->
+    <div style="text-align:center;margin-bottom:14px;">
+      <div style="color:#d32f2f;font-weight:700;font-size:14px;text-transform:uppercase;">HỘ KINH DOANH HÀNG GIA DỤNG</div>
+      <div style="font-size:12px;margin-top:3px;">49 Lê Quang Sung, P. Bình Tây, TP.HCM</div>
+      <div style="font-size:12px;margin-top:2px;">SĐT-Zalo: 090.6265.980, 0937.359.789</div>
+      <div style="color:#d32f2f;font-weight:700;font-size:19px;margin-top:12px;text-transform:uppercase;letter-spacing:1px;">HÓA ĐƠN BÁN HÀNG</div>
+    </div>
+
+    <!-- Khách hàng -->
+    <div style="margin-bottom:12px;font-size:13px;"><strong>Khách hàng:</strong>&nbsp;<span id="inv-tenkhach"></span></div>
+
+    <!-- Bảng hàng -->
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead>
+        <tr style="background:#f5f5f5;">
+          <th style="border:1px solid #ccc;padding:5px 4px;text-align:center;white-space:nowrap;">TT</th>
+          <th style="border:1px solid #ccc;padding:5px 4px;text-align:left;">Tên Hàng</th>
+          <th style="border:1px solid #ccc;padding:5px 4px;text-align:center;white-space:nowrap;">ĐVT</th>
+          <th style="border:1px solid #ccc;padding:5px 4px;text-align:center;white-space:nowrap;">SL</th>
+          <th style="border:1px solid #ccc;padding:5px 4px;text-align:right;white-space:nowrap;">Đơn Giá</th>
+          <th style="border:1px solid #ccc;padding:5px 4px;text-align:right;white-space:nowrap;">Thành Tiền</th>
+        </tr>
+      </thead>
+      <tbody id="inv-tbody"></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="5" style="border:1px solid #ccc;padding:6px 4px;text-align:right;font-weight:700;">Tổng Cộng</td>
+          <td id="inv-total" style="border:1px solid #ccc;padding:6px 4px;text-align:right;font-weight:700;color:#d32f2f;"></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <!-- Footer -->
+    <div id="inv-date" style="margin-top:14px;font-size:12px;text-align:right;"></div>
+    <div style="display:flex;justify-content:space-between;margin-top:28px;font-size:12px;">
+      <div style="text-align:center;width:45%;">
+        <div style="font-weight:600;">Khách Hàng</div>
+        <div style="height:52px;"></div>
+        <div style="font-size:11px;color:#888;">(Ký, ghi rõ họ tên)</div>
+      </div>
+      <div style="text-align:center;width:45%;">
+        <div style="font-weight:600;">Người Viết Hóa Đơn</div>
+        <div style="height:52px;"></div>
+        <div style="font-size:11px;color:#888;">(Ký, ghi rõ họ tên)</div>
+      </div>
+    </div>
+
+    <!-- Nút hành động (không in) -->
+    <div id="invoice-modal-btns" style="display:flex;gap:10px;margin-top:20px;padding-top:14px;border-top:1px solid #e0e0e0;">
+      <button onclick="window.print()" style="flex:1;padding:11px;background:#d32f2f;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">🖨️ In hóa đơn</button>
+      <button onclick="document.getElementById('invoice-modal').style.display='none'" style="flex:1;padding:11px;background:#f0f0f0;color:#555;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">✕ Đóng</button>
     </div>
 
   </div>
@@ -949,7 +1037,7 @@ function showScreen(id) {
   const isDesktop = window.innerWidth >= 768;
 
   if (isDesktop && currentRole) {
-    if (id === 'screen-products' || id === 'screen-product-form') {
+    if (id === 'screen-products' || id === 'screen-product-form' || id === 'screen-history') {
       document.getElementById('desktop-layout').style.display = 'none';
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
@@ -2520,6 +2608,150 @@ function stopScan() {
   document.getElementById('scan-hint').style.display = 'none';
   const btn = document.getElementById('btn-scan-main');
   if (btn) btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M14 17h3M17 14v3"/></svg> Quét mã QR';
+}
+
+// ===== HISTORY =====
+let _historyData = [];
+let _historyFilter = 'all';
+let _historyGroups = [];
+
+async function showHistory() {
+  showScreen('screen-history');
+  const list = document.getElementById('history-list');
+  list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+  try {
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 10000);
+    const res = await fetch(SCRIPT_URL + '?action=history&token=inox2026xK9m', { signal: controller.signal, cache: 'no-store' });
+    clearTimeout(tid);
+    const data = await res.json();
+    const xuat = (data.xuat || []).map(r => _mapHistRow(r, 'Xuất'));
+    const nhap = (data.nhap || []).map(r => _mapHistRow(r, 'Nhập'));
+    _historyData = [...xuat, ...nhap].sort((a, b) => b.thoigian_raw - a.thoigian_raw);
+    _historyFilter = 'all';
+    histFilter('all');
+  } catch(e) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được lịch sử.</div>';
+  }
+}
+
+function _mapHistRow(r, loai) {
+  const isXuat = loai === 'Xuất';
+  const raw = r[1];
+  const t = raw ? new Date(raw) : null;
+  return {
+    loai,
+    ma:           (r[0] || '').toString().trim(),
+    thoigian:     raw ? raw.toString() : '',
+    thoigian_raw: t ? t.getTime() : 0,
+    ncc:          (r[2] || '').toString(),
+    hanghoa:      (r[3] || '').toString(),
+    kichthuoc:    (r[4] || '').toString(),
+    mota:         (r[5] || '').toString(),
+    dvt:          (r[6] || '').toString(),
+    soluong:      Number(r[7]) || 0,
+    gia:          Number(r[8]) || 0,
+    giaodich:     (r[9] || '').toString(),
+    tenkhach:     isXuat ? (r[12] || '').toString() : ''
+  };
+}
+
+function histFilter(f) {
+  _historyFilter = f;
+  ['all', 'xuat', 'nhap'].forEach(k => {
+    const btn = document.getElementById('hist-btn-' + k);
+    if (!btn) return;
+    const active = f === k;
+    btn.style.background   = active ? '#4CAF50' : '#f5f5f5';
+    btn.style.color        = active ? '#fff'     : '#888';
+    btn.style.borderColor  = active ? '#4CAF50' : '#e0e0e0';
+  });
+  _renderHistory();
+}
+
+function _renderHistory() {
+  const list = document.getElementById('history-list');
+  if (!list) return;
+  let filtered = _historyData;
+  if (_historyFilter === 'xuat') filtered = _historyData.filter(r => r.loai === 'Xuất');
+  else if (_historyFilter === 'nhap') filtered = _historyData.filter(r => r.loai === 'Nhập');
+
+  // Gom nhóm theo thoigian + tenkhach + loai
+  const groupMap = new Map();
+  filtered.forEach(r => {
+    const key = r.thoigian + '||' + r.tenkhach + '||' + r.loai;
+    if (!groupMap.has(key)) {
+      groupMap.set(key, { rows: [], thoigian: r.thoigian, thoigian_raw: r.thoigian_raw, tenkhach: r.tenkhach, loai: r.loai, giaodich: r.giaodich });
+    }
+    groupMap.get(key).rows.push(r);
+  });
+  _historyGroups = [...groupMap.values()].sort((a, b) => b.thoigian_raw - a.thoigian_raw);
+
+  if (_historyGroups.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Chưa có dữ liệu.</div>';
+    return;
+  }
+
+  list.innerHTML = _historyGroups.map((g, i) => {
+    const total = g.rows.reduce((s, r) => s + r.soluong * r.gia, 0);
+    const isXuat = g.loai === 'Xuất';
+    const loaiColor = isXuat ? '#e53935' : '#1976d2';
+    const loaiBg    = isXuat ? '#ffebee' : '#e3f2fd';
+    const invoiceBtn = isXuat
+      ? `<button onclick="showInvoice(${i})" style="flex-shrink:0;font-size:12px;padding:4px 10px;border-radius:14px;border:1px solid #1976d2;background:#e3f2fd;color:#1976d2;cursor:pointer;">🧾 Xem HĐ</button>`
+      : '';
+    return `<div style="background:#fff;border-radius:12px;padding:13px 14px;margin-bottom:9px;box-shadow:0 1px 4px rgba(0,0,0,0.07);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;color:#aaa;margin-bottom:4px;">${g.thoigian}</div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <span style="font-size:12px;padding:2px 8px;border-radius:10px;background:${loaiBg};color:${loaiColor};font-weight:600;">${g.loai}</span>
+            <span style="font-size:13px;color:#555;">${g.rows.length} SP</span>
+            <span style="font-size:13px;font-weight:600;color:#1a1a1a;">${total.toLocaleString('vi-VN')} đ</span>
+            ${g.giaodich ? `<span style="font-size:12px;color:#888;">· ${g.giaodich}</span>` : ''}
+            ${g.tenkhach ? `<span style="font-size:12px;color:#555;">· ${g.tenkhach}</span>` : ''}
+          </div>
+        </div>
+        ${invoiceBtn}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showInvoice(idx) {
+  const g = _historyGroups[idx];
+  if (!g) return;
+  const rows = g.rows;
+
+  // Tên khách
+  document.getElementById('inv-tenkhach').textContent = g.tenkhach || '(Không có)';
+
+  // Bảng hàng
+  document.getElementById('inv-tbody').innerHTML = rows.map((r, i) => `
+    <tr>
+      <td style="border:1px solid #ccc;padding:5px 4px;text-align:center;">${i + 1}</td>
+      <td style="border:1px solid #ccc;padding:5px 4px;">${r.hanghoa}${r.kichthuoc ? ' - ' + r.kichthuoc : ''}</td>
+      <td style="border:1px solid #ccc;padding:5px 4px;text-align:center;">${r.dvt}</td>
+      <td style="border:1px solid #ccc;padding:5px 4px;text-align:center;">${r.soluong}</td>
+      <td style="border:1px solid #ccc;padding:5px 4px;text-align:right;">${r.gia.toLocaleString('vi-VN')}</td>
+      <td style="border:1px solid #ccc;padding:5px 4px;text-align:right;">${(r.soluong * r.gia).toLocaleString('vi-VN')}</td>
+    </tr>`).join('');
+
+  // Tổng cộng
+  const total = rows.reduce((s, r) => s + r.soluong * r.gia, 0);
+  document.getElementById('inv-total').textContent = total.toLocaleString('vi-VN') + ' đ';
+
+  // Ngày từ timestamp đơn hàng
+  const d = new Date(g.thoigian_raw);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  document.getElementById('inv-date').textContent = `Ngày ${dd} tháng ${mm} năm ${yyyy}`;
+
+  // Hiện modal
+  const modal = document.getElementById('invoice-modal');
+  modal.style.display = 'flex';
+  modal.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
 }
 </script>
 </body>

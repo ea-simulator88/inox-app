@@ -122,6 +122,18 @@ function doGet(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
+  // ── Lấy lịch sử xuất / nhập (action=history) ───────
+  if (e.parameter.action === 'history') {
+    const xuatSheet = ss.getSheetByName('Xuất');
+    const nhapSheet = ss.getSheetByName('Nhập');
+    const xuatData = xuatSheet && xuatSheet.getLastRow() > 1
+      ? xuatSheet.getDataRange().getValues().slice(1) : [];
+    const nhapData = nhapSheet && nhapSheet.getLastRow() > 1
+      ? nhapSheet.getDataRange().getValues().slice(1) : [];
+    return ContentService.createTextOutput(JSON.stringify({ xuat: xuatData, nhap: nhapData }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   // ── Lấy danh sách sản phẩm (action=get) ────────────
   const sheet = ss.getSheetByName('Sản phẩm');
   const data = sheet.getDataRange().getValues();
