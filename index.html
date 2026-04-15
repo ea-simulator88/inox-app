@@ -10,8 +10,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 #app { max-width: 420px; margin: 0 auto; padding: 1rem; min-height: 100vh; }
 .screen { display: none; }
 .screen.active { display: block; }
-#screen-form, #screen-cart, #screen-history { flex-direction: column; height: calc(100vh - 1rem); overflow: hidden; }
-#screen-form.active, #screen-cart.active, #screen-history.active { display: flex; }
+#screen-form, #screen-cart, #screen-history, #screen-report { flex-direction: column; height: calc(100vh - 1rem); overflow: hidden; }
+#screen-form.active, #screen-cart.active, #screen-history.active, #screen-report.active { display: flex; }
 
 /* Logo */
 .logo { text-align: center; padding: 2.5rem 0 2rem; }
@@ -154,12 +154,53 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .history-action-btn { width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
 .history-action-btn.edit { border: 1px solid #ffb74d; background: #fff8e1; color: #e65100; }
 .history-action-btn.delete { border: 1px solid #ef9a9a; background: #ffebee; color: #c62828; }
+.report-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.report-summary-card { border-radius: 12px; padding: 12px; }
+.report-detail-section { background: #fff; border: 1px solid #e8e8e8; border-radius: 14px; padding: 12px; margin-bottom: 10px; }
+.report-detail-list { display: flex; flex-direction: column; gap: 8px; }
+.report-detail-item { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f1f1f1; }
+.report-detail-item:last-child { border-bottom: none; padding-bottom: 0; }
+.report-detail-name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+.report-detail-meta { font-size: 11px; color: #888; margin-top: 3px; }
+.report-detail-value { text-align: right; flex-shrink: 0; }
+.report-detail-qty { font-size: 12px; color: #666; font-weight: 600; }
+.report-detail-amount { font-size: 13px; color: #1a1a1a; font-weight: 700; margin-top: 3px; }
 
 @media (max-width: 767px) {
   .history-card-row { align-items: flex-start; }
   .history-card-actions { flex-direction: column; align-items: flex-end; gap: 6px; }
   .history-card-tools { justify-content: flex-end; }
   .history-invoice-btn { min-width: 40px; padding: 7px 9px; text-align: center; }
+  #report-date-panel {
+    width: min(320px, calc(100vw - 32px)) !important;
+    padding: 10px !important;
+  }
+  #report-date-panel > div:first-child,
+  #report-date-panel > div:nth-child(3) {
+    font-size: 10px !important;
+    margin-bottom: 5px !important;
+  }
+  #report-date-panel > div:nth-child(2) {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+    margin-bottom: 10px !important;
+  }
+  #report-date-panel > div:nth-child(2) button {
+    font-size: 11px !important;
+    padding: 5px 2px !important;
+    border-radius: 10px !important;
+  }
+  #report-date-panel > div:nth-child(4) {
+    gap: 5px !important;
+  }
+  #report-date-panel > div:nth-child(4) input {
+    padding: 6px 7px !important;
+    font-size: 12px !important;
+  }
+  #report-date-panel > div:nth-child(4) button {
+    padding: 6px 10px !important;
+    border-radius: 9px !important;
+  }
 }
 
 /* ===== DESKTOP RESPONSIVE ===== */
@@ -167,6 +208,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   body { background: #ebebeb; }
   #app { max-width: 100%; padding: 12px; min-height: 100vh; display: flex; flex-direction: column; }
   #screen-login { max-width: 380px; margin: 60px auto; }
+  .report-summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 /* Desktop item hover */
@@ -268,6 +310,7 @@ const CONFIG = {
   <div class="header">
     <div style="display:flex;align-items:center;gap:5px;margin-left:auto;">
       <span class="badge" id="role-badge"></span>
+      <button onclick="showReport()" title="Báo cáo" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 2px;line-height:1;color:#1a1a1a;"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 16V9"/><path d="M12 16V5"/><path d="M17 16v-3"/></svg></button>
       <button id="btn-manage-products" onclick="showManageProducts()" title="Quản lý sản phẩm" style="display:none;background:none;border:none;cursor:pointer;font-size:18px;padding:4px 2px;line-height:1;color:#1a1a1a;"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7l8 4 8-4-8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg></button>
       <button onclick="showHistory()" title="Lịch sử" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 2px;line-height:1;"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M9 4.5h6"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></button>
       <button class="cart-btn" onclick="goCart()" title="Giỏ hàng"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true" style="width:19px;height:19px;"><circle cx="9" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/><path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H7"/></svg><span class="badge-cart" id="cart-badge" style="display:none;">0</span>
@@ -585,6 +628,58 @@ const CONFIG = {
   </div>
 </div>
 
+<!-- REPORT -->
+<div id="screen-report" class="screen">
+  <div class="header" style="flex-shrink:0;">
+    <div style="max-width:1000px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;position:relative;">
+      <button class="btn-back" onclick="goMain()" style="flex-shrink:0;position:relative;z-index:1;">← Quay lại</button>
+      <div class="header-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;">Báo cáo</div>
+      <div style="width:70px;flex-shrink:0;"></div>
+    </div>
+  </div>
+  <div style="max-width:1000px;margin:0 auto;width:100%;padding:10px 16px 12px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;">
+    <div style="position:relative;display:flex;align-items:center;gap:6px;margin-bottom:10px;" id="report-date-wrap">
+      <button id="report-type-all" onclick="reportTypeFilter('all')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #4CAF50;background:#4CAF50;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">Tất cả</button>
+      <button id="report-type-nhap" onclick="reportTypeFilter('nhap')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;">Nhập</button>
+      <button id="report-type-xuat" onclick="reportTypeFilter('xuat')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;">Xuất</button>
+      <button id="report-date-toggle" onclick="toggleReportDatePanel(event)"
+        style="flex:0 0 auto;width:92px;padding:9px 9px;border-radius:20px;border:1.5px solid #bdbdbd;background:#f5f5f5;color:#555;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:2px;overflow:hidden;">
+        <span style="flex-shrink:0;font-size:12px;">&#128197;</span>
+        <span id="report-date-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52px;">Tất cả</span>
+        <span id="report-date-arrow" style="flex-shrink:0;font-size:9px;">&#9660;</span>
+      </button>
+      <div id="report-date-panel" onclick="event.stopPropagation()"
+        style="display:none;position:absolute;top:calc(100% + 6px);right:0;width:min(420px,calc(100vw - 32px));background:#fff;border:1.5px solid #e0e0e0;border-radius:14px;padding:14px 12px;z-index:200;box-shadow:0 6px 24px rgba(0,0,0,0.13);">
+        <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;">CHỌN NHANH</div>
+        <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:12px;">
+          <button id="report-t-all" onclick="reportTimeFilter('all')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #1976d2;background:#1976d2;color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Tất cả</button>
+          <button id="report-t-today" onclick="reportTimeFilter('today')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Hôm nay</button>
+          <button id="report-t-week" onclick="reportTimeFilter('week')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Tuần này</button>
+          <button id="report-t-month" onclick="reportTimeFilter('month')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Tháng này</button>
+          <button id="report-t-year" onclick="reportTimeFilter('year')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Năm này</button>
+        </div>
+        <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;">KHOẢNG NGÀY TÙY CHỌN</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="date" id="report-from-date" style="flex:1;padding:7px 8px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;outline:none;min-width:0;box-sizing:border-box;">
+          <span style="color:#aaa;flex-shrink:0;">&#8594;</span>
+          <input type="date" id="report-to-date" style="flex:1;padding:7px 8px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;outline:none;min-width:0;box-sizing:border-box;">
+          <button onclick="reportApplyDateRange()" style="padding:7px 12px;background:#4CAF50;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;">&#10003;</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px;">
+      <input type="text" id="report-filter-supplier" placeholder="Lọc NCC..." oninput="renderReport()" style="padding:11px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;outline:none;">
+      <input type="text" id="report-filter-customer" placeholder="Lọc khách hàng..." oninput="renderReport()" style="padding:11px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;outline:none;">
+      <input type="text" id="report-filter-product" placeholder="Lọc sản phẩm..." oninput="renderReport()" style="padding:11px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;outline:none;">
+      <button onclick="clearReportFilters()" style="padding:11px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fff;color:#666;font-weight:600;cursor:pointer;">Xóa lọc</button>
+    </div>
+
+    <div id="report-summary" class="report-summary-grid" style="margin-bottom:10px;"></div>
+    <div id="report-list"></div>
+  </div>
+</div>
+
 <!-- DESKTOP SUCCESS OVERLAY -->
 <div id="dt-success-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:20px;padding:36px 32px 28px;max-width:420px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,0.18);text-align:center;">
@@ -621,10 +716,10 @@ const CONFIG = {
       <div style="font-size:11px;color:#aaa;margin-top:2px;">Quản lý xuất nhập kho</div>
     </div>
     <div style="display:flex;align-items:center;gap:13px;">
+      <button onclick="showReport()" style="font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#fff8e1;color:#8d6e63;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 16V9"/><path d="M12 16V5"/><path d="M17 16v-3"/></svg><span>Báo cáo</span></span></button>
       <button id="dt-btn-manage" onclick="showManageProducts()"
         style="display:none;font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#e8f5e9;color:#065a0a;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7l8 4 8-4-8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg><span>Quản lý SP</span></span></button>
       <button onclick="showHistory()" style="font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#e3f2fd;color:#0d47a1;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M9 4.5h6"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg><span>Lịch sử</span></span></button>
-      <span id="dt-role-badge" class="badge"></span>
       <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
     </div>
   </div>
@@ -1152,7 +1247,7 @@ function showScreen(id) {
   const isDesktop = window.innerWidth >= 768;
 
   if (isDesktop && currentRole) {
-    if (id === 'screen-products' || id === 'screen-product-form' || id === 'screen-history') {
+    if (id === 'screen-products' || id === 'screen-product-form' || id === 'screen-history' || id === 'screen-report') {
       document.getElementById('desktop-layout').style.display = 'none';
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
@@ -1313,13 +1408,15 @@ function togglePassVis() {
     document.getElementById('role-badge-cart').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
     document.getElementById('btn-manage-products').style.display = cached.role === 'owner' ? 'flex' : 'none';
     const _lastScreen = sessionStorage.getItem('lastScreen') || 'screen-main';
-    const _safeScreens = ['screen-main', 'screen-products', 'screen-product-form', 'screen-cart', 'screen-history'];
+    const _safeScreens = ['screen-main', 'screen-products', 'screen-product-form', 'screen-cart', 'screen-history', 'screen-report'];
     const _targetScreen = _safeScreens.includes(_lastScreen) ? _lastScreen : 'screen-main';
     if (window.innerWidth >= 768) { dtInitLayout(); dtFilterProducts(); }
     if (_targetScreen === 'screen-product-form') {
       openProductForm('add', null, true); // render form ngay, không chờ server
     } else if (_targetScreen === 'screen-history') {
       showHistory();
+    } else if (_targetScreen === 'screen-report') {
+      showReport();
     } else {
       showScreen(_targetScreen);
       if (_targetScreen === 'screen-cart') { setCartMode(cartMode); renderCart(); }
@@ -2435,8 +2532,11 @@ function dtInitLayout() {
   const isOwner = currentRole === 'owner';
   const badge = isOwner ? 'Admin' : 'Staff';
   const cls = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
-  document.getElementById('dt-role-badge').textContent = badge;
-  document.getElementById('dt-role-badge').className = cls;
+  const dtRoleBadge = document.getElementById('dt-role-badge');
+  if (dtRoleBadge) {
+    dtRoleBadge.textContent = badge;
+    dtRoleBadge.className = cls;
+  }
   document.getElementById('dt-form-badge').textContent = badge;
   document.getElementById('dt-form-badge').className = cls;
   // hide Nhập button for staff
@@ -2757,20 +2857,30 @@ let _historyTimeFilter = 'all';
 let _histDateFrom = null;
 let _histDateTo   = null;
 let _historyGroups = [];
+let _reportTypeFilter = 'all';
+let _reportTimeFilter = 'all';
+let _reportDateFrom = null;
+let _reportDateTo   = null;
+
+async function _fetchHistoryData(force = false) {
+  if (!force && _historyData.length) return _historyData;
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), 10000);
+  const res = await fetch(SCRIPT_URL + '?action=history&token=inox2026xK9m', { signal: controller.signal, cache: 'no-store' });
+  clearTimeout(tid);
+  const data = await res.json();
+  const xuat = (data.xuat || []).map(r => _mapHistRow(r, 'Xuất'));
+  const nhap = (data.nhap || []).map(r => _mapHistRow(r, 'Nhập'));
+  _historyData = [...xuat, ...nhap].sort((a, b) => b.thoigian_raw - a.thoigian_raw);
+  return _historyData;
+}
 
 async function showHistory() {
   showScreen('screen-history');
   const list = document.getElementById('history-list');
   list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
   try {
-    const controller = new AbortController();
-    const tid = setTimeout(() => controller.abort(), 10000);
-    const res = await fetch(SCRIPT_URL + '?action=history&token=inox2026xK9m', { signal: controller.signal, cache: 'no-store' });
-    clearTimeout(tid);
-    const data = await res.json();
-    const xuat = (data.xuat || []).map(r => _mapHistRow(r, 'Xuất'));
-    const nhap = (data.nhap || []).map(r => _mapHistRow(r, 'Nhập'));
-    _historyData = [...xuat, ...nhap].sort((a, b) => b.thoigian_raw - a.thoigian_raw);
+    await _fetchHistoryData(true);
     _historyFilter = 'all';
     _historyTimeFilter = 'all';
     _histDateFrom = null; _histDateTo = null;
@@ -2886,8 +2996,288 @@ function histApplyDateRange() {
   _renderHistory();
 }
 
+function _getTimeRange(filter, fromDate, toDate) {
+  if (filter === 'all') return {};
+  const now = new Date();
+  let startTs, endTs;
+  if (filter === 'today') {
+    startTs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    endTs   = startTs + 86400000;
+  } else if (filter === 'week') {
+    const dow = now.getDay() === 0 ? 6 : now.getDay() - 1;
+    startTs = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow).getTime();
+    endTs   = startTs + 7 * 86400000;
+  } else if (filter === 'month') {
+    startTs = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    endTs   = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
+  } else if (filter === 'year') {
+    startTs = new Date(now.getFullYear(), 0, 1).getTime();
+    endTs   = new Date(now.getFullYear() + 1, 0, 1).getTime();
+  } else if (filter === 'custom') {
+    if (fromDate) startTs = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate()).getTime();
+    if (toDate)   endTs   = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate() + 1).getTime();
+  }
+  return { startTs, endTs };
+}
+
+function showReport() {
+  showScreen('screen-report');
+  const list = document.getElementById('report-list');
+  const summary = document.getElementById('report-summary');
+  if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+  if (summary) summary.innerHTML = '';
+  _reportTypeFilter = 'all';
+  _reportTimeFilter = 'all';
+  _reportDateFrom = null;
+  _reportDateTo = null;
+  ['report-filter-supplier', 'report-filter-customer', 'report-filter-product', 'report-from-date', 'report-to-date'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  _syncReportTypeButtons();
+  _syncReportTimeButtons();
+  _updateReportDateLabel();
+  _fetchHistoryData(true).then(() => renderReport()).catch(() => {
+    if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được báo cáo.</div>';
+  });
+}
+
+function reportTypeFilter(type) {
+  _reportTypeFilter = type;
+  _syncReportTypeButtons();
+  renderReport();
+}
+
+function _syncReportTypeButtons() {
+  ['all', 'nhap', 'xuat'].forEach(k => {
+    const btn = document.getElementById('report-type-' + k);
+    if (!btn) return;
+    const active = _reportTypeFilter === k;
+    btn.style.background = active ? '#4CAF50' : '#f5f5f5';
+    btn.style.color = active ? '#fff' : '#888';
+    btn.style.borderColor = active ? '#4CAF50' : '#e0e0e0';
+  });
+}
+
+function toggleReportDatePanel(e) {
+  if (e) e.stopPropagation();
+  const panel = document.getElementById('report-date-panel');
+  const arrow = document.getElementById('report-date-arrow');
+  if (!panel) return;
+  const open = panel.style.display === 'none' || panel.style.display === '';
+  panel.style.display = open ? 'block' : 'none';
+  if (arrow) arrow.textContent = open ? '\u25B4' : '\u25BE';
+}
+
+function _closeReportDatePanel() {
+  const panel = document.getElementById('report-date-panel');
+  const arrow = document.getElementById('report-date-arrow');
+  if (panel) panel.style.display = 'none';
+  if (arrow) arrow.textContent = '\u25BE';
+}
+
+function _updateReportDateLabel() {
+  const label = document.getElementById('report-date-label');
+  const toggle = document.getElementById('report-date-toggle');
+  const labels = { all:'Tất cả thời gian', today:'Hôm nay', week:'Tuần này', month:'Tháng này', year:'Năm này' };
+  let text;
+  if (_reportTimeFilter === 'custom') {
+    const fd = d => d ? d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear() : '?';
+    text = fd(_reportDateFrom) + ' → ' + fd(_reportDateTo);
+  } else {
+    text = labels[_reportTimeFilter] || labels.all;
+  }
+  if (label) label.textContent = text;
+  const active = _reportTimeFilter !== 'all';
+  if (toggle) {
+    toggle.style.background = active ? '#1976d2' : '#e3f2fd';
+    toggle.style.color = active ? '#fff' : '#1976d2';
+  }
+}
+
+function _syncReportTimeButtons() {
+  ['all', 'today', 'week', 'month', 'year'].forEach(k => {
+    const btn = document.getElementById('report-t-' + k);
+    if (!btn) return;
+    const active = _reportTimeFilter === k;
+    btn.style.background = active ? '#1976d2' : '#f5f5f5';
+    btn.style.color = active ? '#fff' : '#888';
+    btn.style.borderColor = active ? '#1976d2' : '#e0e0e0';
+  });
+}
+
+function reportTimeFilter(filter) {
+  _reportTimeFilter = filter;
+  _reportDateFrom = null;
+  _reportDateTo = null;
+  const fromEl = document.getElementById('report-from-date');
+  const toEl = document.getElementById('report-to-date');
+  if (fromEl) fromEl.value = '';
+  if (toEl) toEl.value = '';
+  _syncReportTimeButtons();
+  _updateReportDateLabel();
+  _closeReportDatePanel();
+  renderReport();
+}
+
+function reportApplyDateRange() {
+  const fromVal = document.getElementById('report-from-date')?.value;
+  const toVal = document.getElementById('report-to-date')?.value;
+  if (!fromVal && !toVal) { reportTimeFilter('all'); return; }
+  _reportDateFrom = fromVal ? new Date(fromVal) : null;
+  _reportDateTo = toVal ? new Date(toVal) : null;
+  _reportTimeFilter = 'custom';
+  _syncReportTimeButtons();
+  ['all', 'today', 'week', 'month', 'year'].forEach(k => {
+    const btn = document.getElementById('report-t-' + k);
+    if (!btn) return;
+    btn.style.background = '#f5f5f5';
+    btn.style.color = '#888';
+    btn.style.borderColor = '#e0e0e0';
+  });
+  _updateReportDateLabel();
+  _closeReportDatePanel();
+  renderReport();
+}
+
+function clearReportFilters() {
+  ['report-filter-supplier', 'report-filter-customer', 'report-filter-product', 'report-from-date', 'report-to-date'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  _reportTypeFilter = 'all';
+  _reportTimeFilter = 'all';
+  _reportDateFrom = null;
+  _reportDateTo = null;
+  _syncReportTypeButtons();
+  _syncReportTimeButtons();
+  _updateReportDateLabel();
+  renderReport();
+}
+
+function _reportFilterRows() {
+  let rows = [..._historyData];
+  if (_reportTypeFilter === 'nhap') rows = rows.filter(r => r.loai === 'Nhập');
+  else if (_reportTypeFilter === 'xuat') rows = rows.filter(r => r.loai === 'Xuất');
+
+  const { startTs, endTs } = _getTimeRange(_reportTimeFilter, _reportDateFrom, _reportDateTo);
+  if (startTs !== undefined || endTs !== undefined) {
+    rows = rows.filter(r => (startTs === undefined || r.thoigian_raw >= startTs) && (endTs === undefined || r.thoigian_raw < endTs));
+  }
+
+  const supplierQ = removeDiacritics(document.getElementById('report-filter-supplier')?.value || '').trim();
+  const customerQ = removeDiacritics(document.getElementById('report-filter-customer')?.value || '').trim();
+  const productQ  = removeDiacritics(document.getElementById('report-filter-product')?.value || '').trim();
+  if (supplierQ) rows = rows.filter(r => removeDiacritics(r.ncc).includes(supplierQ));
+  if (customerQ) rows = rows.filter(r => removeDiacritics(r.tenkhach).includes(customerQ));
+  if (productQ) rows = rows.filter(r => {
+    const productText = [r.ma, r.hanghoa, r.kichthuoc].filter(Boolean).join(' ');
+    return removeDiacritics(productText).includes(productQ);
+  });
+  return rows;
+}
+
+function _groupReportEntries(rows, keyBuilder, nameBuilder, rowFilter = null) {
+  const map = new Map();
+  rows.forEach(r => {
+    if (rowFilter && !rowFilter(r)) return;
+    const key = keyBuilder(r);
+    if (!key) return;
+    if (!map.has(key)) {
+      map.set(key, { key, name: nameBuilder(r), qty: 0, amount: 0, count: 0, extra: '' });
+    }
+    const item = map.get(key);
+    item.qty += Number(r.soluong) || 0;
+    item.amount += (Number(r.soluong) || 0) * (Number(r.gia) || 0);
+    item.count += 1;
+  });
+  return [...map.values()].sort((a, b) => b.amount - a.amount || b.qty - a.qty || a.name.localeCompare(b.name, 'vi'));
+}
+
+function _renderReportSection(title, color, items, emptyText) {
+  if (!items.length) {
+    return `<div class="report-detail-section"><div style="font-size:13px;font-weight:700;color:${color};margin-bottom:8px;">${title}</div><div style="font-size:13px;color:#999;padding:6px 0;">${emptyText}</div></div>`;
+  }
+  return `<div class="report-detail-section">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+      <div style="font-size:13px;font-weight:700;color:${color};">${title}</div>
+      <div style="font-size:11px;color:#999;">${items.length} mục</div>
+    </div>
+    <div class="report-detail-list">
+      ${items.map(item => `<div class="report-detail-item">
+        <div style="min-width:0;">
+          <div class="report-detail-name">${item.name}</div>
+          <div class="report-detail-meta">${item.extra || (item.count + ' dòng')}</div>
+        </div>
+        <div class="report-detail-value">
+          <div class="report-detail-qty">${fmt(item.qty)} SL</div>
+          <div class="report-detail-amount">${fmt(item.amount)} đ</div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderReport() {
+  const list = document.getElementById('report-list');
+  const summary = document.getElementById('report-summary');
+  if (!list || !summary) return;
+
+  const rows = _reportFilterRows();
+  const nhapRows = rows.filter(r => r.loai === 'Nhập');
+  const xuatRows = rows.filter(r => r.loai === 'Xuất');
+  const totalNhapQty = nhapRows.reduce((s, r) => s + (Number(r.soluong) || 0), 0);
+  const totalXuatQty = xuatRows.reduce((s, r) => s + (Number(r.soluong) || 0), 0);
+  const totalNhapAmount = nhapRows.reduce((s, r) => s + (Number(r.soluong) || 0) * (Number(r.gia) || 0), 0);
+  const totalXuatAmount = xuatRows.reduce((s, r) => s + (Number(r.soluong) || 0) * (Number(r.gia) || 0), 0);
+
+  summary.innerHTML = `
+    <div class="report-summary-card" style="background:#e8f5e9;">
+      <div style="font-size:11px;color:#388e3c;font-weight:700;margin-bottom:4px;">Tổng SL Nhập</div>
+      <div style="font-size:22px;font-weight:700;color:#2e7d32;">${fmt(totalNhapQty)}</div>
+      <div style="font-size:12px;color:#388e3c;margin-top:2px;">${nhapRows.length} dòng</div>
+    </div>
+    <div class="report-summary-card" style="background:#ffebee;">
+      <div style="font-size:11px;color:#c62828;font-weight:700;margin-bottom:4px;">Tổng SL Xuất</div>
+      <div style="font-size:22px;font-weight:700;color:#c62828;">${fmt(totalXuatQty)}</div>
+      <div style="font-size:12px;color:#e53935;margin-top:2px;">${xuatRows.length} dòng</div>
+    </div>
+    <div class="report-summary-card" style="background:#e3f2fd;">
+      <div style="font-size:11px;color:#1565c0;font-weight:700;margin-bottom:4px;">Tổng Tiền Nhập</div>
+      <div style="font-size:22px;font-weight:700;color:#0d47a1;">${fmt(totalNhapAmount)} đ</div>
+      <div style="font-size:12px;color:#1976d2;margin-top:2px;">Theo bộ lọc hiện tại</div>
+    </div>
+    <div class="report-summary-card" style="background:#fff3e0;">
+      <div style="font-size:11px;color:#ef6c00;font-weight:700;margin-bottom:4px;">Tổng Tiền Xuất</div>
+      <div style="font-size:22px;font-weight:700;color:#e65100;">${fmt(totalXuatAmount)} đ</div>
+      <div style="font-size:12px;color:#fb8c00;margin-top:2px;">Theo bộ lọc hiện tại</div>
+    </div>
+  `;
+
+  if (!rows.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:#999;background:#fff;border:1px solid #e8e8e8;border-radius:14px;">Không có dữ liệu phù hợp với bộ lọc.</div>';
+    return;
+  }
+
+  const suppliers = _groupReportEntries(rows, r => r.ncc.trim(), r => r.ncc.trim(), r => r.loai === 'Nhập' && r.ncc.trim()).map(item => ({ ...item, extra: item.count + ' dòng nhập' }));
+  const customers = _groupReportEntries(rows, r => r.tenkhach.trim(), r => r.tenkhach.trim(), r => r.loai === 'Xuất' && r.tenkhach.trim()).map(item => ({ ...item, extra: item.count + ' dòng xuất' }));
+  const products = _groupReportEntries(rows, r => [r.ma, r.hanghoa, r.kichthuoc].join('||'), r => r.hanghoa || r.ma || 'Không tên').map(item => {
+    const sample = rows.find(r => [r.ma, r.hanghoa, r.kichthuoc].join('||') === item.key) || {};
+    return { ...item, extra: [sample.ma, sample.kichthuoc].filter(Boolean).join(' · ') || (item.count + ' dòng') };
+  });
+
+  list.innerHTML = [
+    _renderReportSection('Nhà cung cấp', '#1976d2', suppliers, 'Không có dữ liệu nhà cung cấp trong bộ lọc này.'),
+    _renderReportSection('Khách hàng', '#8e24aa', customers, 'Không có dữ liệu khách hàng trong bộ lọc này.'),
+    _renderReportSection('Sản phẩm', '#2e7d32', products, 'Không có dữ liệu sản phẩm trong bộ lọc này.')
+  ].join('');
+}
+
 // Đóng panel khi click ra ngoài
-document.addEventListener('click', _closeHistDatePanel);
+document.addEventListener('click', () => {
+  _closeHistDatePanel();
+  _closeReportDatePanel();
+});
 
 function _renderHistory() {
   const list = document.getElementById('history-list');
