@@ -653,7 +653,7 @@ const CONFIG = {
       <button id="report-type-nhap" onclick="reportTypeFilter('nhap')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;">Nhập</button>
       <button id="report-type-xuat" onclick="reportTypeFilter('xuat')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;">Xuất</button>
       <button id="report-date-toggle" onclick="toggleReportDatePanel(event)"
-        style="flex:0 0 auto;width:92px;padding:9px 9px;border-radius:20px;border:1.5px solid #bdbdbd;background:#f5f5f5;color:#555;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:2px;overflow:hidden;">
+        style="flex:0 0 auto;width:65px;padding:9px 9px;border-radius:20px;border:1.5px solid #bdbdbd;background:#f5f5f5;color:#555;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:2px;overflow:hidden;">
         <span style="flex-shrink:0;font-size:12px;">&#128197;</span>
         <span id="report-date-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52px;">Tất cả</span>
         <span id="report-date-arrow" style="flex-shrink:0;font-size:9px;">&#9660;</span>
@@ -2982,7 +2982,7 @@ function _closeHistDatePanel() {
 function _updateHistDateLabel() {
   const label  = document.getElementById('hist-date-label');
   const toggle = document.getElementById('hist-date-toggle');
-  const labels = { all:'T\u1EA5t c\u1EA3 th\u1EDDi gian', today:'H\u00F4m nay', week:'Tu\u1EA7n n\u00E0y', month:'Th\u00E1ng n\u00E0y' };
+  const labels = { all:'T\u1EA5t c\u1EA3', today:'H\u00F4m nay', week:'Tu\u1EA7n n\u00E0y', month:'Th\u00E1ng n\u00E0y' };
   let text;
   if (_historyTimeFilter === 'custom') {
     const fd = d => d ? d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear() : '?';
@@ -3135,7 +3135,7 @@ function _closeReportDatePanel() {
 function _updateReportDateLabel() {
   const label = document.getElementById('report-date-label');
   const toggle = document.getElementById('report-date-toggle');
-  const labels = { all:'Tất cả thời gian', today:'Hôm nay', week:'Tuần này', month:'Tháng này', year:'Năm này' };
+  const labels = { all:'Tất cả', today:'Hôm nay', week:'Tuần này', month:'Tháng này', year:'Năm này' };
   let text;
   if (_reportTimeFilter === 'custom') {
     const fd = d => d ? d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear() : '?';
