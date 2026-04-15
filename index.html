@@ -165,7 +165,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .report-detail-value { text-align: right; flex-shrink: 0; }
 .report-detail-qty { font-size: 12px; color: #666; font-weight: 600; }
 .report-detail-amount { font-size: 13px; color: #1a1a1a; font-weight: 700; margin-top: 3px; }
-.screen-freeze-top { flex-shrink: 0; z-index: 5; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.screen-freeze-top { flex-shrink: 0; z-index: 5; }
 .refresh-spin svg { animation: refresh-spin 0.6s linear infinite; }
 
 @keyframes refresh-spin {
@@ -448,13 +448,13 @@ const CONFIG = {
 <!-- MANAGE PRODUCTS -->
 <div id="screen-products" class="screen">
   <div class="header">
-    <div style="max-width:800px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;position:relative;">
+    <div style="max-width:1000px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;position:relative;">
       <button class="btn-back" onclick="goMain()" style="flex-shrink:0;position:relative;z-index:1;">← Quay lại</button>
       <div class="header-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;">Quản lý Sản phẩm</div>
       <button onclick="goHome()" title="Trang chủ" style="background:none;border:none;cursor:pointer;padding:4px;color:#4CAF50;display:flex;align-items:center;flex-shrink:0;position:relative;z-index:1;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></button>
     </div>
   </div>
-  <div style="max-width:800px;margin:0 auto;width:100%;">
+  <div style="max-width:1000px;margin:0 auto;width:100%;">
     <button class="btn-scan" onclick="openProductForm('add', null)" style="margin-bottom:8px;">
       ➕ Thêm sản phẩm mới
     </button>
@@ -577,13 +577,13 @@ const CONFIG = {
 <div id="screen-history" class="screen">
   <div class="screen-freeze-top">
     <div class="header" style="margin-bottom:0;padding-bottom:0;">
-      <div style="max-width:800px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;position:relative;">
+      <div style="max-width:1000px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;position:relative;">
         <button class="btn-back" onclick="goMain()" style="flex-shrink:0;position:relative;z-index:1;">← Quay lại</button>
         <div class="header-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;">Lịch sử</div>
         <div style="width:70px;flex-shrink:0;"></div>
       </div>
     </div>
-    <div style="max-width:800px;margin:0 auto;width:100%;padding:10px 16px 10px;">
+    <div style="max-width:1000px;margin:0 auto;width:100%;padding:10px 16px 10px;">
       <div style="position:relative;display:flex;align-items:center;gap:6px;margin-bottom:4px;" id="hist-date-wrap">
         <button id="hist-btn-all"  onclick="histFilter('all')"  style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #4CAF50;background:#4CAF50;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">Tất cả</button>
         <button id="hist-btn-nhap" onclick="histFilter('nhap')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;">Nhập</button>
@@ -618,11 +618,11 @@ const CONFIG = {
       </div>
     </div>
   </div>
-  <div id="history-list" style="max-width:800px;margin:0 auto;width:100%;padding:8px 16px 8px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;"></div>
+  <div id="history-list" style="max-width:1000px;margin:0 auto;width:100%;padding:8px 16px 8px;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;"></div>
 
   <!-- SUMMARY BAR -->
   <div style="flex-shrink:0;background:#fff;border-top:1.5px solid #e8e8e8;">
-    <div style="max-width:800px;margin:0 auto;padding:8px 16px;display:flex;gap:8px;">
+    <div style="max-width:1000px;margin:0 auto;padding:8px 16px;display:flex;gap:8px;">
       <div style="flex:1;background:#e8f5e9;border-radius:10px;padding:8px 10px;">
         <div style="font-size:11px;color:#388e3c;font-weight:700;margin-bottom:3px;">Nhập</div>
         <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
