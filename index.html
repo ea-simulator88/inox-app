@@ -165,6 +165,12 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .report-detail-value { text-align: right; flex-shrink: 0; }
 .report-detail-qty { font-size: 12px; color: #666; font-weight: 600; }
 .report-detail-amount { font-size: 13px; color: #1a1a1a; font-weight: 700; margin-top: 3px; }
+.refresh-spin svg { animation: refresh-spin 0.6s linear infinite; }
+
+@keyframes refresh-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 
 @media (max-width: 767px) {
   .history-card-row { align-items: flex-start; }
@@ -338,7 +344,7 @@ const CONFIG = {
         style="background:#e8f5e9;color:#2e7d32;border:1px solid #4CAF50;border-radius:8px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;">Tất cả</button>
       <button id="mob-tab-low" onclick="setMobileFilter('low')"
         style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;"><span style="color:#f44336;font-weight:700;">Tồn </span><span id="mob-low-count" style="color:#f44336;font-weight:700;">0</span></button>
-      <button onclick="doRefreshProducts()"
+      <button id="main-refresh-btn" onclick="doRefreshProducts()"
         style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 8px;color:#4CAF50;cursor:pointer;display:flex;align-items:center;justify-content:center;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
       </button>
@@ -467,7 +473,7 @@ const CONFIG = {
 
         <button id="manage-tab-low" onclick="setManageFilter('low')"
           style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;"><span style="color:#f44336;font-weight:700;">Tồn </span><span id="manage-low-count" style="color:#f44336;font-weight:700;">0</span></button>
-        <button onclick="doRefreshProducts()"
+        <button id="manage-refresh-btn" onclick="doRefreshProducts()"
           style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 8px;color:#4CAF50;cursor:pointer;display:flex;align-items:center;justify-content:center;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
         </button>
@@ -586,6 +592,10 @@ const CONFIG = {
         <span id="hist-date-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44px;">Tất cả</span>
         <span id="hist-date-arrow" style="flex-shrink:0;font-size:9px;">&#9660;</span>
       </button>
+      <button id="hist-refresh-btn" onclick="refreshHistoryData()"
+        style="flex:0 0 auto;background:none;border:1px solid #e0e0e0;border-radius:10px;padding:8px 9px;color:#4CAF50;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+      </button>
       <div id="hist-date-panel" onclick="event.stopPropagation()"
         style="display:none;position:absolute;top:calc(100% + 6px);right:0;width:min(340px,calc(100vw - 32px));background:#fff;border:1.5px solid #e0e0e0;border-radius:14px;padding:14px 12px;z-index:200;box-shadow:0 6px 24px rgba(0,0,0,0.13);">
         <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;">CHỌN NHANH</div>
@@ -647,6 +657,10 @@ const CONFIG = {
         <span style="flex-shrink:0;font-size:12px;">&#128197;</span>
         <span id="report-date-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52px;">Tất cả</span>
         <span id="report-date-arrow" style="flex-shrink:0;font-size:9px;">&#9660;</span>
+      </button>
+      <button id="report-refresh-btn" onclick="refreshReportData()"
+        style="flex:0 0 auto;background:none;border:1px solid #e0e0e0;border-radius:10px;padding:8px 9px;color:#4CAF50;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
       </button>
       <div id="report-date-panel" onclick="event.stopPropagation()"
         style="display:none;position:absolute;top:calc(100% + 6px);right:0;width:min(420px,calc(100vw - 32px));background:#fff;border:1.5px solid #e0e0e0;border-radius:14px;padding:14px 12px;z-index:200;box-shadow:0 6px 24px rgba(0,0,0,0.13);">
@@ -1218,18 +1232,18 @@ function doRefreshProducts() {
   updateProductStats();
 
   // Fetch server nền — khi xong tự cập nhật lại
-  const btns = document.querySelectorAll('[onclick="doRefreshProducts()"], #dt-btn-refresh');
-  btns.forEach(b => { b.style.opacity = '0.5'; b.style.pointerEvents = 'none'; });
+  const btnIds = ['main-refresh-btn', 'manage-refresh-btn', 'dt-btn-refresh'];
+  btnIds.forEach(id => _setRefreshLoading(id, true));
   fetchProductsFromServer().then(() => {
     if (window.innerWidth >= 768) dtFilterProducts();
     filterProductList();
     filterManageProducts();
     updateProductStats();
-    showToast('✅ Đã cập nhật!');
+    showToast('Đã làm mới sản phẩm');
   }).catch(() => {
     showToast('⚠️ Không thể kết nối server!');
   }).finally(() => {
-    btns.forEach(b => { b.style.opacity = ''; b.style.pointerEvents = ''; });
+    btnIds.forEach(id => _setRefreshLoading(id, false));
   });
 }
 
@@ -2890,6 +2904,30 @@ async function showHistory() {
   }
 }
 
+function _setRefreshLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.classList.toggle('refresh-spin', loading);
+  btn.style.pointerEvents = loading ? 'none' : '';
+  btn.style.opacity = loading ? '0.7' : '';
+}
+
+async function refreshHistoryData() {
+  const list = document.getElementById('history-list');
+  if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+  _setRefreshLoading('hist-refresh-btn', true);
+  try {
+    await _fetchHistoryData(true);
+    _renderHistory();
+    showToast('Đã làm mới lịch sử');
+  } catch (e) {
+    if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được lịch sử.</div>';
+    showToast('Không thể làm mới lịch sử');
+  } finally {
+    _setRefreshLoading('hist-refresh-btn', false);
+  }
+}
+
 function _mapHistRow(r, loai) {
   const isXuat = loai === 'Xuất';
   const raw = r[1];
@@ -3040,6 +3078,24 @@ function showReport() {
   _fetchHistoryData(true).then(() => renderReport()).catch(() => {
     if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được báo cáo.</div>';
   });
+}
+
+async function refreshReportData() {
+  const list = document.getElementById('report-list');
+  const summary = document.getElementById('report-summary');
+  if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+  if (summary) summary.innerHTML = '';
+  _setRefreshLoading('report-refresh-btn', true);
+  try {
+    await _fetchHistoryData(true);
+    renderReport();
+    showToast('Đã làm mới báo cáo');
+  } catch (e) {
+    if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được báo cáo.</div>';
+    showToast('Không thể làm mới báo cáo');
+  } finally {
+    _setRefreshLoading('report-refresh-btn', false);
+  }
 }
 
 function reportTypeFilter(type) {
