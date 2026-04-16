@@ -147,10 +147,10 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .history-card-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .history-card-main { flex: 1; min-width: 0; }
 .history-card-time { font-size: 12px; color: #aaa; margin-bottom: 4px; }
-.history-card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.history-card-meta { display: flex; flex-direction: column; gap: 3px; }
 .history-card-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 .history-card-tools { display: flex; align-items: center; gap: 4px; }
-.history-invoice-btn { flex-shrink: 0; font-size: 12px; padding: 4px 10px; border-radius: 8px; border: 1px solid #1976d2; background: #e3f2fd; color: #1976d2; cursor: pointer; }
+.history-invoice-btn { flex-shrink: 0; font-size: 12px; padding: 8px 9px; border-radius: 8px; border: 1px solid #1976d2; background: #e3f2fd; color: #1976d2; cursor: pointer; }
 .history-action-btn { width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
 .history-action-btn.edit { border: 1px solid #ffb74d; background: #fff8e1; color: #e65100; }
 .history-action-btn.delete { border: 1px solid #ef9a9a; background: #ffebee; color: #c62828; }
@@ -177,7 +177,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   .history-card-row { align-items: flex-start; }
   .history-card-actions { flex-direction: column; align-items: flex-end; gap: 6px; }
   .history-card-tools { justify-content: flex-end; }
-  .history-invoice-btn { min-width: 40px; padding: 7px 9px; text-align: center; }
+  .history-invoice-btn { min-width: 40px; padding: 6px 9px; text-align: center; }
   #report-date-panel {
     width: min(320px, calc(100vw - 32px)) !important;
     padding: 10px !important;
@@ -233,12 +233,12 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 /* Manage stats bar - responsive */
 .manage-stats-bar { display:flex; flex-wrap:wrap; align-items:center; padding:7px 10px 8px; margin-bottom:8px; background:#fff; border:1px solid #e0e0e0; border-radius:10px; }
 .manage-stats-info { flex:1; font-size:12px; color:#666; }
-.manage-stats-filters { width:100%; display:flex; gap:5px; align-items:center; margin-top:6px; order:10; }
-.manage-filter-btn { flex:1; border-radius:8px; padding:4px 2px; font-size:11px; cursor:pointer; text-align:center; }
+.manage-stats-filters { width:100%; display:flex; gap:5px; align-items:stretch; margin-top:6px; order:10; }
+.manage-filter-btn { flex:1; border-radius:8px; padding:4px 2px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; white-space:nowrap; }
 @media (min-width:768px) {
   .manage-stats-bar { flex-wrap:nowrap; padding:6px 10px; }
   .manage-stats-filters { width:auto; flex:none; margin-top:0; order:0; gap:5px; }
-  .manage-filter-btn { flex:none; padding:3px 9px; }
+  .manage-filter-btn { flex:1; padding:3px 9px; }
   #manage-refresh-btn { margin-left:5px; order:1; }
 }
 </style>
@@ -355,7 +355,7 @@ const CONFIG = {
       <button id="mob-tab-all" onclick="setMobileFilter('all')"
         style="background:#e8f5e9;color:#2e7d32;border:1px solid #4CAF50;border-radius:8px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;">Tất cả</button>
       <button id="mob-tab-low" onclick="setMobileFilter('low')"
-        style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;"><span style="color:#f44336;font-weight:700;">Tồn </span><span id="mob-low-count" style="color:#f44336;font-weight:700;">0</span></button>
+        style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;"><span style="color:#f44336;font-weight:700;margin-right:4px;">Tồn</span><span id="mob-low-count" style="color:#f44336;font-weight:700;">0</span></button>
       <button id="main-refresh-btn" onclick="doRefreshProducts()"
         style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 8px;color:#4CAF50;cursor:pointer;display:flex;align-items:center;justify-content:center;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
@@ -481,13 +481,13 @@ const CONFIG = {
       </button>
       <div class="manage-stats-filters">
         <button id="manage-tab-all" onclick="setManageFilter('all')"
-          class="manage-filter-btn" style="background:#e8f5e9;color:#2e7d32;border:1px solid #4CAF50;font-weight:700;">Tất cả</button>
+          class="manage-filter-btn" style="background:#e8f5e9;color:#2e7d32;border:1px solid #4CAF50;">Tất cả</button>
         <button id="manage-tab-visible" onclick="setManageFilter('visible')"
           class="manage-filter-btn" style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;"><span class="mini-icon-wrap"><svg class="mini-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.6"/></svg><span id="manage-visible-count">0</span></span></button>
         <button id="manage-tab-hidden" onclick="setManageFilter('hidden')"
           class="manage-filter-btn" style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;"><span class="mini-icon-wrap"><svg class="mini-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.6"/><path d="M4 4l16 16"/></svg><span id="manage-hidden-count2">0</span></span></button>
         <button id="manage-tab-low" onclick="setManageFilter('low')"
-          class="manage-filter-btn" style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;"><span style="color:#f44336;font-weight:700;">Tồn </span><span id="manage-low-count" style="color:#f44336;font-weight:700;">0</span></button>
+          class="manage-filter-btn" style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;"><span style="color:#f44336;font-weight:700;margin-right:4px;">Tồn</span><span id="manage-low-count" style="color:#f44336;font-weight:700;">0</span></button>
       </div>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;">
@@ -771,7 +771,7 @@ const CONFIG = {
             <button id="dt-tab-all" onclick="setDtFilter('all')"
               style="background:#e8f5e9;color:#2e7d32;border:1px solid #4CAF50;border-radius:8px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;">Tất cả</button>
             <button id="dt-tab-low" onclick="setDtFilter('low')"
-              style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;"><span style="color:#f44336;font-weight:700;">Tồn </span><span id="dt-low-count" style="color:#f44336;font-weight:700;">0</span></button>
+              style="background:#f5f5f5;color:#888;border:1px solid #e0e0e0;border-radius:8px;padding:3px 9px;font-size:11px;cursor:pointer;"><span style="color:#f44336;font-weight:700;margin-right:4px;">Tồn</span><span id="dt-low-count" style="color:#f44336;font-weight:700;">0</span></button>
             <button id="dt-btn-refresh" onclick="doRefreshProducts()" title="Làm mới"
               style="background:none;border:1px solid #e0e0e0;border-radius:8px;padding:4px 8px;color:#4CAF50;cursor:pointer;display:flex;align-items:center;justify-content:center;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
@@ -2355,7 +2355,7 @@ function renderManageProductList(list, kw) {
           </div>
           <div style="font-size:15px;font-weight:600;margin:2px 0;">${highlightText(p.ten, kw)}</div>
           <div style="font-size:12px;color:#aaa;">${highlightText(p.kichthuoc, kw)}</div>
-          <div style="font-size:13px;color:${low ? '#f44336' : '#4CAF50'};font-weight:${low ? '700' : '400'};margin-top:4px;">Tồn kho: ${fmt(p.tonkho)} ${p.dvt}</div>
+          <div style="font-size:13px;color:${low ? '#f44336' : '#4CAF50'};font-weight:${low ? '700' : '700'};margin-top:4px;">Tồn kho: ${fmt(p.tonkho)} ${p.dvt}</div>
         </div>
         <div style="flex-shrink:0;margin-left:8px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
           <div style="display:flex;gap:8px;">
@@ -3426,12 +3426,16 @@ function _renderHistory() {
         <div class="history-card-main">
           <div class="history-card-time">${(d=>{const dt=new Date(d);return dt.getFullYear()+'-'+(dt.getMonth()+1)+'-'+dt.getDate()+' '+String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');})(g.thoigian_raw)}</div>
           <div class="history-card-meta">
-            <span style="font-size:12px;padding:2px 8px;border-radius:10px;background:${loaiBg};color:${loaiColor};font-weight:600;">${g.loai}</span>
-            <span style="font-size:13px;color:#555;">${g.rows.length} SP</span>
-            <span style="font-size:13px;font-weight:600;color:#1a1a1a;">${total.toLocaleString('vi-VN')} đ</span>
-            ${g.giaodich ? `<span style="font-size:12px;color:#888;">· ${g.giaodich}</span>` : ''}
-            ${g.tenkhach ? `<span style="font-size:12px;color:#555;">· ${g.tenkhach}</span>` : ''}
-            ${!isXuat && g.rows[0]?.ncc ? `<span style="font-size:12px;color:#1976d2;">· ${g.rows[0].ncc}</span>` : ''}
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <span style="font-size:12px;padding:2px 8px;border-radius:10px;background:${loaiBg};color:${loaiColor};font-weight:600;">${g.loai}</span>
+              <span style="font-size:13px;color:#555;">${g.rows.length} SP</span>
+              <span style="font-size:13px;font-weight:600;color:#1a1a1a;">${total.toLocaleString('vi-VN')} đ</span>
+              ${g.giaodich ? `<span style="font-size:12px;color:#888;">· ${g.giaodich.replace('Tiền mặt + Chuyển khoản','TM + CK')}</span>` : ''}
+            </div>
+            ${(g.tenkhach || (!isXuat && g.rows[0]?.ncc)) ? `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              ${g.tenkhach ? `<span style="font-size:12px;color:#555;">· ${g.tenkhach}</span>` : ''}
+              ${!isXuat && g.rows[0]?.ncc ? `<span style="font-size:12px;color:#1976d2;">· ${g.rows[0].ncc}</span>` : ''}
+            </div>` : ''}
           </div>
         </div>
         <div class="history-card-actions">
