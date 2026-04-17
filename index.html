@@ -104,12 +104,20 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .mini-icon-wrap { display: inline-flex; align-items: center; gap: 5px; }
 .mini-icon-svg { width: 14px; height: 14px; display: inline-block; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
 
-.btn-add-cart { width: 34px; height: 34px; background: #4CAF50; color: #fff; border: none; border-radius: 50%; font-size: 22px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.btn-add-cart { width: 24px; height: 24px; background: #4CAF50; color: #fff; border: none; border-radius: 50%; font-size: 22px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .btn-add-cart:active { opacity: 0.7; transform: scale(0.92); }
+.btn-sub-cart { width: 24px; height: 24px; background: #fff; color: #4CAF50; border: 1.5px solid #4CAF50; border-radius: 50%; font-size: 22px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; }
+.btn-sub-cart:active { opacity: 0.7; transform: scale(0.92); }
+.btn-sub-cart:disabled { opacity: 0.35; cursor: not-allowed; border-color: #ccc; color: #ccc; }
+.dt-btn-sub-cart { width: 28px; height: 28px; background: #fff; color: #4CAF50; border: 1.5px solid #4CAF50; border-radius: 50%; font-size: 13px; cursor: pointer; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; }
+.dt-btn-sub-cart:disabled { opacity: 0.35; cursor: not-allowed; border-color: #ccc; color: #ccc; }
+.ci-sub-btn { width: 24px; height: 24px; background: #fff; color: #4CAF50; border: 1.5px solid #4CAF50; border-radius: 50%; font-size: 18px; cursor: pointer; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; }
+.ci-sub-btn:disabled { opacity: 0.35; cursor: not-allowed; border-color: #ccc; color: #ccc; }
+.ci-add-btn { width: 24px; height: 24px; background: #4CAF50; color: #fff; border: none; border-radius: 50%; font-size: 18px; cursor: pointer; line-height: 1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; }
 
 /* Qty stepper (Shopee style) */
 .qty-stepper { display: flex; align-items: center; gap: 5px; margin-top: 5px; justify-content: flex-end; }
-.qty-input { width: 44px; padding: 5px 4px; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-weight: 600; text-align: center; background: #fff; color: #1a1a1a; outline: none; }
+.qty-input { width: 35px; padding: 5.8px 4px; margin-top: -2px; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 13px; font-weight: 400; text-align: center; background: #fff; color: #1a1a1a; outline: none; }
 .qty-input:focus { border-color: #4CAF50; }
 
 .cart-item { background: #fff; border: 1px solid #e8e8e8; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
@@ -117,12 +125,12 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .cart-item-name { font-size: 15px; font-weight: 600; }
 .cart-item-size { font-size: 12px; color: #1565c0; margin-top: 2px; }
 .cart-item-inputs { display: flex; align-items: flex-start; gap: 6px; }
-.ci-sl { width: 60px; padding: 9px 6px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; text-align: center; background: #fafafa; outline: none; color: #1a1a1a; flex-shrink: 0; }
+.ci-sl { width: 35px; padding: 5.8px 4px; margin-top: -2px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; text-align: center; background: #fafafa; outline: none; color: #1a1a1a; flex-shrink: 0; }
 .ci-sl:focus { border-color: #4CAF50; background: #fff; }
-.ci-gia { flex: 1; padding: 9px 10px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; background: #fafafa; outline: none; color: #1a1a1a; }
+.ci-gia { flex: 1; padding: 5px 4px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; background: #fafafa; outline: none; color: #1a1a1a; }
 .ci-gia:focus { border-color: #4CAF50; background: #fff; }
-.ci-sep { font-size: 13px; color: #aaa; flex-shrink: 0; }
-.ci-sub { font-size: 13px; color: #4CAF50; font-weight: 600; text-align: right; white-space: nowrap; min-width: 90px; flex-shrink: 0; }
+.ci-sep { font-size: 14px; color: #aaa; flex-shrink: 0; }
+.ci-sub { font-size: 14px; color: #4CAF50; font-weight: 600; text-align: left; white-space: nowrap; flex-shrink: 0; }
 .btn-delete { background: none; border: none; color: #f44336; font-size: 20px; cursor: pointer; padding: 2px 6px; line-height: 1; flex-shrink: 0; }
 
 .cart-empty { text-align: center; padding: 3rem 0; color: #aaa; font-size: 15px; line-height: 2; }
@@ -1685,9 +1693,10 @@ function renderProductList(list, kw) {
       <div class="product-item-meta">
         <div class="product-item-tonkho${low ? ' low' : ''}">Tồn: ${fmt(p.tonkho)}</div>
         <div class="qty-stepper">
+          <button class="btn-sub-cart" onclick="subFromCartMobile(products.find(x=>x.ma==='${p.ma}'))" ${cartSl <= 1 ? 'disabled' : ''}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <input class="qty-input" id="${qid}" type="text" inputmode="numeric" value="${cartSl}"
             placeholder="1" onclick="event.stopPropagation()" oninput="sanitizeQty(this)" />
-          <button class="btn-add-cart" onclick="addToCartQty(products.find(x=>x.ma==='${p.ma}'))">+</button>
+          <button class="btn-add-cart" onclick="addPlusMobile(products.find(x=>x.ma==='${p.ma}'))"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
         </div>
       </div>
     </div>`;
@@ -1729,6 +1738,30 @@ function addToCartQty(product) {
   updateCartBadge();
   filterProductList();
   saveCart();
+}
+
+function addPlusMobile(product) {
+  if (!product) return;
+  const existing = cart.find(i => i.product.ma === product.ma);
+  if (existing) {
+    existing.sl += 1;
+  } else {
+    const qid = 'q_' + product.ma.replace(/[^a-zA-Z0-9]/g, '_');
+    const inputEl = document.getElementById(qid);
+    const inputVal = inputEl ? (parseInt(inputEl.value) || 1) : 1;
+    cart.push({ product: product, sl: inputVal, gia: 0 });
+  }
+  updateCartBadge();
+  filterProductList();
+}
+
+function subFromCartMobile(product) {
+  if (!product) return;
+  const existing = cart.find(i => i.product.ma === product.ma);
+  if (!existing || existing.sl <= 1) return;
+  existing.sl -= 1;
+  updateCartBadge();
+  filterProductList();
 }
 
 function showToast(msg) {
@@ -1842,21 +1875,23 @@ function renderCart() {
         </div>
         <button class="btn-delete" onclick="removeFromCart(${idx})">🗑</button>
       </div>
-      <div class="cart-item-inputs">
-        <div style="display:flex;flex-direction:column;gap:1px;">
+      <div>
+        <div class="cart-item-inputs">
+          <button class="ci-sub-btn" onclick="cartStepSl(${idx}, -1)" ${item.sl <= 1 ? 'disabled' : ''}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <input class="ci-sl" type="text" inputmode="numeric" value="${item.sl}"
             oninput="fmtInput(this);updateCartSl(${idx},this.value)" />
-          <div id="ci-warn-sl-${idx}" style="display:${showWarnSl ? 'block' : 'none'};font-size:10px;color:#f44336;white-space:nowrap;">${showWarnSl ? `❌ Vượt tồn (còn ${fmt(tonkho)})` : ''}</div>
-        </div>
-        <span class="ci-sep" style="margin-top:9px;">×</span>
-        <div style="flex:1;display:flex;flex-direction:column;gap:1px;">
-          <input class="ci-gia" type="text" inputmode="numeric" value="${giaFormatted}"
+          <button class="ci-add-btn" onclick="cartStepSl(${idx}, 1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          <span class="ci-sep">×</span>
+          <input class="ci-gia" style="flex:1;" type="text" inputmode="numeric" value="${giaFormatted}"
             placeholder="${giaPlaceholder}"
             oninput="fmtInput(this);updateCartGia(${idx},this.value)" />
-          <div id="ci-warn-gia-${idx}" style="display:${showWarnGia ? 'block' : 'none'};font-size:10px;color:#e65100;white-space:nowrap;">${showWarnGia ? '⚠️ Thấp hơn giá sỉ' : ''}</div>
+          <span class="ci-sep">=</span>
+          <span class="ci-sub" id="ci-sub-${idx}">${sub > 0 ? fmt(sub) + ' đ' : '—'}</span>
         </div>
-        <span class="ci-sep" style="margin-top:9px;">=</span>
-        <span class="ci-sub" id="ci-sub-${idx}" style="margin-top:9px;">${sub > 0 ? fmt(sub) + ' đ' : '—'}</span>
+        <div style="margin-top:3px;display:flex;flex-direction:column;gap:2px;">
+          <div id="ci-warn-sl-${idx}" style="display:${showWarnSl ? 'block' : 'none'};font-size:10px;color:#f44336;">${showWarnSl ? `❌ Vượt tồn (còn ${fmt(tonkho)})` : ''}</div>
+          <div id="ci-warn-gia-${idx}" style="display:${showWarnGia ? 'block' : 'none'};font-size:10px;color:#e65100;">${showWarnGia ? '⚠️ Thấp hơn giá sỉ' : ''}</div>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -1869,6 +1904,14 @@ function removeFromCart(idx) {
   updateCartBadge();
   renderCart();
   saveCart();
+}
+
+function cartStepSl(idx, delta) {
+  if (!cart[idx]) return;
+  const newSl = cart[idx].sl + delta;
+  if (newSl < 1) return;
+  cart[idx].sl = newSl;
+  renderCart();
 }
 
 function updateCartSl(idx, val) {
@@ -1989,6 +2032,7 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh) {
 
   const totalAmount = cart.reduce((s, i) => s + i.sl * i.gia, 0);
   const totalItems = cart.length;
+  const totalQty = cart.reduce((s, i) => s + (i.sl || 0), 0);
 
   const cols = mode === 'Xuất' ? CONFIG.export_columns : CONFIG.import_columns;
   const rows = cart.map((item, idx) => {
@@ -2015,6 +2059,7 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh) {
   document.getElementById('success-sub').textContent = thoiGian;
   document.getElementById('success-detail').innerHTML = `
     <div class="info-row"><span class="info-label">Số loại sản phẩm</span><span class="info-value">${totalItems}</span></div>
+    <div class="info-row"><span class="info-label">Số lượng SP</span><span class="info-value">${totalQty}</span></div>
     <div class="info-row"><span class="info-label">Tổng tiền</span><span class="info-value green">${fmt(totalAmount)} đ</span></div>
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
     ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí chành xe</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
@@ -2627,12 +2672,13 @@ function dtRenderProducts(list, kw) {
       <div style="flex-shrink:0;margin-left:8px;text-align:right;">
         <div style="font-size:12px;font-weight:600;color:${low ? '#f44336' : '#4CAF50'};">Tồn: ${fmt(p.tonkho)}</div>
         <div style="display:flex;align-items:center;gap:4px;margin-top:5px;justify-content:flex-end;">
+          <button class="dt-btn-sub-cart" onclick="event.stopPropagation();dtSubFromCart('${p.ma}')" ${cartItem && cartItem.sl > 1 ? '' : 'disabled'}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <input id="${slId}" type="text" inputmode="numeric" value="${currentSl}" placeholder="1"
             onclick="event.stopPropagation()" oninput="sanitizeQty(this)"
-            style="width:40px;padding:4px;text-align:center;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;outline:none;color:#333;" />
-          <button onclick="event.stopPropagation();dtAddToCart('${p.ma}',1)"
+            style="width:45px;padding:6px;text-align:center;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;outline:none;color:#333;" />
+          <button onclick="event.stopPropagation();dtAddPlus('${p.ma}')"
             style="width:28px;height:28px;border-radius:50%;background:#4CAF50;color:#fff;border:none;font-size:18px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            +
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
         </div>
       </div>
@@ -2652,6 +2698,29 @@ function dtAddToCart(ma, sl) {
   dtRenderCart();
   dtFilterProducts();
   saveCart();
+}
+
+function dtAddPlus(ma) {
+  const product = products.find(p => p.ma === ma);
+  if (!product) return;
+  const exists = dtCart.findIndex(i => i.product.ma === ma);
+  if (exists !== -1) {
+    dtCart[exists].sl += 1;
+  } else {
+    const inputEl = document.getElementById('dt-sl-' + ma);
+    const inputVal = inputEl ? (parseInt(inputEl.value) || 1) : 1;
+    dtCart.push({ product: product, sl: inputVal, gia: 0 });
+  }
+  dtRenderCart();
+  dtRenderProducts();
+}
+
+function dtSubFromCart(ma) {
+  const item = dtCart.find(i => i.product.ma === ma);
+  if (!item || item.sl <= 1) return;
+  item.sl -= 1;
+  dtRenderCart();
+  dtRenderProducts();
 }
 
 function dtRemoveFromCart(ma) {
@@ -2738,29 +2807,41 @@ function dtRenderCart() {
         <button onclick="dtRemoveFromCart('${p.ma}')"
           style="background:none;border:none;color:#f44336;font-size:18px;cursor:pointer;padding:0 4px;flex-shrink:0;line-height:1;">×</button>
       </div>
-      <div style="display:flex;align-items:flex-start;gap:4px;">
-        <div style="display:flex;flex-direction:column;gap:1px;">
+      <div>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <button class="dt-btn-sub-cart" onclick="dtCartStepSl('${p.ma}', -1)" ${item.sl <= 1 ? 'disabled' : ''}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <input type="text" inputmode="numeric" value="${item.sl}"
-            style="width:44px;padding:5px 4px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;text-align:center;outline:none;"
+            style="width:45px;padding:6px 4px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;text-align:center;outline:none;"
             oninput="fmtInput(this);dtUpdateCart('${p.ma}','sl',this.value)" />
-          <div id="dt-warn-sl-${safeId}" style="display:${showWarnSl?'block':'none'};font-size:10px;color:#f44336;white-space:nowrap;">${showWarnSl?`❌ Vượt tồn (còn ${fmt(tonkho)})`:''}
-          </div>
-        </div>
-        <span style="font-size:12px;color:#aaa;margin-top:5px;">×</span>
-        <div style="flex:1;display:flex;flex-direction:column;gap:1px;">
+          <button onclick="dtCartStepSl('${p.ma}', 1)" style="width:28px;height:28px;background:#4CAF50;color:#fff;border:none;border-radius:50%;font-size:16px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          <span style="font-size:12px;color:#aaa;">×</span>
           <input type="text" inputmode="numeric" value="${giaFmt}"
             placeholder="${giaPlaceholder}"
-            style="width:100%;padding:5px 7px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;"
+            style="flex:1;padding:5px 7px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;"
             oninput="fmtInput(this);dtUpdateCart('${p.ma}','gia',this.value)" />
-          <div id="dt-warn-gia-${safeId}" style="display:${showWarnGia?'block':'none'};font-size:10px;color:#e65100;white-space:nowrap;">${showWarnGia?'⚠️ Thấp hơn giá sỉ':''}</div>
+          <span style="font-size:12px;color:#aaa;">=</span>
+          <span id="dt-sub-${safeId}" style="font-size:12px;font-weight:600;color:#4CAF50;min-width:55px;text-align:right;">
+            ${sub > 0 ? fmt(sub) + ' đ' : '—'}
+          </span>
         </div>
-        <span style="font-size:12px;color:#aaa;margin-top:5px;">=</span>
-        <span id="dt-sub-${safeId}" style="font-size:12px;font-weight:600;color:#4CAF50;min-width:55px;text-align:right;margin-top:5px;">
-          ${sub > 0 ? fmt(sub) + ' đ' : '—'}
-        </span>
+        <div style="margin-top:3px;display:flex;gap:8px;">
+          <div id="dt-warn-sl-${safeId}" style="display:${showWarnSl?'block':'none'};font-size:10px;color:#f44336;">${showWarnSl?`❌ Vượt tồn (còn ${fmt(tonkho)})`:''}
+          </div>
+          <div id="dt-warn-gia-${safeId}" style="display:${showWarnGia?'block':'none'};font-size:10px;color:#e65100;">${showWarnGia?'⚠️ Thấp hơn giá sỉ':''}</div>
+        </div>
       </div>
     </div>`;
   }).join('');
+}
+
+function dtCartStepSl(ma, delta) {
+  const item = dtCart.find(i => i.product.ma === ma);
+  if (!item) return;
+  const newSl = item.sl + delta;
+  if (newSl < 1) return;
+  item.sl = newSl;
+  dtRenderCart();
+  dtRenderProducts();
 }
 
 function dtSetMode(mode) {
@@ -2835,6 +2916,7 @@ async function dtSubmit() {
   }).catch(() => {});
 
   const count = dtCart.length;
+  const totalQty = dtCart.reduce((s, i) => s + (i.sl || 0), 0);
   const totalAmount = dtCart.reduce((s, i) => s + i.sl * i.gia, 0);
   const modeLabel = dtMode;
   const isXuat = dtMode === 'Xuất';
@@ -2854,6 +2936,7 @@ async function dtSubmit() {
   document.getElementById('dt-success-sub').textContent = thoiGian;
   document.getElementById('dt-success-detail').innerHTML = `
     <div class="info-row"><span class="info-label">Số loại sản phẩm</span><span class="info-value">${count}</span></div>
+    <div class="info-row"><span class="info-label">Số lượng SP</span><span class="info-value">${totalQty}</span></div>
     <div class="info-row"><span class="info-label">Tổng tiền</span><span class="info-value green">${fmt(totalAmount)} đ</span></div>
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
     ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí chành xe</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
