@@ -1,3 +1,10 @@
+function _maxPriceByMa_(srcSheet, ma) {
+  if (!srcSheet || srcSheet.getLastRow() <= 1) return 0;
+  return srcSheet.getDataRange().getValues().slice(1).reduce(function(best, r) {
+    return (r[0] || '').toString().trim() === ma ? Math.max(best, Number(r[8]) || 0) : best;
+  }, 0);
+}
+
 function doPost(e) {
   if (e.parameter.token !== 'inox2026xK9m')
     return ContentService.createTextOutput(JSON.stringify({error:'unauthorized'}));
@@ -65,6 +72,22 @@ function doPost(e) {
           break;
         }
       }
+      // Ưu tiên giá cao nhất từ lịch sử vào Sản phẩm
+      if (found) {
+        const spSh = ss.getSheetByName('Sản phẩm');
+        if (spSh) {
+          const spRows = spSh.getDataRange().getValues();
+          const maTrim = data.ma.toString().trim();
+          for (let i = 1; i < spRows.length; i++) {
+            if ((spRows[i][0] || '').toString().trim() !== maTrim) continue;
+            const maxNhap = _maxPriceByMa_(ss.getSheetByName('Nhập'), maTrim);
+            const maxXuat = _maxPriceByMa_(ss.getSheetByName('Xuất'), maTrim);
+            if (maxNhap > (Number(spRows[i][5]) || 0)) spSh.getRange(i + 1, 6).setValue(maxNhap);
+            if (maxXuat > (Number(spRows[i][6]) || 0)) spSh.getRange(i + 1, 7).setValue(maxXuat);
+            break;
+          }
+        }
+      }
       // Ghi điều chỉnh tồn kho vào sheet Nhập hoặc Xuất
       const delta = Number(data.soluong_delta);
       if (found && !isNaN(delta) && delta !== 0) {
@@ -79,7 +102,7 @@ function doPost(e) {
           ];
           adjSheet.appendRow(adjRow);
           const nr = adjSheet.getLastRow();
-          adjSheet.getRange(nr, 12).setFormula('=H' + nr + '*I' + nr + '-K' + nr);
+          adjSheet.getRange(nr, 12).setFormula('=H' + nr + '*I' + nr + '+K' + nr);
         }
       }
       return ContentService.createTextOutput(JSON.stringify({
@@ -118,10 +141,16 @@ function doPost(e) {
         }
       }
       if (data.action === 'updateHistoryRows' && Array.isArray(data.rows)) {
-        data.rows.forEach(function(row) {
+        const noteCol = data.sheet === 'Nhập' ? 13 : 14;
+        data.rows.forEach(function(row, i) {
           sheet.appendRow(row);
           const nr = sheet.getLastRow();
-          sheet.getRange(nr, 12).setFormula('=H' + nr + '*I' + nr + '-K' + nr);
+          sheet.getRange(nr, 12).setFormula('=H' + nr + '*I' + nr + '+K' + nr);
+          if (data.notes && data.notes[i]) {
+            const noteCell = sheet.getRange(nr, noteCol);
+            const existing = noteCell.getValue() || '';
+            noteCell.setValue(existing ? existing + ' | ' + data.notes[i] : data.notes[i]);
+          }
         });
       }
       return ContentService.createTextOutput(JSON.stringify({ success: true }))
@@ -133,27 +162,27 @@ function doPost(e) {
     rowsToWrite.forEach(function(row) {
       sheet.appendRow(row);
       const newRow = sheet.getLastRow();
-      sheet.getRange(newRow, 12).setFormula('=H' + newRow + '*I' + newRow + '-K' + newRow);
+      sheet.getRange(newRow, 12).setFormula('=H' + newRow + '*I' + newRow + '+K' + newRow);
     });
 
-    // Nếu là Nhập hàng: cập nhật Giá vốn (col F=6) nếu giá nhập > giá vốn hiện tại
-    if (data.sheet === 'Nhập') {
+    // Cập nhật Giá vốn (col F=6) từ max Nhập, Giá sỉ (col G=7) từ max Xuất
+    if (data.sheet === 'Nhập' || data.sheet === 'Xuất') {
       const spSheet = ss.getSheetByName('Sản phẩm');
       if (spSheet) {
         const spData = spSheet.getDataRange().getValues();
-        rowsToWrite.forEach(function(row) {
-          const ma       = (row[0] || '').toString().trim();
-          const giaNhap  = Number(row[8]) || 0;
-          if (!ma || giaNhap <= 0) return;
+        const maSet = {};
+        rowsToWrite.forEach(function(row) { const m = (row[0] || '').toString().trim(); if (m) maSet[m] = 1; });
+        Object.keys(maSet).forEach(function(ma) {
           for (let i = 1; i < spData.length; i++) {
-            if ((spData[i][0] || '').toString().trim() === ma) {
-              const curGiavon = Number(spData[i][5]) || 0; // col F = index 5
-              if (giaNhap > curGiavon) {
-                spSheet.getRange(i + 1, 6).setValue(giaNhap); // ghi cột F
-                spData[i][5] = giaNhap; // cập nhật in-memory cho các dòng tiếp theo
-              }
-              break;
+            if ((spData[i][0] || '').toString().trim() !== ma) continue;
+            if (data.sheet === 'Nhập') {
+              const maxNhap = _maxPriceByMa_(sheet, ma);
+              if (maxNhap > (Number(spData[i][5]) || 0)) { spSheet.getRange(i + 1, 6).setValue(maxNhap); spData[i][5] = maxNhap; }
+            } else {
+              const maxXuat = _maxPriceByMa_(sheet, ma);
+              if (maxXuat > (Number(spData[i][6]) || 0)) { spSheet.getRange(i + 1, 7).setValue(maxXuat); spData[i][6] = maxXuat; }
             }
+            break;
           }
         });
       }
@@ -205,9 +234,9 @@ function doGet(e) {
     const xuatSheet = ss.getSheetByName('Xuất');
     const nhapSheet = ss.getSheetByName('Nhập');
     const xuatData = xuatSheet && xuatSheet.getLastRow() > 1
-      ? xuatSheet.getDataRange().getValues().slice(1) : [];
+      ? xuatSheet.getDataRange().getValues().slice(1).map(function(r) { r[1] = fmtDateTime(r[1]); return r; }) : [];
     const nhapData = nhapSheet && nhapSheet.getLastRow() > 1
-      ? nhapSheet.getDataRange().getValues().slice(1) : [];
+      ? nhapSheet.getDataRange().getValues().slice(1).map(function(r) { r[1] = fmtDateTime(r[1]); return r; }) : [];
     return ContentService.createTextOutput(JSON.stringify({ xuat: xuatData, nhap: nhapData }))
       .setMimeType(ContentService.MimeType.JSON);
   }
@@ -253,4 +282,50 @@ function MASP(ten, allTen, currentRow) {
   }
 
   return myPrefix + String(count).padStart(3,'0');
+}
+
+function onEdit(e) {
+  const sheet = e.range.getSheet();
+  const sheetName = sheet.getName();
+  if (sheetName !== 'Xuất' && sheetName !== 'Nhập') return;
+
+  const row = e.range.getRow();
+  if (row <= 1) return;
+
+  const col = e.range.getColumn();
+  const noteCol = sheetName === 'Nhập' ? 13 : 14; // Nhập=M(13), Xuất=N(14)
+  if (col === noteCol) return;
+
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const colName = headers[col - 1] || ('Cột ' + col);
+
+  const oldVal = (e.oldValue !== undefined && e.oldValue !== null) ? e.oldValue.toString() : '';
+  const newVal = (e.value   !== undefined && e.value   !== null) ? e.value.toString()   : '';
+  const dateStr = Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'dd/MM/yyyy');
+
+  const noteCell = sheet.getRange(row, noteCol);
+  const existingNote = noteCell.getValue() || '';
+
+  const prefix = 'Sửa ' + colName + ':';
+  const allEntries = existingNote ? existingNote.split(' | ') : [];
+  const thisCol  = allEntries.filter(function(x) { return x.startsWith(prefix); });
+  const otherCol = allEntries.filter(function(x) { return !x.startsWith(prefix); });
+
+  // Tìm baseline = giá trị gốc trước lần sửa đầu tiên của cột này
+  var baseline = oldVal;
+  if (thisCol.length > 0) {
+    var m = thisCol[0].match(/: (.+)→/);
+    if (m) baseline = m[1];
+  }
+
+  var finalEntries;
+  if (newVal === '' || newVal === baseline) {
+    // Xóa cell hoặc revert về giá trị gốc → loại bỏ note của cột này
+    finalEntries = otherCol;
+  } else {
+    // Thay đổi thực sự → ghi/cập nhật entry (luôn so với baseline gốc)
+    finalEntries = otherCol.concat(['Sửa ' + colName + ': ' + baseline + '→' + newVal + '; ' + dateStr]);
+  }
+
+  noteCell.setValue(finalEntries.join(' | '));
 }
