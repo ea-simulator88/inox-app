@@ -169,6 +169,16 @@ function doPost(e) {
   }
 }
 
+function fmtDateTime(d) {
+  if (!(d instanceof Date)) return d ? d.toString() : '';
+  const Y  = d.getFullYear();
+  const M  = String(d.getMonth() + 1).padStart(2, '0');
+  const D  = String(d.getDate()).padStart(2, '0');
+  const HH = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return Y + '-' + M + '-' + D + ' ' + HH + ':' + mm;
+}
+
 function doGet(e) {
   if (e.parameter.token !== 'inox2026xK9m')
     return ContentService.createTextOutput(JSON.stringify({error:'unauthorized'}));
