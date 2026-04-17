@@ -691,9 +691,9 @@ const CONFIG = {
 <!-- REPORT DETAIL -->
 <div id="screen-report-detail" class="screen">
   <div class="header" style="flex-shrink:0;margin-bottom:0;padding-bottom:0;">
-    <div style="max-width:1000px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;position:relative;">
+    <div style="max-width:1000px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;position:relative;min-height:52px;">
       <button class="btn-back" onclick="showReport()" style="flex-shrink:0;position:relative;z-index:1;">← Quay lại</button>
-      <div class="header-title" id="rpt-detail-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;">Chi tiết</div>
+      <div id="rpt-detail-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;padding:0 80px;line-height:1.35;">Chi tiết</div>
       <button onclick="goMain()" title="Trang chính" style="background:none;border:none;cursor:pointer;padding:4px 2px;line-height:1;flex-shrink:0;position:relative;z-index:1;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
       </button>
@@ -1500,9 +1500,9 @@ function togglePassVis() {
     if (window.innerWidth >= 768) { dtInitLayout(); dtFilterProducts(); }
     if (_targetScreen === 'screen-product-form') {
       openProductForm('add', null, true); // render form ngay, không chờ server
-    } else if (_targetScreen === 'screen-history') {
+    } else if (_targetScreen === 'screen-history' || _targetScreen === 'screen-history-detail') {
       showHistory();
-    } else if (_targetScreen === 'screen-report') {
+    } else if (_targetScreen === 'screen-report' || _targetScreen === 'screen-report-detail') {
       showReport();
     } else {
       showScreen(_targetScreen);
@@ -3043,7 +3043,7 @@ async function showHistory() {
   const list = document.getElementById('history-list');
   list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
   try {
-    await _fetchHistoryData(true);
+    await _fetchHistoryData();
     _historyFilter = 'all';
     _historyTimeFilter = 'all';
     _histDateFrom = null; _histDateTo = null;
@@ -3225,7 +3225,7 @@ function showReport() {
   _syncReportTypeButtons();
   _syncReportTimeButtons();
   _updateReportDateLabel();
-  _fetchHistoryData(true).then(() => renderReport()).catch(() => {
+  _fetchHistoryData().then(() => renderReport()).catch(() => {
     if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được báo cáo.</div>';
   });
 }
@@ -3433,10 +3433,11 @@ function _renderProductReportSection(rows) {
     const key = [r.ma, r.hanghoa, r.kichthuoc].join('||');
     if (!r.ma && !r.hanghoa) return;
     if (!map.has(key)) {
-      map.set(key, { key, name: r.hanghoa || r.ma || 'Không tên', ma: r.ma, kichthuoc: r.kichthuoc,
+      map.set(key, { key, name: r.hanghoa || r.ma || 'Không tên', ma: r.ma, kichthuoc: r.kichthuoc, ncc: r.ncc || '',
         nhapQty: 0, nhapAmount: 0, xuatQty: 0, xuatAmount: 0 });
     }
     const item = map.get(key);
+    if (!item.ncc && r.ncc) item.ncc = r.ncc;
     if (r.loai === 'Nhập') { item.nhapQty += r.soluong; item.nhapAmount += r.soluong * r.gia; }
     else                   { item.xuatQty += r.soluong; item.xuatAmount += r.soluong * r.gia; }
   });
@@ -3454,10 +3455,10 @@ function _renderProductReportSection(rows) {
         const meta = [item.ma, item.kichthuoc].filter(Boolean).join(' · ');
         const nhapLine = item.nhapQty > 0 ? `<div style="font-size:13px;color:#388e3c;white-space:nowrap;">Nhập: ${fmt(item.nhapQty)} | ${fmt(item.nhapAmount)}đ</div>` : '';
         const xuatLine = item.xuatQty > 0 ? `<div style="font-size:13px;color:#c62828;white-space:nowrap;">Xuất: ${fmt(item.xuatQty)} | ${fmt(item.xuatAmount)}đ</div>` : '';
-        const idx = _rptDetailData.push({ type: 'sp', key: item.key, name: item.name }) - 1;
+        const idx = _rptDetailData.push({ type: 'sp', key: item.key, name: item.name, ma: item.ma, ncc: item.ncc, kichthuoc: item.kichthuoc }) - 1;
         return `<div class="report-detail-item" onclick="showReportDetail(${idx})" style="cursor:pointer;">
           <div style="min-width:0;flex:1;">
-            <div class="report-detail-name">${item.name}</div>
+            <div class="report-detail-name">${item.name}${item.ncc ? ` <span style="color:#1565c0;font-weight:500;">· ${item.ncc}</span>` : ''}</div>
             ${meta ? `<div class="report-detail-meta">${meta}</div>` : ''}
           </div>
           <div style="text-align:right;flex-shrink:0;">${nhapLine}${xuatLine}</div>
@@ -3472,7 +3473,15 @@ function showReportDetail(idx) {
   if (!item) return;
 
   const titleEl = document.getElementById('rpt-detail-title');
-  if (titleEl) titleEl.textContent = item.name;
+  if (titleEl) {
+    if (item.type === 'sp') {
+      const sub = [item.ncc, item.ma, item.kichthuoc].filter(Boolean).join(' · ');
+      titleEl.innerHTML = `<div style="font-size:15px;font-weight:700;color:#333;">${item.name}</div>`
+        + (sub ? `<div style="font-size:11px;font-weight:400;color:#777;margin-top:3px;">${sub}</div>` : '');
+    } else {
+      titleEl.textContent = item.name;
+    }
+  }
 
   const rows = _reportFilterRows().filter(function(r) {
     if (item.type === 'ncc')   return r.loai === 'Nhập' && r.ncc.trim() === item.key;
@@ -3492,13 +3501,21 @@ function showReportDetail(idx) {
         const isNhap = r.loai === 'Nhập';
         const total = r.soluong * r.gia;
         const badge = `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${isNhap?'#e8f5e9':'#ffebee'};color:${isNhap?'#2e7d32':'#c62828'};">${r.loai}</span>`;
-        let subLabel = '';
-        if (item.type === 'sp') subLabel = isNhap ? (r.ncc || '') : (r.tenkhach || '');
-        else subLabel = r.hanghoa + (r.kichthuoc ? ' · ' + r.kichthuoc : '');
+        let subLabel = '', subMeta = '';
+        if (item.type === 'sp') {
+          subLabel = isNhap ? (r.ncc || '—') : (r.tenkhach || '—');
+        } else if (item.type === 'ncc') {
+          subLabel = r.hanghoa || '—';
+          subMeta = [r.ma, r.kichthuoc].filter(Boolean).join(' · ');
+        } else if (item.type === 'khach') {
+          subLabel = r.hanghoa || '—';
+          subMeta = [r.ncc, r.ma, r.kichthuoc].filter(Boolean).join(' · ');
+        }
         return `<div class="report-detail-item" style="cursor:default;">
           <div style="min-width:0;flex:1;">
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">${badge}<span style="font-size:11px;color:#999;">${r.thoigian||''}</span></div>
             <div class="report-detail-name">${subLabel||'—'}</div>
+            ${subMeta ? `<div class="report-detail-meta">${subMeta}</div>` : ''}
           </div>
           <div style="text-align:right;flex-shrink:0;">
             <div style="font-size:11px;color:#666;">${fmt(r.soluong)} × ${fmt(r.gia)}đ</div>
