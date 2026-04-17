@@ -1500,9 +1500,25 @@ function togglePassVis() {
     if (window.innerWidth >= 768) { dtInitLayout(); dtFilterProducts(); }
     if (_targetScreen === 'screen-product-form') {
       openProductForm('add', null, true); // render form ngay, không chờ server
-    } else if (_targetScreen === 'screen-history' || _targetScreen === 'screen-history-detail') {
+    } else if (_targetScreen === 'screen-history-detail') {
+      showHistory().then(function() {
+        const t = sessionStorage.getItem('histDetailThoigian');
+        const l = sessionStorage.getItem('histDetailLoai');
+        if (t && l) {
+          const idx = _historyGroups.findIndex(function(g) { return g.thoigian === t && g.loai === l; });
+          if (idx >= 0) showHistoryDetail(idx);
+        }
+      }).catch(function() {});
+    } else if (_targetScreen === 'screen-history') {
       showHistory();
-    } else if (_targetScreen === 'screen-report' || _targetScreen === 'screen-report-detail') {
+    } else if (_targetScreen === 'screen-report-detail') {
+      const savedItem = sessionStorage.getItem('rptDetailItem');
+      if (savedItem) {
+        _fetchHistoryData().then(function() {
+          try { _rptDetailData = [JSON.parse(savedItem)]; showReportDetail(0); } catch(ex) { showReport(); }
+        }).catch(function() { showReport(); });
+      } else { showReport(); }
+    } else if (_targetScreen === 'screen-report') {
       showReport();
     } else {
       showScreen(_targetScreen);
@@ -3526,6 +3542,7 @@ function showReportDetail(idx) {
     '</div></div>';
   }
 
+  sessionStorage.setItem('rptDetailItem', JSON.stringify({ type: item.type, key: item.key, name: item.name, ma: item.ma||'', ncc: item.ncc||'', kichthuoc: item.kichthuoc||'' }));
   showScreen('screen-report-detail');
 }
 
@@ -3728,6 +3745,8 @@ function showHistoryDetail(idx) {
     </div>`;
   }).join('');
 
+  sessionStorage.setItem('histDetailThoigian', g.thoigian);
+  sessionStorage.setItem('histDetailLoai', g.loai);
   showScreen('screen-history-detail');
 }
 
