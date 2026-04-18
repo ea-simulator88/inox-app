@@ -371,10 +371,24 @@ const CONFIG = {
     </div>
   </div>
   <div class="manual-row" style="margin-bottom:6px;">
-    <input type="text" id="manual-code" placeholder="Tìm mã hoặc theo tên..." autocomplete="off" autocapitalize="characters" oninput="filterProductList()" />
-    <input type="number" id="mob-tonkho-filter" placeholder="Tồn ≤" min="0"
-      style="flex:0 0 68px;width:68px;box-sizing:border-box;padding:11px 6px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;outline:none;text-align:center;"
-      oninput="onMobTonkhoInput()" />
+    <div style="position:relative;flex:1;;min-width:0;">
+      <input type="text" id="manual-code" placeholder="Tìm mã hoặc theo tên..." autocomplete="off" autocapitalize="characters"
+        oninput="filterProductList();updateFilterClearBtn()"
+        onblur="saveSearchHistory()"
+        style="width:100%;box-sizing:border-box;padding-right:60px;" />
+      <button id="btn-filter-clear" onclick="clearFilterInput()" tabindex="-1"
+        style="display:none;position:absolute;right:30px;top:50%;transform:translateY(-50%);background:none;border:none;border-radius:0;padding:4px;cursor:pointer;color:#bbb;font-size:13px;line-height:1;font-weight:400;white-space:nowrap;min-width:0;">✕</button>
+      <button id="btn-filter-history" onclick="toggleSearchHistory(event)" tabindex="-1"
+        style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;border-radius:0;padding:4px;cursor:pointer;color:#bbb;line-height:1;display:flex;align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div id="search-history-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:1000;overflow:hidden;"></div>
+    </div>
+    <div style="position:relative;flex:0 0 78px;">
+      <input type="number" id="mob-tonkho-filter" placeholder="Tồn ≤" min="0"
+        style="width:100%;box-sizing:border-box;padding:11px 20px 11px 6px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;outline:none;text-align:center;"
+        oninput="onMobTonkhoInput();tonkhoUpdateClearBtn('mob-tonkho-filter','mob-tonkho-clear')" />
+      <button id="mob-tonkho-clear" onclick="tonkhoClear('mob-tonkho-filter','mob-tonkho-clear',onMobTonkhoInput)" tabindex="-1"
+        style="display:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+    </div>
   </div>
   <div id="product-list" style="overflow-y:auto;max-height:calc(100vh - 280px);"></div>
 </div>
@@ -452,7 +466,7 @@ const CONFIG = {
 
     <div id="row-phichanh" style="display:none;">
       <label>Phí chành xe (không bắt buộc)</label>
-      <input type="text" id="form-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)" />
+      <input type="text" id="form-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInputK(this)" />
     </div>
 
     <label id="form-ghichu-label">Ghi chú (không bắt buộc)</label>
@@ -499,12 +513,24 @@ const CONFIG = {
       </div>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;">
-      <input type="text" id="manage-search" placeholder="Tìm mã, tên, kích thước, NCC..."
-        style="flex:1;box-sizing:border-box;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;"
-        oninput="filterManageProducts()" />
-      <input type="number" id="manage-tonkho-filter" placeholder="Tồn ≤" min="0"
-        style="width:68px;box-sizing:border-box;padding:7px 6px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;text-align:center;"
-        oninput="onManageTonkhoInput()" />
+      <div style="position:relative;flex:1;min-width:0;">
+        <input type="text" id="manage-search" placeholder="Tìm mã, tên, kích thước, NCC..."
+          style="width:100%;box-sizing:border-box;padding:7px 56px 7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;"
+          oninput="filterManageProducts();mngUpdateFilterClearBtn()"
+          onblur="mngSaveSearchHistory()" />
+        <button id="mng-btn-filter-clear" onclick="mngClearFilterInput()" tabindex="-1"
+          style="display:none;position:absolute;right:26px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+        <button id="mng-btn-filter-history" onclick="mngToggleSearchHistory(event)" tabindex="-1"
+          style="position:absolute;right:7px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px;cursor:pointer;color:#bbb;line-height:1;display:flex;align-items:center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div id="mng-search-history-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #e0e0e0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:1000;overflow:hidden;"></div>
+      </div>
+      <div style="position:relative;width:78px;flex-shrink:0;">
+        <input type="number" id="manage-tonkho-filter" placeholder="Tồn ≤" min="0"
+          style="width:100%;box-sizing:border-box;padding:7px 20px 7px 6px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;text-align:center;"
+          oninput="onManageTonkhoInput();tonkhoUpdateClearBtn('manage-tonkho-filter','mng-tonkho-clear')" />
+        <button id="mng-tonkho-clear" onclick="tonkhoClear('manage-tonkho-filter','mng-tonkho-clear',onManageTonkhoInput)" tabindex="-1"
+          style="display:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+      </div>
     </div>
     <div id="manage-product-list" style="overflow-y:auto;max-height:calc(100vh - 270px);"></div>
   </div>
@@ -563,10 +589,16 @@ const CONFIG = {
         </select>
 
         <label>Phí chành xe (không bắt buộc)</label>
-        <input type="text" id="cart-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)" />
+        <div style="position:relative;">
+          <input type="text" id="cart-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInputK(this);ixShow(this)" style="width:100%;box-sizing:border-box;padding-right:26px;" />
+          <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+        </div>
 
         <label id="cart-ghichu-label">Ghi chú (không bắt buộc)</label>
-        <input type="text" id="cart-ghichu" placeholder="Tên khách, đơn hàng..." />
+        <div style="position:relative;">
+          <input type="text" id="cart-ghichu" placeholder="Tên khách, đơn hàng..." oninput="ixShow(this)" style="width:100%;box-sizing:border-box;padding-right:26px;" />
+          <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+        </div>
       </div>
 
       <button class="btn-confirm xuat" id="btn-cart-confirm" onclick="submitCart(cartMode)" style="width:100%;">✅ Xác nhận Xuất</button>
@@ -638,9 +670,22 @@ const CONFIG = {
           </div>
         </div>
       </div>
+      <div style="max-width:1000px;margin:0 auto;margin-top:7px;width:100%;padding:0 0 8px;">
+        <div style="position:relative;">
+          <input type="text" id="hist-search" placeholder="Tìm tên SP, mã, NCC, khách hàng..."
+            style="width:100%;box-sizing:border-box;padding:9px 56px 9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;outline:none;"
+            oninput="_renderHistory();histUpdateFilterClearBtn()"
+            onblur="histSaveSearchHistory()" />
+          <button id="hist-btn-filter-clear" onclick="histClearFilterInput()" tabindex="-1"
+            style="display:none;position:absolute;right:30px;top:50%;transform:translateY(-50%);background:none;border:none;padding:4px;cursor:pointer;color:#bbb;font-size:13px;line-height:1;">✕</button>
+          <button id="hist-btn-filter-history" onclick="histToggleSearchHistory(event)" tabindex="-1"
+            style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;padding:4px;cursor:pointer;color:#bbb;line-height:1;display:flex;align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div id="hist-search-history-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:1000;overflow:hidden;"></div>
+        </div>
+      </div>
     </div>
   </div>
-  <div id="history-list" style="max-width:1000px;margin:0 auto;width:100%;padding:8px 0;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;"></div>
+  <div id="history-list" style="max-width:1000px;margin:0 auto;margin-top:-18px;width:100%;padding:8px 0;overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;"></div>
 
   <!-- SUMMARY BAR -->
   <div style="flex-shrink:0;background:#fff;border-top:1.5px solid #e8e8e8;">
@@ -836,12 +881,24 @@ const CONFIG = {
           </div>
         </div>
         <div style="display:flex;gap:6px;">
-          <input type="text" id="dt-search" placeholder="Tìm mã hoặc tên..."
-            style="flex:1;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;"
-            oninput="dtFilterProducts()" />
-          <input type="number" id="dt-tonkho-filter" placeholder="Tồn ≤" min="0"
-            style="width:68px;padding:7px 6px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;text-align:center;"
-            oninput="onDtTonkhoInput()" />
+          <div style="position:relative;flex:1;min-width:0;">
+            <input type="text" id="dt-search" placeholder="Tìm mã hoặc tên..."
+              style="width:100%;box-sizing:border-box;padding:7px 56px 7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;"
+              oninput="dtFilterProducts();dtUpdateFilterClearBtn()"
+              onblur="dtSaveSearchHistory()" />
+            <button id="dt-btn-filter-clear" onclick="dtClearFilterInput()" tabindex="-1"
+              style="display:none;position:absolute;right:26px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+            <button id="dt-btn-filter-history" onclick="dtToggleSearchHistory(event)" tabindex="-1"
+              style="position:absolute;right:7px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px;cursor:pointer;color:#bbb;line-height:1;display:flex;align-items:center;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div id="dt-search-history-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #e0e0e0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:1000;overflow:hidden;"></div>
+          </div>
+          <div style="position:relative;width:78px;flex-shrink:0;">
+            <input type="number" id="dt-tonkho-filter" placeholder="Tồn ≤" min="0"
+              style="width:100%;box-sizing:border-box;padding:7px 20px 7px 6px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;text-align:center;"
+              oninput="onDtTonkhoInput();tonkhoUpdateClearBtn('dt-tonkho-filter','dt-tonkho-clear')" />
+            <button id="dt-tonkho-clear" onclick="tonkhoClear('dt-tonkho-filter','dt-tonkho-clear',onDtTonkhoInput)" tabindex="-1"
+              style="display:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+          </div>
         </div>
       </div>
       <div id="dt-product-list" style="flex:1;overflow-y:auto;padding:8px;min-height:0;"></div>
@@ -893,14 +950,20 @@ const CONFIG = {
 
         <div id="dt-row-phichanh" style="margin-bottom:12px;">
           <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;margin-top:0;">Phí chành xe (không bắt buộc)</label>
-          <input type="text" id="dt-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInput(this)"
-            style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;" />
+          <div style="position:relative;">
+          <input type="text" id="dt-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInputK(this);ixShow(this)"
+            style="width:100%;padding:9px 36px 9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;box-sizing:border-box;" />
+          <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+          </div>
         </div>
 
         <div style="margin-bottom:14px;">
           <label id="dt-ghichu-label" style="font-size:12px;color:#888;display:block;margin-bottom:6px;margin-top:0;">Ghi chú (không bắt buộc)</label>
-          <input type="text" id="dt-ghichu" placeholder="Tên khách, đơn hàng..."
-            style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;" />
+          <div style="position:relative;">
+          <input type="text" id="dt-ghichu" placeholder="Tên khách, đơn hàng..." oninput="ixShow(this)"
+            style="width:100%;padding:9px 36px 9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;box-sizing:border-box;" />
+          <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+          </div>
         </div>
 
         <button id="dt-btn-confirm" class="btn-confirm xuat" onclick="dtSubmit()" style="width:100%;">
@@ -1005,7 +1068,10 @@ const CONFIG = {
 
     <div id="hedit-tenkhach-wrap">
       <div style="font-size:13px;color:#888;margin-bottom:5px;">T&#234;n kh&#225;ch h&#224;ng</div>
-      <input id="hedit-tenkhach" type="text" placeholder="T&#234;n kh&#225;ch..." style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;margin-bottom:10px;box-sizing:border-box;">
+      <div style="position:relative;margin-bottom:10px;">
+      <input id="hedit-tenkhach" type="text" placeholder="T&#234;n kh&#225;ch..." oninput="ixShow(this)" style="width:100%;padding:9px 36px 9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;box-sizing:border-box;">
+      <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+      </div>
     </div>
 
     <div style="font-size:13px;color:#888;margin-bottom:5px;">Giao d&#7883;ch</div>
@@ -1661,6 +1727,37 @@ function parseNum(val) {
   return parseInt((val || '').toString().replace(/[^0-9]/g, '')) || 0;
 }
 
+function ixShow(el) {
+  const b = el.nextElementSibling;
+  if (b && b.classList.contains('ix')) b.style.display = el.value ? 'inline-block' : 'none';
+}
+function ixClear(el) {
+  el.value = '';
+  if ('kd' in el.dataset) el.dataset.kd = '';
+  el.dispatchEvent(new Event('input', {bubbles: true}));
+}
+function fmtInputK(el) {
+  const inputDigits = el.value.replace(/[^0-9]/g, '');
+  if (!inputDigits) { el.value = ''; el.dataset.kd = ''; return; }
+  const prevKd = el.dataset.kd || '';
+  const prevFull = prevKd ? (parseInt(prevKd) * 1000).toString() : '';
+  let newKd;
+  if (!prevKd) {
+    newKd = inputDigits.endsWith('000') && inputDigits.length > 3 ? inputDigits.slice(0, -3) : inputDigits;
+  } else if (inputDigits.startsWith(prevFull) && inputDigits.length === prevFull.length + 1) {
+    newKd = prevKd + inputDigits.slice(-1);
+  } else if (inputDigits.length < prevFull.length) {
+    const steps = prevFull.length - inputDigits.length;
+    newKd = steps >= prevKd.length ? '' : prevKd.slice(0, -steps);
+  } else {
+    newKd = inputDigits.endsWith('000') && inputDigits.length > 3 ? inputDigits.slice(0, -3) : inputDigits;
+  }
+  el.dataset.kd = newKd;
+  if (!newKd) { el.value = ''; return; }
+  el.value = (parseInt(newKd) * 1000).toLocaleString('en-US');
+  el.setSelectionRange(el.value.length, el.value.length);
+}
+
 function fmtInput(el) {
   const pos = el.selectionStart;
   const oldLen = el.value.length;
@@ -1736,6 +1833,77 @@ function filterProductList() {
   renderProductList(list, rawQ.trim());
 }
 
+function tonkhoUpdateClearBtn(inputId, btnId) {
+  const val = (document.getElementById(inputId) || {}).value || '';
+  const btn = document.getElementById(btnId);
+  if (btn) btn.style.display = val ? 'inline-block' : 'none';
+}
+function tonkhoClear(inputId, btnId, filterFn) {
+  const el = document.getElementById(inputId);
+  if (el) { el.value = ''; el.focus(); }
+  const btn = document.getElementById(btnId);
+  if (btn) btn.style.display = 'none';
+  if (filterFn) filterFn();
+}
+
+function updateFilterClearBtn() {
+  const val = (document.getElementById('manual-code') || {}).value || '';
+  const btn = document.getElementById('btn-filter-clear');
+  if (btn) btn.style.display = val ? 'inline-block' : 'none';
+}
+
+function clearFilterInput() {
+  const el = document.getElementById('manual-code');
+  if (el) { el.value = ''; el.focus(); }
+  updateFilterClearBtn();
+  filterProductList();
+  const dd = document.getElementById('search-history-dropdown');
+  if (dd) dd.style.display = 'none';
+}
+
+function saveSearchHistory() {
+  const val = ((document.getElementById('manual-code') || {}).value || '').trim();
+  if (!val) return;
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('searchHistory_main') || '[]'); } catch(e) {}
+  hist = hist.filter(function(x) { return x !== val; });
+  hist.unshift(val);
+  localStorage.setItem('searchHistory_main', JSON.stringify(hist.slice(0, 5)));
+}
+
+function toggleSearchHistory(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const dd = document.getElementById('search-history-dropdown');
+  if (!dd) return;
+  if (dd.style.display !== 'none') { dd.style.display = 'none'; return; }
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('searchHistory_main') || '[]'); } catch(e) {}
+  if (!hist.length) return;
+  dd.innerHTML = hist.map(function(h) {
+    const esc = h.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/'/g,"\\'");
+    return `<div onclick="applySearchHistory('${esc}')" style="padding:9px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid #f5f5f5;color:#333;background:#fff;">${h.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>`;
+  }).join('');
+  dd.style.display = 'block';
+  setTimeout(function() {
+    function closeHist(ev) {
+      if (!dd.contains(ev.target) && ev.target.id !== 'btn-filter-history') {
+        dd.style.display = 'none';
+        document.removeEventListener('click', closeHist);
+      }
+    }
+    document.addEventListener('click', closeHist);
+  }, 0);
+}
+
+function applySearchHistory(val) {
+  const el = document.getElementById('manual-code');
+  if (el) { el.value = val; el.focus(); }
+  const dd = document.getElementById('search-history-dropdown');
+  if (dd) dd.style.display = 'none';
+  updateFilterClearBtn();
+  filterProductList();
+}
+
 function renderProductList(list, kw) {
   const el = document.getElementById('product-list');
   if (!list || list.length === 0) {
@@ -1807,6 +1975,8 @@ function addToCartQty(product) {
 
 function addPlusMobile(product) {
   if (!product) return;
+  const filterEl = document.getElementById('manual-code');
+  const savedFilter = filterEl ? filterEl.value : '';
   const existing = cart.find(i => i.product.ma === product.ma);
   if (existing) {
     existing.sl += 1;
@@ -1817,15 +1987,19 @@ function addPlusMobile(product) {
     cart.push({ product: product, sl: inputVal, gia: 0 });
   }
   updateCartBadge();
+  if (filterEl && savedFilter) filterEl.value = savedFilter;
   filterProductList();
 }
 
 function subFromCartMobile(product) {
   if (!product) return;
+  const filterEl = document.getElementById('manual-code');
+  const savedFilter = filterEl ? filterEl.value : '';
   const existing = cart.find(i => i.product.ma === product.ma);
   if (!existing || existing.sl <= 1) return;
   existing.sl -= 1;
   updateCartBadge();
+  if (filterEl && savedFilter) filterEl.value = savedFilter;
   filterProductList();
 }
 
@@ -1947,9 +2121,13 @@ function renderCart() {
             oninput="fmtInput(this);updateCartSl(${idx},this.value)" />
           <button class="ci-add-btn" onclick="cartStepSl(${idx}, 1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <span class="ci-sep">×</span>
-          <input class="ci-gia" style="flex:1;" type="text" inputmode="numeric" value="${giaFormatted}"
-            placeholder="${giaPlaceholder}"
-            oninput="fmtInput(this);updateCartGia(${idx},this.value)" />
+          <div style="position:relative;flex:1;">
+            <input class="ci-gia" style="width:100%;box-sizing:border-box;padding-right:22px;" type="text" inputmode="numeric" value="${giaFormatted}"
+              data-kd="${item.gia > 0 ? Math.floor(item.gia/1000) : ''}"
+              placeholder="${giaPlaceholder}"
+              oninput="fmtInputK(this);updateCartGia(${idx},this.value);ixShow(this)" />
+            <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:${giaFormatted ? 'inline-block' : 'none'};position:absolute;right:3px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px 3px;cursor:pointer;color:#bbb;font-size:11px;line-height:1;">✕</button>
+          </div>
           <span class="ci-sep">=</span>
           <span class="ci-sub" id="ci-sub-${idx}">${sub > 0 ? fmt(sub) + ' đ' : '—'}</span>
         </div>
@@ -2500,14 +2678,19 @@ async function openProductForm(mode, product, skipFetch = false) {
     const displayVal = isNum && raw !== '' ? (Number(raw) > 0 ? Number(raw).toLocaleString('en-US') : '') : String(raw).replace(/"/g, '&quot;');
     const locked = col.field === 'ma';
     const required = col.field === 'ma' || col.field === 'ten';
+    const ixBtn = !locked ? ('<button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:' + (displayVal ? 'inline-block' : 'none') + ';position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>') : '';
     return `
       <label style="margin-top:12px;">${col.form_label || col.sheet_name}${required ? ' <span style="color:#f44336;">*</span>' : ''}</label>
+      <div style="position:relative;">
       <input id="pf_${col.field}"
         type="text" inputmode="${isNum ? 'numeric' : 'text'}"
         value="${displayVal}"
         placeholder="${col.sheet_name}..."
-        ${isNum ? 'oninput="fmtInput(this)"' : ''}
-        ${locked ? 'readonly style="background:#f5f5f5;color:#888;"' : ''} />
+        ${isNum ? ('oninput="' + ((col.field === 'giavon' || col.field === 'giasi') ? 'fmtInputK(this)' : 'fmtInput(this)') + ';ixShow(this)"') : (!locked ? 'oninput="ixShow(this)"' : '')}
+        ${(col.field === 'giavon' || col.field === 'giasi') ? ('data-kd="' + (displayVal ? Math.floor(parseNum(displayVal)/1000) : '') + '"') : ''}
+        ${locked ? 'readonly style="background:#f5f5f5;color:#888;"' : 'style="padding-right:26px;"'} />
+      ${ixBtn}
+      </div>
     `;
   }).join('');
 
@@ -2710,6 +2893,168 @@ function dtFilterProducts() {
   dtRenderProducts(list, rawQ.trim());
 }
 
+function dtUpdateFilterClearBtn() {
+  const val = (document.getElementById('dt-search') || {}).value || '';
+  const btn = document.getElementById('dt-btn-filter-clear');
+  if (btn) btn.style.display = val ? 'inline-block' : 'none';
+}
+
+function dtClearFilterInput() {
+  const el = document.getElementById('dt-search');
+  if (el) { el.value = ''; el.focus(); }
+  dtUpdateFilterClearBtn();
+  dtFilterProducts();
+  const dd = document.getElementById('dt-search-history-dropdown');
+  if (dd) dd.style.display = 'none';
+}
+
+function dtSaveSearchHistory() {
+  const val = ((document.getElementById('dt-search') || {}).value || '').trim();
+  if (!val) return;
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('searchHistory_main') || '[]'); } catch(e) {}
+  hist = hist.filter(function(x) { return x !== val; });
+  hist.unshift(val);
+  localStorage.setItem('searchHistory_main', JSON.stringify(hist.slice(0, 5)));
+}
+
+function dtToggleSearchHistory(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const dd = document.getElementById('dt-search-history-dropdown');
+  if (!dd) return;
+  if (dd.style.display !== 'none') { dd.style.display = 'none'; return; }
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('searchHistory_main') || '[]'); } catch(e) {}
+  if (!hist.length) return;
+  dd.innerHTML = hist.map(function(h) {
+    const esc = h.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/'/g,"\\'");
+    return `<div onclick="dtApplySearchHistory('${esc}')" style="padding:8px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid #f5f5f5;color:#333;background:#fff;">${h.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>`;
+  }).join('');
+  dd.style.display = 'block';
+  setTimeout(function() {
+    function closeHist(ev) {
+      if (!dd.contains(ev.target) && ev.target.id !== 'dt-btn-filter-history') {
+        dd.style.display = 'none';
+        document.removeEventListener('click', closeHist);
+      }
+    }
+    document.addEventListener('click', closeHist);
+  }, 0);
+}
+
+function dtApplySearchHistory(val) {
+  const el = document.getElementById('dt-search');
+  if (el) { el.value = val; el.focus(); }
+  const dd = document.getElementById('dt-search-history-dropdown');
+  if (dd) dd.style.display = 'none';
+  dtUpdateFilterClearBtn();
+  dtFilterProducts();
+}
+
+// ===== MANAGE PRODUCTS FILTER HELPERS =====
+function mngUpdateFilterClearBtn() {
+  const val = (document.getElementById('manage-search') || {}).value || '';
+  const btn = document.getElementById('mng-btn-filter-clear');
+  if (btn) btn.style.display = val ? 'inline-block' : 'none';
+}
+function mngClearFilterInput() {
+  const el = document.getElementById('manage-search');
+  if (el) { el.value = ''; el.focus(); }
+  mngUpdateFilterClearBtn();
+  filterManageProducts();
+  const dd = document.getElementById('mng-search-history-dropdown');
+  if (dd) dd.style.display = 'none';
+}
+function mngSaveSearchHistory() {
+  const val = ((document.getElementById('manage-search') || {}).value || '').trim();
+  if (!val) return;
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('searchHistory_manage') || '[]'); } catch(e) {}
+  hist = hist.filter(function(x) { return x !== val; });
+  hist.unshift(val);
+  localStorage.setItem('searchHistory_manage', JSON.stringify(hist.slice(0, 5)));
+}
+function mngToggleSearchHistory(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const dd = document.getElementById('mng-search-history-dropdown');
+  if (!dd) return;
+  if (dd.style.display !== 'none') { dd.style.display = 'none'; return; }
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('searchHistory_manage') || '[]'); } catch(e) {}
+  if (!hist.length) return;
+  dd.innerHTML = hist.map(function(h) {
+    const esc = h.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/'/g,"\\'");
+    return `<div onclick="mngApplySearchHistory('${esc}')" style="padding:8px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid #f5f5f5;color:#333;background:#fff;">${h.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>`;
+  }).join('');
+  dd.style.display = 'block';
+  setTimeout(function() {
+    function closeHist(ev) {
+      if (!dd.contains(ev.target) && ev.target.id !== 'mng-btn-filter-history') { dd.style.display = 'none'; document.removeEventListener('click', closeHist); }
+    }
+    document.addEventListener('click', closeHist);
+  }, 0);
+}
+function mngApplySearchHistory(val) {
+  const el = document.getElementById('manage-search');
+  if (el) { el.value = val; el.focus(); }
+  const dd = document.getElementById('mng-search-history-dropdown');
+  if (dd) dd.style.display = 'none';
+  mngUpdateFilterClearBtn();
+  filterManageProducts();
+}
+
+// ===== HISTORY FILTER HELPERS =====
+function histUpdateFilterClearBtn() {
+  const val = (document.getElementById('hist-search') || {}).value || '';
+  const btn = document.getElementById('hist-btn-filter-clear');
+  if (btn) btn.style.display = val ? 'inline-block' : 'none';
+}
+function histClearFilterInput() {
+  const el = document.getElementById('hist-search');
+  if (el) { el.value = ''; el.focus(); }
+  histUpdateFilterClearBtn();
+  _renderHistory();
+  const dd = document.getElementById('hist-search-history-dropdown');
+  if (dd) dd.style.display = 'none';
+}
+function histSaveSearchHistory() {
+  const val = ((document.getElementById('hist-search') || {}).value || '').trim();
+  if (!val) return;
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('searchHistory_hist') || '[]'); } catch(e) {}
+  hist = hist.filter(function(x) { return x !== val; });
+  hist.unshift(val);
+  localStorage.setItem('searchHistory_hist', JSON.stringify(hist.slice(0, 5)));
+}
+function histToggleSearchHistory(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const dd = document.getElementById('hist-search-history-dropdown');
+  if (!dd) return;
+  if (dd.style.display !== 'none') { dd.style.display = 'none'; return; }
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('searchHistory_hist') || '[]'); } catch(e) {}
+  if (!hist.length) return;
+  dd.innerHTML = hist.map(function(h) {
+    const esc = h.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/'/g,"\\'");
+    return `<div onclick="histApplySearchHistory('${esc}')" style="padding:9px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid #f5f5f5;color:#333;background:#fff;">${h.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>`;
+  }).join('');
+  dd.style.display = 'block';
+  setTimeout(function() {
+    function closeHist(ev) {
+      if (!dd.contains(ev.target) && ev.target.id !== 'hist-btn-filter-history') { dd.style.display = 'none'; document.removeEventListener('click', closeHist); }
+    }
+    document.addEventListener('click', closeHist);
+  }, 0);
+}
+function histApplySearchHistory(val) {
+  const el = document.getElementById('hist-search');
+  if (el) { el.value = val; el.focus(); }
+  const dd = document.getElementById('hist-search-history-dropdown');
+  if (dd) dd.style.display = 'none';
+  histUpdateFilterClearBtn();
+  _renderHistory();
+}
+
 function dtRenderProducts(list, kw) {
   const renderList = list !== undefined ? list : (products || []).filter(p => !isHidden(p.ma));
   const el = document.getElementById('dt-product-list');
@@ -2768,6 +3113,8 @@ function dtAddToCart(ma, sl) {
 function dtAddPlus(ma) {
   const product = products.find(p => p.ma === ma);
   if (!product) return;
+  const dtSearchEl = document.getElementById('dt-search');
+  const savedFilter = dtSearchEl ? dtSearchEl.value : '';
   const exists = dtCart.findIndex(i => i.product.ma === ma);
   if (exists !== -1) {
     dtCart[exists].sl += 1;
@@ -2777,15 +3124,19 @@ function dtAddPlus(ma) {
     dtCart.push({ product: product, sl: inputVal, gia: 0 });
   }
   dtRenderCart();
-  dtRenderProducts();
+  if (dtSearchEl && savedFilter) dtSearchEl.value = savedFilter;
+  dtFilterProducts();
 }
 
 function dtSubFromCart(ma) {
   const item = dtCart.find(i => i.product.ma === ma);
   if (!item || item.sl <= 1) return;
+  const dtSearchEl = document.getElementById('dt-search');
+  const savedFilter = dtSearchEl ? dtSearchEl.value : '';
   item.sl -= 1;
   dtRenderCart();
-  dtRenderProducts();
+  if (dtSearchEl && savedFilter) dtSearchEl.value = savedFilter;
+  dtFilterProducts();
 }
 
 function dtRemoveFromCart(ma) {
@@ -2851,8 +3202,8 @@ function dtRenderCart() {
     const safeId = p.ma.replace(/[^a-zA-Z0-9]/g, '_');
     const giaFmt = item.gia > 0 ? Number(item.gia).toLocaleString('en-US') : '';
     const sub = item.sl * effectiveGia(item, dtMode);
-    const gs = Number(p.giasi) || 0;
-    const gvNum = Number(p.giavon) || 0;
+    const gs = parseNum(p.giasi);
+    const gvNum = parseNum(p.giavon);
     const giaPlaceholder = dtMode === 'Xuất'
       ? (gs > 0 ? `Giá sỉ: ${gs.toLocaleString('en-US')}đ` : 'Nhập giá...')
       : (gvNum > 0 ? `Giá vốn: ${gvNum.toLocaleString('en-US')}đ` : 'Nhập giá...');
@@ -2880,10 +3231,14 @@ function dtRenderCart() {
             oninput="fmtInput(this);dtUpdateCart('${p.ma}','sl',this.value)" />
           <button onclick="dtCartStepSl('${p.ma}', 1)" style="width:28px;height:28px;background:#4CAF50;color:#fff;border:none;border-radius:50%;font-size:16px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <span style="font-size:12px;color:#aaa;">×</span>
-          <input type="text" inputmode="numeric" value="${giaFmt}"
-            placeholder="${giaPlaceholder}"
-            style="flex:1;padding:5px 7px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;"
-            oninput="fmtInput(this);dtUpdateCart('${p.ma}','gia',this.value)" />
+          <div style="position:relative;flex:1;">
+            <input type="text" inputmode="numeric" value="${giaFmt}"
+              placeholder="${giaPlaceholder}"
+              style="width:100%;padding:5px 22px 5px 7px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box;"
+              data-kd="${p.gia > 0 ? Math.floor(p.gia/1000) : ''}"
+              oninput="fmtInputK(this);dtUpdateCart('${p.ma}','gia',this.value);ixShow(this)" />
+            <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:${giaFmt ? 'inline-block' : 'none'};position:absolute;right:3px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px 3px;cursor:pointer;color:#bbb;font-size:11px;line-height:1;">✕</button>
+          </div>
           <span style="font-size:12px;color:#aaa;">=</span>
           <span id="dt-sub-${safeId}" style="font-size:12px;font-weight:600;color:#4CAF50;min-width:55px;text-align:right;">
             ${sub > 0 ? fmt(sub) + ' đ' : '—'}
@@ -3639,6 +3994,18 @@ function _renderHistory() {
     }
   }
 
+  // Lọc theo text search
+  const histQ = removeDiacritics(((document.getElementById('hist-search') || {}).value || '').trim());
+  if (histQ) {
+    filtered = filtered.filter(r =>
+      removeDiacritics(r.hanghoa || '').includes(histQ) ||
+      removeDiacritics(r.ma || '').includes(histQ) ||
+      removeDiacritics(r.ncc || '').includes(histQ) ||
+      removeDiacritics(r.tenkhach || '').includes(histQ) ||
+      removeDiacritics(r.kichthuoc || '').includes(histQ)
+    );
+  }
+
   // Gom nhóm theo thoigian + tenkhach + loai
   const groupMap = new Map();
   filtered.forEach(r => {
@@ -3826,15 +4193,26 @@ function histEditGroup(idx) {
   document.getElementById('hedit-rows').innerHTML = g.rows.map((r, i) => `
     <div style="border:1px solid #e8e8e8;border-radius:10px;padding:10px;margin-bottom:8px;background:#fafafa;">
       <div style="font-size:11px;color:#aaa;margin-bottom:6px;font-weight:600;">SP #${i+1} &middot; ${_esc(r.ma)}</div>
-      <input type="text" id="hedit-hn-${i}" value="${_esc(r.hanghoa)}" placeholder="T\u00EAn h\u00E0ng"
-        style="width:100%;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;margin-bottom:6px;box-sizing:border-box;">
+      <div style="position:relative;margin-bottom:6px;">
+        <input type="text" id="hedit-hn-${i}" value="${_esc(r.hanghoa)}" placeholder="T\u00EAn h\u00E0ng" oninput="ixShow(this)"
+          style="width:100%;padding:7px 26px 7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+        <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:${r.hanghoa ? 'inline-block' : 'none'};position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px 3px;cursor:pointer;color:#bbb;font-size:11px;line-height:1;">✕</button>
+      </div>
       <div style="display:flex;gap:6px;">
-        <input type="text"   id="hedit-dvt-${i}" value="${_esc(r.dvt)}"  placeholder="\u0110VT"
-          style="width:64px;padding:7px 6px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;text-align:center;">
+        <div style="position:relative;width:64px;">
+          <input type="text" id="hedit-dvt-${i}" value="${_esc(r.dvt)}" placeholder="\u0110VT" oninput="ixShow(this)"
+            style="width:100%;padding:7px 18px 7px 6px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;text-align:center;box-sizing:border-box;">
+          <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:${r.dvt ? 'inline-block' : 'none'};position:absolute;right:2px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px;cursor:pointer;color:#bbb;font-size:10px;line-height:1;">✕</button>
+        </div>
         <input type="number" id="hedit-sl-${i}"  value="${r.soluong}"    placeholder="SL"
           style="width:64px;padding:7px 6px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;text-align:center;" min="0">
-        <input type="number" id="hedit-gia-${i}" value="${r.gia}"        placeholder="\u0110\u01A1n gi\u00E1"
-          style="flex:1;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;" min="0">
+        <div style="position:relative;flex:1;">
+          <input type="text" inputmode="numeric" id="hedit-gia-${i}" value="${r.gia > 0 ? Number(r.gia).toLocaleString('en-US') : ''}" placeholder="\u0110\u01A1n gi\u00E1"
+            data-kd="${r.gia > 0 ? Math.floor(r.gia/1000) : ''}"
+            style="width:100%;padding:7px 22px 7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"
+            oninput="fmtInputK(this);ixShow(this)">
+          <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:${r.gia > 0 ? 'inline-block' : 'none'};position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px 3px;cursor:pointer;color:#bbb;font-size:11px;line-height:1;">✕</button>
+        </div>
       </div>
     </div>`).join('');
 
@@ -3862,7 +4240,7 @@ async function histSaveEdit() {
     const hanghoa = (document.getElementById('hedit-hn-' + i)?.value  ?? r.hanghoa).trim();
     const dvt     = (document.getElementById('hedit-dvt-' + i)?.value ?? r.dvt).trim();
     const soluong = parseFloat(document.getElementById('hedit-sl-' + i)?.value)  || r.soluong;
-    const gia     = parseFloat(document.getElementById('hedit-gia-' + i)?.value) || r.gia;
+    const gia     = parseNum(document.getElementById('hedit-gia-' + i)?.value) || r.gia;
 
     const changes = [];
     if (hanghoa !== r.hanghoa)           changes.push('Mặt hàng: ' + r.hanghoa + '→' + hanghoa);
