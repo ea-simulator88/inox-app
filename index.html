@@ -282,7 +282,7 @@ const CONFIG = {
     { sheet_name: "Số lượng",     value: "form.soluong"      },
     { sheet_name: "Giá bán",      value: "form.gia"          },
     { sheet_name: "Giao dịch",    value: "form.giaodich"     },
-    { sheet_name: "Phí chành xe", value: "form.phichanh"     },
+    { sheet_name: "Phí vận chuyển", value: "form.phichanh"     },
     { sheet_name: "Tổng",         value: "sheet_formula"     },
     { sheet_name: "Tên khách",    value: "form.ghichu"       },
   ],
@@ -297,7 +297,7 @@ const CONFIG = {
     { sheet_name: "Số lượng",     value: "form.soluong"      },
     { sheet_name: "Giá nhập",     value: "form.gia"          },
     { sheet_name: "Giao dịch",    value: "form.giaodich"     },
-    { sheet_name: "Phí chành xe", value: "form.phichanh"     },
+    { sheet_name: "Phí vận chuyển", value: "form.phichanh"     },
     { sheet_name: "Tổng",         value: "sheet_formula"     },
     { sheet_name: "Ghi chú",      value: "form.ghichu"       },
   ]
@@ -476,7 +476,7 @@ const CONFIG = {
     </select>
 
     <div id="row-phichanh" style="display:none;">
-      <label>Phí chành xe (không bắt buộc)</label>
+      <label>Phí vận chuyển (không bắt buộc)</label>
       <div style="position:relative;">
         <input type="text" id="form-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInputK(this);ixShow(this)" style="width:100%;box-sizing:border-box;padding-right:26px;" />
         <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
@@ -605,7 +605,7 @@ const CONFIG = {
           <option value="Tiền mặt + Chuyển khoản">Tiền mặt + Chuyển khoản</option>
         </select>
 
-        <label>Phí chành xe (không bắt buộc)</label>
+        <label>Phí vận chuyển (không bắt buộc)</label>
         <div style="position:relative;">
           <input type="text" id="cart-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInputK(this);ixShow(this)" style="width:100%;box-sizing:border-box;padding-right:26px;" />
           <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
@@ -994,7 +994,7 @@ const CONFIG = {
         </div>
 
         <div id="dt-row-phichanh" style="margin-bottom:12px;">
-          <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;margin-top:0;">Phí chành xe (không bắt buộc)</label>
+          <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;margin-top:0;">Phí vận chuyển (không bắt buộc)</label>
           <div style="position:relative;">
           <input type="text" id="dt-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInputK(this);ixShow(this)"
             style="width:100%;padding:9px 36px 9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;box-sizing:border-box;" />
@@ -1126,6 +1126,12 @@ const CONFIG = {
       <option value="Chuy&#7875;n kho&#7843;n">Chuy&#7875;n kho&#7843;n</option>
       <option value="Ti&#7873;n m&#7863;t + Chuy&#7875;n kho&#7843;n">Ti&#7873;n m&#7863;t + Chuy&#7875;n kho&#7843;n</option>
     </select>
+
+    <div style="font-size:13px;color:#888;margin-bottom:5px;">Phí vận chuyển (không bắt buộc)</div>
+    <div style="position:relative;margin-bottom:14px;">
+      <input type="text" id="hedit-phichanh" inputmode="numeric" placeholder="Nhập phí..." oninput="fmtInputK(this);ixShow(this)" style="width:100%;padding:9px 36px 9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;box-sizing:border-box;">
+      <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+    </div>
 
     <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px;">S&#7843;n ph&#7849;m:</div>
     <div id="hedit-rows"></div>
@@ -2429,7 +2435,7 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh) {
     <div class="info-row"><span class="info-label">Số lượng SP</span><span class="info-value">${totalQty}</span></div>
     <div class="info-row"><span class="info-label">Tổng tiền</span><span class="info-value green">${fmt(totalAmount)} đ</span></div>
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
-    ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí chành xe</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
+    ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
     ${ghichu ? `<div class="info-row"><span class="info-label">${mode === 'Xuất' ? 'Tên khách' : 'Ghi chú'}</span><span class="info-value">${ghichu}</span></div>` : ''}
   `;
 
@@ -2668,7 +2674,7 @@ async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
     <div class="info-row"><span class="info-label">Số lượng</span><span class="info-value">${fmt(sl)} ${currentProduct.dvt}</span></div>
     <div class="info-row"><span class="info-label">${isXuat ? 'Giá bán' : 'Giá nhập'}</span><span class="info-value">${fmt(gia)} đ</span></div>
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
-    ${isXuat && phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí chành xe</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
+    ${isXuat && phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
     ${ghichu ? `<div class="info-row"><span class="info-label">Ghi chú</span><span class="info-value">${ghichu}</span></div>` : ''}
   `;
   showScreen('screen-success');
@@ -3521,7 +3527,7 @@ async function _doDtSubmit(giaodich, ghichu, phiChanh) {
     <div class="info-row"><span class="info-label">Số lượng SP</span><span class="info-value">${totalQty}</span></div>
     <div class="info-row"><span class="info-label">Tổng tiền</span><span class="info-value green">${fmt(totalAmount)} đ</span></div>
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
-    ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí chành xe</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
+    ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
     ${ghichu ? `<div class="info-row"><span class="info-label">${isXuat ? 'Tên khách' : 'Ghi chú'}</span><span class="info-value">${ghichu}</span></div>` : ''}
   `;
   document.getElementById('dt-success-overlay').style.display = 'flex';
@@ -4068,7 +4074,7 @@ function showReportDetail(idx) {
           <div style="text-align:right;flex-shrink:0;">
             <div style="font-size:11px;color:#666;">${fmt(r.soluong)} × ${fmt(r.gia)}đ</div>
             <div style="font-size:13px;font-weight:700;color:${isNhap?'#0d47a1':'#e65100'};">${fmt(total)}đ</div>
-            ${r.phichanh ? `<div style="font-size:11px;color:#e65100;">Phí chành xe: ${fmt(Math.abs(Number(r.phichanh)))}đ</div>` : ''}
+            ${r.phichanh ? `<div style="font-size:11px;color:#e65100;">Phí vận chuyển: ${fmt(Math.abs(Number(r.phichanh)))}đ</div>` : ''}
           </div>
         </div>`;
       }).join('') +
@@ -4442,6 +4448,15 @@ function histEditGroup(idx) {
 
   document.getElementById('hedit-giaodich').value = g.giaodich || '';
 
+  const _hpc = document.getElementById('hedit-phichanh');
+  if (_hpc) {
+    const absVal = Math.abs((g.rows[0] && g.rows[0].phichanh) || 0);
+    const kd = absVal > 0 ? Math.floor(absVal / 1000) : 0;
+    _hpc.dataset.kd = kd > 0 ? String(kd) : '';
+    _hpc.value = kd > 0 ? (kd * 1000).toLocaleString('en-US') : '';
+    ixShow(_hpc);
+  }
+
   document.getElementById('hedit-rows').innerHTML = g.rows.map((r, i) => `
     <div style="border:1px solid #e8e8e8;border-radius:10px;padding:10px;margin-bottom:8px;background:#fafafa;">
       <div style="font-size:11px;color:#aaa;margin-bottom:6px;font-weight:600;">SP #${i+1} &middot; ${_esc(r.ma)}</div>
@@ -4482,6 +4497,7 @@ async function histSaveEdit() {
   const isXuat = g.loai === 'Xu\u1EA5t';
   const newTenkhach = isXuat ? (document.getElementById('hedit-tenkhach').value || '').trim() : '';
   const newGiaodich = document.getElementById('hedit-giaodich').value || '';
+  const newPhiChanh = parseNum(document.getElementById('hedit-phichanh')?.value) || 0;
 
   const updatedRows = [];
   const notes = [];
@@ -4501,10 +4517,15 @@ async function histSaveEdit() {
     if (gia !== r.gia)                   changes.push('Giá: ' + r.gia + '→' + gia);
     if (newGiaodich !== r.giaodich)      changes.push('GD: ' + r.giaodich + '→' + newGiaodich);
     if (isXuat && newTenkhach !== (r.tenkhach || '')) changes.push('Khách: ' + (r.tenkhach||'') + '→' + newTenkhach);
+    if (i === 0) {
+      const oldPhi = Math.abs(r.phichanh || 0);
+      if (newPhiChanh !== oldPhi) changes.push('Phí VC: ' + oldPhi + '→' + newPhiChanh);
+    }
 
     notes.push(changes.length > 0 ? changes.join('; ') + '; ' + dateStr : '');
     // col: [ma, thoigian, ncc, hanghoa, kichthuoc, mota, dvt, soluong, gia, giaodich, phichanh, '', tenkhach/ghichu]
-    updatedRows.push([r.ma, r.thoigian, r.ncc, hanghoa, r.kichthuoc, r.mota, dvt, soluong, gia, newGiaodich, '', '', isXuat ? newTenkhach : '']);
+    const storedPhi = i === 0 ? (newPhiChanh ? (isXuat ? -newPhiChanh : newPhiChanh) : '') : '';
+    updatedRows.push([r.ma, r.thoigian, r.ncc, hanghoa, r.kichthuoc, r.mota, dvt, soluong, gia, newGiaodich, storedPhi, '', isXuat ? newTenkhach : '']);
   });
 
   const saveBtn = document.getElementById('hedit-save-btn');
