@@ -129,8 +129,8 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .ci-sl:focus { border-color: #4CAF50; background: #fff; }
 .ci-gia { flex: 1; padding: 5px 4px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; background: #fafafa; outline: none; color: #1a1a1a; }
 .ci-gia:focus { border-color: #4CAF50; background: #fff; }
-.ci-sep { font-size: 14px; color: #aaa; flex-shrink: 0; }
-.ci-sub { font-size: 14px; color: #4CAF50; font-weight: 600; text-align: left; white-space: nowrap; flex-shrink: 0; }
+.ci-sep { font-size: 14.5px; color: #aaa; flex-shrink: 0; }
+.ci-sub { font-size: 14.5px; color: #4CAF50; font-weight: 600; text-align: left; white-space: nowrap; flex-shrink: 0; }
 .btn-delete { background: none; border: none; color: #f44336; font-size: 20px; cursor: pointer; padding: 2px 6px; line-height: 1; flex-shrink: 0; }
 
 .cart-empty { text-align: center; padding: 3rem 0; color: #aaa; font-size: 15px; line-height: 2; }
@@ -453,11 +453,17 @@ const CONFIG = {
     </div>
 
     <label>Số lượng <span style="color:#f44336;">*</span></label>
-    <input type="text" id="form-soluong" placeholder="Nhập số lượng..." inputmode="numeric" oninput="fmtInput(this);checkFormWarnings()" />
+    <div style="position:relative;">
+      <input type="text" id="form-soluong" placeholder="Nhập số lượng..." inputmode="numeric" oninput="fmtInput(this);checkFormWarnings();ixShow(this)" style="width:100%;box-sizing:border-box;padding-right:26px;" />
+      <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+    </div>
     <div id="form-warn-sl" style="display:none;font-size:12px;color:#f44336;margin-top:2px;padding-left:2px;"></div>
 
     <label id="label-gia">Giá bán (đồng) <span style="color:#f44336;">*</span></label>
-    <input type="text" id="form-gia" placeholder="Nhập giá..." inputmode="numeric" oninput="fmtInput(this);checkFormWarnings()" />
+    <div style="position:relative;">
+      <input type="text" id="form-gia" placeholder="Nhập giá..." inputmode="numeric" oninput="fmtInputK(this);checkFormWarnings();ixShow(this)" style="width:100%;box-sizing:border-box;padding-right:26px;" />
+      <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+    </div>
     <div id="form-warn-gia" style="display:none;font-size:12px;color:#e65100;margin-top:2px;padding-left:2px;"></div>
 
     <label>Giao dịch <span style="color:#f44336;">*</span></label>
@@ -470,11 +476,17 @@ const CONFIG = {
 
     <div id="row-phichanh" style="display:none;">
       <label>Phí chành xe (không bắt buộc)</label>
-      <input type="text" id="form-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInputK(this)" />
+      <div style="position:relative;">
+        <input type="text" id="form-phichanh" placeholder="Nhập phí..." inputmode="numeric" oninput="fmtInputK(this);ixShow(this)" style="width:100%;box-sizing:border-box;padding-right:26px;" />
+        <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+      </div>
     </div>
 
     <label id="form-ghichu-label">Ghi chú (không bắt buộc)</label>
-    <input type="text" id="form-ghichu" placeholder="Tên khách, đơn hàng..." />
+    <div style="position:relative;">
+      <input type="text" id="form-ghichu" placeholder="Tên khách, đơn hàng..." oninput="ixShow(this)" style="width:100%;box-sizing:border-box;padding-right:26px;" />
+      <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+    </div>
 
     <button class="btn-add-cart-form" onclick="addToCartFromForm()">🛒 Thêm vào giỏ</button>
     <button class="btn-confirm xuat" id="btn-confirm" onclick="submitForm()">✅ Xác nhận Xuất hàng</button>
