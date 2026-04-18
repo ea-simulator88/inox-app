@@ -2098,6 +2098,7 @@ function addPlusMobile(product) {
   updateCartBadge();
   if (filterEl && savedFilter) filterEl.value = savedFilter;
   filterProductList();
+  saveCart();
 }
 
 function subFromCartMobile(product) {
@@ -2110,6 +2111,7 @@ function subFromCartMobile(product) {
   updateCartBadge();
   if (filterEl && savedFilter) filterEl.value = savedFilter;
   filterProductList();
+  saveCart();
 }
 
 function showToast(msg) {
@@ -2264,6 +2266,7 @@ function cartStepSl(idx, delta) {
   if (newSl < 1) return;
   cart[idx].sl = newSl;
   renderCart();
+  saveCart();
 }
 
 function updateCartSl(idx, val) {
@@ -3245,6 +3248,7 @@ function dtAddPlus(ma) {
   dtRenderCart();
   if (dtSearchEl && savedFilter) dtSearchEl.value = savedFilter;
   dtFilterProducts();
+  saveCart();
 }
 
 function dtSubFromCart(ma) {
@@ -3256,6 +3260,7 @@ function dtSubFromCart(ma) {
   dtRenderCart();
   if (dtSearchEl && savedFilter) dtSearchEl.value = savedFilter;
   dtFilterProducts();
+  saveCart();
 }
 
 function dtRemoveFromCart(ma) {
