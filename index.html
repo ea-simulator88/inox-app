@@ -234,6 +234,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .dt-product-item:hover { background: #f5f5f5 !important; }
 .dt-product-item.in-cart { background: #e8f5e9 !important; border-color: #a5d6a7 !important; }
 .dt-cart-item { padding: 8px; border-radius: 8px; border: 1px solid #f0f0f0; margin-bottom: 6px; }
+.cart-warn { border-color: #f44336 !important; background: #fff3f3 !important; }
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body * { visibility: hidden !important; }
@@ -1757,17 +1758,33 @@ async function fetchProductsFromServer() {
 }
 
 // ===== HELPERS =====
-function showModal(msg, sub, onYes) {
+function showModal(msg, sub, onYes, highlightMas) {
   const overlay = document.getElementById('modal-overlay');
   document.getElementById('modal-msg').textContent = msg;
-  document.getElementById('modal-sub').textContent = sub;
+  const subEl = document.getElementById('modal-sub');
+  if (highlightMas && highlightMas.length > 0) {
+    subEl.innerHTML = sub;
+  } else {
+    subEl.innerHTML = '';
+    subEl.textContent = sub;
+  }
   const yes = document.getElementById('modal-yes');
   const no = document.getElementById('modal-no');
   yes.style.display = '';
   yes.textContent = 'Vẫn xuất';
   no.textContent = 'Không';
   overlay.style.display = 'flex';
-  const close = () => { overlay.style.display = 'none'; };
+  if (highlightMas && highlightMas.length > 0) {
+    highlightMas.forEach(function(ma) {
+      var sid = ma.replace(/[^a-zA-Z0-9]/g, '_');
+      var mEl = document.getElementById('ci-' + sid);
+      var dtEl = document.getElementById('dtci-' + sid);
+      if (mEl) mEl.classList.add('cart-warn');
+      if (dtEl) dtEl.classList.add('cart-warn');
+    });
+  }
+  const _clearWarn = () => { document.querySelectorAll('.cart-warn').forEach(function(el) { el.classList.remove('cart-warn'); }); };
+  const close = () => { overlay.style.display = 'none'; _clearWarn(); };
   yes.onclick = () => { close(); onYes(); };
   no.onclick = close;
   overlay.onclick = (e) => { if (e.target === overlay) close(); };
@@ -2194,7 +2211,7 @@ function renderCart() {
     const tonkho = Number(item.product.tonkho) || 0;
     const showWarnSl = cartMode === 'Xuất' && item.sl > 0 && item.sl > tonkho;
     const showWarnGia = cartMode === 'Xuất' && item.gia > 0 && gs > 0 && item.gia < gs;
-    return `<div class="cart-item">
+    return `<div class="cart-item" id="ci-${item.product.ma.replace(/[^a-zA-Z0-9]/g, '_')}">
       <div class="cart-item-header">
         <div>
           <div class="cart-item-name">${item.product.ten}</div>
@@ -2346,11 +2363,18 @@ async function submitCart(mode) {
   if (mode === 'Xuất' && currentRole === 'owner') {
     const lowItems = cart.filter(i => {
       const gv = parseNum(i.product.giavon);
-      return gv > 0 && i.gia < gv;
+      const gs = parseNum(i.product.giasi);
+      return (gv > 0 && i.gia < gv) || (gs > 0 && i.gia < gs);
     });
     if (lowItems.length > 0) {
-      const names = lowItems.map(i => i.product.ten).join(', ');
-      showModal('Giá bán thấp hơn giá vốn!', names, () => doSubmitCart(mode, cartGiaodich, ghichu, phiChanh));
+      const warnLines = lowItems.map(i => {
+        const p = i.product;
+        const extra = [p.kichthuoc, p.motaSP].filter(Boolean).join(' · ');
+        return [p.ncc, p.ma, p.ten].filter(Boolean).join('-') + (extra ? ' - ' + extra : '');
+      });
+      const subHtml = '<div style="border:1.5px solid #f44336;border-radius:8px;padding:8px 12px;text-align:left;font-size:13px;line-height:1.7;word-break:break-word;">' + warnLines.join('<br>') + '</div>';
+      const warnMas = lowItems.map(i => i.product.ma);
+      showModal('Giá bán thấp hơn giá vốn!', subHtml, () => doSubmitCart(mode, cartGiaodich, ghichu, phiChanh), warnMas);
       return;
     }
   }
@@ -3303,7 +3327,7 @@ function dtRenderCart() {
     const gv = dtMode === 'Xuất'
       ? (p.giasi ? `<div style="font-size:11px;color:#2e7d32;">Giá sỉ: ${fmtMoney(p.giasi)}</div>` : '')
       : (currentRole === 'owner' && p.giavon ? `<div style="font-size:11px;color:#f44336;">Vốn: ${fmtMoney(p.giavon)}</div>` : '');
-    return `<div class="dt-cart-item">
+    return `<div class="dt-cart-item" id="dtci-${p.ma.replace(/[^a-zA-Z0-9]/g, '_')}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.ten}</div>
@@ -3398,6 +3422,25 @@ async function dtSubmit() {
   }
   if (!giaodich) { showInfoModal('Thiếu thông tin!', 'Vui lòng chọn hình thức Giao dịch.'); return; }
 
+  if (dtMode === 'Xuất' && currentRole === 'owner') {
+    const dtLow = dtCart.filter(i => { const gv = parseNum(i.product.giavon); const gs = parseNum(i.product.giasi); return (gv > 0 && i.gia < gv) || (gs > 0 && i.gia < gs); });
+    if (dtLow.length > 0) {
+      const warnLines = dtLow.map(i => {
+        const p = i.product;
+        const extra = [p.kichthuoc, p.motaSP].filter(Boolean).join(' · ');
+        return [p.ncc, p.ma, p.ten].filter(Boolean).join('-') + (extra ? ' - ' + extra : '');
+      });
+      const subHtml = '<div style="border:1.5px solid #f44336;border-radius:8px;padding:8px 12px;text-align:left;font-size:13px;line-height:1.7;word-break:break-word;">' + warnLines.join('<br>') + '</div>';
+      const warnMas = dtLow.map(i => i.product.ma);
+      showModal('Giá bán thấp hơn giá vốn!', subHtml, () => _doDtSubmit(giaodich, ghichu, phiChanh), warnMas);
+      return;
+    }
+  }
+
+  _doDtSubmit(giaodich, ghichu, phiChanh);
+}
+
+async function _doDtSubmit(giaodich, ghichu, phiChanh) {
   const btn = document.getElementById('dt-btn-confirm');
   btn.disabled = true;
   btn.textContent = '⏳ Đang ghi...';

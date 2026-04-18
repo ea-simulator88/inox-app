@@ -81,9 +81,7 @@ function doPost(e) {
           for (let i = 1; i < spRows.length; i++) {
             if ((spRows[i][0] || '').toString().trim() !== maTrim) continue;
             const maxNhap = _maxPriceByMa_(ss.getSheetByName('Nhập'), maTrim);
-            const maxXuat = _maxPriceByMa_(ss.getSheetByName('Xuất'), maTrim);
             if (maxNhap > (Number(spRows[i][5]) || 0)) spSh.getRange(i + 1, 6).setValue(maxNhap);
-            if (maxXuat > (Number(spRows[i][6]) || 0)) spSh.getRange(i + 1, 7).setValue(maxXuat);
             break;
           }
         }
@@ -165,8 +163,8 @@ function doPost(e) {
       sheet.getRange(newRow, 12).setFormula('=H' + newRow + '*I' + newRow + '+K' + newRow);
     });
 
-    // Cập nhật Giá vốn (col F=6) từ max Nhập, Giá sỉ (col G=7) từ max Xuất
-    if (data.sheet === 'Nhập' || data.sheet === 'Xuất') {
+    // Cập nhật Giá vốn (col F=6) từ max Nhập
+    if (data.sheet === 'Nhập') {
       const spSheet = ss.getSheetByName('Sản phẩm');
       if (spSheet) {
         const spData = spSheet.getDataRange().getValues();
@@ -175,13 +173,8 @@ function doPost(e) {
         Object.keys(maSet).forEach(function(ma) {
           for (let i = 1; i < spData.length; i++) {
             if ((spData[i][0] || '').toString().trim() !== ma) continue;
-            if (data.sheet === 'Nhập') {
-              const maxNhap = _maxPriceByMa_(sheet, ma);
-              if (maxNhap > (Number(spData[i][5]) || 0)) { spSheet.getRange(i + 1, 6).setValue(maxNhap); spData[i][5] = maxNhap; }
-            } else {
-              const maxXuat = _maxPriceByMa_(sheet, ma);
-              if (maxXuat > (Number(spData[i][6]) || 0)) { spSheet.getRange(i + 1, 7).setValue(maxXuat); spData[i][6] = maxXuat; }
-            }
+            const maxNhap = _maxPriceByMa_(sheet, ma);
+            if (maxNhap > (Number(spData[i][5]) || 0)) { spSheet.getRange(i + 1, 6).setValue(maxNhap); spData[i][5] = maxNhap; }
             break;
           }
         });
