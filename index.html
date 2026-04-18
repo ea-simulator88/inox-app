@@ -2154,8 +2154,8 @@ function renderCart() {
     const gs = Number(item.product.giasi) || 0;
     const gv = Number(item.product.giavon) || 0;
     const giaPlaceholder = cartMode === 'Xuất'
-      ? (gs > 0 ? `Giá sỉ: ${gs.toLocaleString('en-US')}đ` : 'Nhập giá...')
-      : (gv > 0 ? `Giá vốn: ${gv.toLocaleString('en-US')}đ` : 'Nhập giá...');
+      ? (gs > 0 ? `${gs.toLocaleString('en-US')}đ` : 'Nhập giá...')
+      : (gv > 0 ? `${gv.toLocaleString('en-US')}đ` : 'Nhập giá...');
     const tonkho = Number(item.product.tonkho) || 0;
     const showWarnSl = cartMode === 'Xuất' && item.sl > 0 && item.sl > tonkho;
     const showWarnGia = cartMode === 'Xuất' && item.gia > 0 && gs > 0 && item.gia < gs;
@@ -2462,10 +2462,10 @@ function setMode(mode) {
   if (giaInput && currentProduct) {
     if (mode === 'Xuất') {
       const gs = Number(currentProduct.giasi) || 0;
-      giaInput.placeholder = gs > 0 ? `Giá sỉ: ${gs.toLocaleString('en-US')}đ` : 'Nhập giá bán...';
+      giaInput.placeholder = gs > 0 ? `${gs.toLocaleString('en-US')}đ` : 'Nhập giá bán...';
     } else {
       const gv = Number(currentProduct.giavon) || 0;
-      giaInput.placeholder = gv > 0 ? `Giá vốn: ${gv.toLocaleString('en-US')}đ` : 'Nhập giá nhập...';
+      giaInput.placeholder = gv > 0 ? `${gv.toLocaleString('en-US')}đ` : 'Nhập giá nhập...';
     }
   }
   checkFormWarnings();
