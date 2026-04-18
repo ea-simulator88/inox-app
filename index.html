@@ -162,6 +162,10 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .history-action-btn { width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
 .history-action-btn.edit { border: 1px solid #ffb74d; background: #fff8e1; color: #e65100; }
 .history-action-btn.delete { border: 1px solid #ef9a9a; background: #ffebee; color: #c62828; }
+.sort-option { display: block; width: 100%; text-align: left; padding: 8px 10px; background: none; color: #555; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; margin-bottom: 3px; }
+.sort-option:last-child { margin-bottom: 0; }
+.sort-option:hover { background: #f5f5f5; }
+.sort-option.active { background: #e8f5e9; color: #2e7d32; font-weight: 600; }
 .report-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .report-summary-card { border-radius: 12px; padding: 12px; }
 .report-detail-section { background: #fff; border: 1px solid #e8e8e8; border-radius: 14px; padding: 12px; margin-bottom: 10px; }
@@ -336,7 +340,7 @@ const CONFIG = {
   <div class="header">
     <div style="display:flex;align-items:center;gap:5px;margin-left:auto;">
       <span class="badge" id="role-badge"></span>
-      <button onclick="showReport()" title="Báo cáo" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 2px;line-height:1;color:#1a1a1a;"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 16V9"/><path d="M12 16V5"/><path d="M17 16v-3"/></svg></button>
+      <button id="btn-report-nav" onclick="showReport()" title="Báo cáo" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 2px;line-height:1;color:#1a1a1a;"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 16V9"/><path d="M12 16V5"/><path d="M17 16v-3"/></svg></button>
       <button onclick="showHistory()" title="Lịch sử" style="background:none;border:none;cursor:pointer;font-size:18px;padding:4px 2px;line-height:1;"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M9 4.5h6"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></button>
       <button id="btn-manage-products" onclick="showManageProducts()" title="Quản lý sản phẩm" style="display:none;background:none;border:none;cursor:pointer;font-size:18px;padding:4px 2px;line-height:1;color:#1a1a1a;"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7l8 4 8-4-8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg></button>
       <button class="cart-btn" onclick="goCart()" title="Giỏ hàng"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true" style="width:19px;height:19px;"><circle cx="9" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/><path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H7"/></svg><span class="badge-cart" id="cart-badge" style="display:none;">0</span>
@@ -648,6 +652,20 @@ const CONFIG = {
           <span id="hist-date-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44px;">Tất cả</span>
           <span id="hist-date-arrow" style="flex-shrink:0;font-size:9px;">&#9660;</span>
         </button>
+        <div style="position:relative;flex:0 0 auto;">
+          <button id="hist-sort-btn" onclick="toggleHistSortPanel(event)"
+            style="width:52px;padding:9px 4px;border-radius:20px;border:1.5px solid #bdbdbd;background:#f5f5f5;color:#555;font-size:10px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:1px;white-space:nowrap;overflow:hidden;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+            <span id="hist-sort-label" style="overflow:hidden;text-overflow:ellipsis;max-width:32px;">Mới</span>
+          </button>
+          <div id="hist-sort-panel" onclick="event.stopPropagation()"
+            style="display:none;position:absolute;top:calc(100% + 4px);right:0;width:155px;background:#fff;border:1.5px solid #e0e0e0;border-radius:12px;padding:6px;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,0.12);">
+            <button id="hs-newest" onclick="setHistSort('newest')" class="sort-option active">↓ Mới nhất trước</button>
+            <button id="hs-oldest" onclick="setHistSort('oldest')" class="sort-option">↑ Cũ nhất trước</button>
+            <button id="hs-az"     onclick="setHistSort('az')"     class="sort-option">A → Z</button>
+            <button id="hs-za"     onclick="setHistSort('za')"     class="sort-option">Z → A</button>
+          </div>
+        </div>
         <button id="hist-refresh-btn" onclick="refreshHistoryData()"
           style="flex:0 0 auto;background:none;border:1px solid #e0e0e0;border-radius:10px;padding:8px 9px;color:#4CAF50;cursor:pointer;display:flex;align-items:center;justify-content:center;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
@@ -690,7 +708,7 @@ const CONFIG = {
   <!-- SUMMARY BAR -->
   <div style="flex-shrink:0;background:#fff;border-top:1.5px solid #e8e8e8;">
     <div style="max-width:1000px;margin:0 auto;padding:8px 16px;display:flex;gap:8px;">
-      <div style="flex:1;background:#e8f5e9;border-radius:10px;padding:8px 10px;">
+      <div id="hist-nhap-summary" style="flex:1;background:#e8f5e9;border-radius:10px;padding:8px 10px;">
         <div style="font-size:11px;color:#388e3c;font-weight:700;margin-bottom:3px;">Nhập</div>
         <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
           <span id="hist-sum-nhap-sp"   style="font-size:15px;font-weight:700;color:#2e7d32;">0 SP</span>
@@ -725,7 +743,7 @@ const CONFIG = {
   <div style="max-width:680px;margin:0 auto;width:100%;flex:1;overflow-y:auto;padding:4px;">
     <div class="card" id="hd-info-card"></div>
     <div id="hd-rows"></div>
-    <div style="display:flex;gap:8px;margin-top:12px;">
+    <div id="hd-action-btns" style="display:flex;gap:8px;margin-top:12px;">
       <button onclick="histDetailEdit()" style="flex:1;padding:14px;background:#fff8e1;color:#e65100;border:1.5px solid #ffb74d;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;">✏️ Sửa</button>
       <button onclick="histDetailDelete()" style="flex:1;padding:14px;background:#ffebee;color:#c62828;border:1.5px solid #ef9a9a;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;">🗑️ Xóa</button>
     </div>
@@ -774,6 +792,20 @@ const CONFIG = {
           <span id="report-date-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52px;">Tất cả</span>
           <span id="report-date-arrow" style="flex-shrink:0;font-size:9px;">&#9660;</span>
         </button>
+        <div style="position:relative;flex:0 0 auto;">
+          <button id="report-sort-btn" onclick="toggleReportSortPanel(event)"
+            style="width:52px;padding:9px 9px;border-radius:20px;border:1.5px solid #bdbdbd;background:#f5f5f5;color:#555;font-size:10px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:1px;white-space:nowrap;overflow:hidden;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+            <span id="report-sort-label" style="overflow:hidden;text-overflow:ellipsis;max-width:32px;">Mới</span>
+          </button>
+          <div id="report-sort-panel" onclick="event.stopPropagation()"
+            style="display:none;position:absolute;top:calc(100% + 4px);right:0;width:155px;background:#fff;border:1.5px solid #e0e0e0;border-radius:12px;padding:6px;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,0.12);">
+            <button id="rs-newest" onclick="setReportSort('newest')" class="sort-option active">↓ Mới nhất trước</button>
+            <button id="rs-oldest" onclick="setReportSort('oldest')" class="sort-option">↑ Cũ nhất trước</button>
+            <button id="rs-az"     onclick="setReportSort('az')"     class="sort-option">A → Z</button>
+            <button id="rs-za"     onclick="setReportSort('za')"     class="sort-option">Z → A</button>
+          </div>
+        </div>
         <button id="report-refresh-btn" onclick="refreshReportData()"
           style="flex:0 0 auto;background:none;border:1px solid #e0e0e0;border-radius:10px;padding:8px 9px;color:#4CAF50;cursor:pointer;display:flex;align-items:center;justify-content:center;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
@@ -848,7 +880,7 @@ const CONFIG = {
       <div style="font-size:11px;color:#aaa;margin-top:2px;">Quản lý xuất nhập kho</div>
     </div>
     <div style="display:flex;align-items:center;gap:13px;">
-      <button onclick="showReport()" style="font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#f3e5f5;color:#6a1b9a;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 16V9"/><path d="M12 16V5"/><path d="M17 16v-3"/></svg><span>Báo cáo</span></span></button>
+      <button id="dt-btn-report" onclick="showReport()" style="font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#f3e5f5;color:#6a1b9a;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 16V9"/><path d="M12 16V5"/><path d="M17 16v-3"/></svg><span>Báo cáo</span></span></button>
       <button onclick="showHistory()" style="font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#e3f2fd;color:#0d47a1;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M9 4.5h6"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg><span>Lịch sử</span></span></button>
       <button id="dt-btn-manage" onclick="showManageProducts()"
         style="display:none;font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#e8f5e9;color:#065a0a;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7l8 4 8-4-8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg><span>Quản lý SP</span></span></button>
@@ -1451,6 +1483,7 @@ async function doLogin() {
     document.getElementById('role-badge-cart').textContent = isOwner ? 'Admin' : 'Staff';
     document.getElementById('role-badge-cart').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
     document.getElementById('btn-manage-products').style.display = r === 'owner' ? 'flex' : 'none';
+    applyRolePermissions(r);
     if (window.innerWidth >= 768) {
       dtInitLayout();
       document.getElementById('desktop-layout').style.display = 'flex';
@@ -1560,9 +1593,12 @@ function togglePassVis() {
     document.getElementById('role-badge-cart').textContent = isOwner ? 'Admin' : 'Staff';
     document.getElementById('role-badge-cart').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
     document.getElementById('btn-manage-products').style.display = cached.role === 'owner' ? 'flex' : 'none';
+    applyRolePermissions(cached.role);
     const _lastScreen = sessionStorage.getItem('lastScreen') || 'screen-main';
     const _safeScreens = ['screen-main', 'screen-products', 'screen-product-form', 'screen-cart', 'screen-history', 'screen-history-detail', 'screen-report', 'screen-report-detail'];
-    const _targetScreen = _safeScreens.includes(_lastScreen) ? _lastScreen : 'screen-main';
+    const _isStaff = cached.role !== 'owner';
+    const _rawTarget = _safeScreens.includes(_lastScreen) ? _lastScreen : 'screen-main';
+    const _targetScreen = (_isStaff && (_rawTarget === 'screen-report' || _rawTarget === 'screen-report-detail')) ? 'screen-main' : _rawTarget;
     if (window.innerWidth >= 768) { dtInitLayout(); dtFilterProducts(); }
     if (_targetScreen === 'screen-product-form') {
       openProductForm('add', null, true); // render form ngay, không chờ server
@@ -1596,6 +1632,15 @@ function togglePassVis() {
       .catch(() => {});
   } catch(e) {}
 })();
+
+function applyRolePermissions(role) {
+  const isOwner = role === 'owner';
+  const d = (el, show) => { if (el) el.style.display = show ? '' : 'none'; };
+  d(document.getElementById('btn-report-nav'),    isOwner);
+  d(document.getElementById('dt-btn-report'),     isOwner);
+  d(document.getElementById('hist-btn-nhap'),     isOwner);
+  d(document.getElementById('hist-nhap-summary'), isOwner);
+}
 
 function doLogout() {
   stopScan();
@@ -3390,11 +3435,13 @@ let _historyTimeFilter = 'all';
 let _histDateFrom = null;
 let _histDateTo   = null;
 let _historyGroups = [];
+let _histSortMode = 'newest';
 let _reportTypeFilter = 'all';
 let _rptDetailData = [];
 let _reportTimeFilter = 'all';
 let _reportDateFrom = null;
 let _reportDateTo   = null;
+let _reportSortMode = 'newest';
 
 async function _fetchHistoryData(force = false) {
   if (!force && _historyData.length) return _historyData;
@@ -3580,6 +3627,7 @@ function _getTimeRange(filter, fromDate, toDate) {
 }
 
 function showReport() {
+  if (currentRole !== 'owner') { showToast('Không có quyền truy cập.'); return; }
   showScreen('screen-report');
   const list = document.getElementById('report-list');
   const summary = document.getElementById('report-summary');
@@ -3589,10 +3637,13 @@ function showReport() {
   _reportTimeFilter = 'all';
   _reportDateFrom = null;
   _reportDateTo = null;
+  _reportSortMode = 'newest';
   ['report-filter-supplier', 'report-filter-customer', 'report-filter-product', 'report-from-date', 'report-to-date'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  const _sl = document.getElementById('report-sort-label'); if (_sl) _sl.textContent = 'Mới';
+  ['newest','oldest','az','za'].forEach(k => { const b = document.getElementById('rs-'+k); if (b) { b.style.background = k==='newest'?'#e8f5e9':''; b.style.color = k==='newest'?'#2e7d32':'#555'; b.style.fontWeight = k==='newest'?'600':''; } });
   _syncReportTypeButtons();
   _syncReportTimeButtons();
   _updateReportDateLabel();
@@ -3761,12 +3812,13 @@ function _groupReportEntries(rows, keyBuilder, nameBuilder, rowFilter = null) {
     const key = keyBuilder(r);
     if (!key) return;
     if (!map.has(key)) {
-      map.set(key, { key, name: nameBuilder(r), qty: 0, amount: 0, count: 0, extra: '' });
+      map.set(key, { key, name: nameBuilder(r), qty: 0, amount: 0, count: 0, extra: '', latestTs: 0 });
     }
     const item = map.get(key);
     item.qty += Number(r.soluong) || 0;
     item.amount += (Number(r.soluong) || 0) * (Number(r.gia) || 0);
     item.count += 1;
+    if ((r.thoigian_raw || 0) > item.latestTs) item.latestTs = r.thoigian_raw || 0;
   });
   return [...map.values()].sort((a, b) => b.amount - a.amount || b.qty - a.qty || a.name.localeCompare(b.name, 'vi'));
 }
@@ -3805,14 +3857,15 @@ function _renderProductReportSection(rows) {
     if (!r.ma && !r.hanghoa) return;
     if (!map.has(key)) {
       map.set(key, { key, name: r.hanghoa || r.ma || 'Không tên', ma: r.ma, kichthuoc: r.kichthuoc, ncc: r.ncc || '',
-        nhapQty: 0, nhapAmount: 0, xuatQty: 0, xuatAmount: 0 });
+        nhapQty: 0, nhapAmount: 0, xuatQty: 0, xuatAmount: 0, latestTs: 0 });
     }
     const item = map.get(key);
     if (!item.ncc && r.ncc) item.ncc = r.ncc;
     if (r.loai === 'Nhập') { item.nhapQty += r.soluong; item.nhapAmount += r.soluong * r.gia; }
     else                   { item.xuatQty += r.soluong; item.xuatAmount += r.soluong * r.gia; }
+    if ((r.thoigian_raw || 0) > item.latestTs) item.latestTs = r.thoigian_raw || 0;
   });
-  const items = [...map.values()].sort((a, b) => (b.nhapAmount + b.xuatAmount) - (a.nhapAmount + a.xuatAmount));
+  const items = _sortReportItems([...map.values()]);
   if (!items.length) {
     return `<div class="report-detail-section"><div style="font-size:13px;font-weight:700;color:#2e7d32;margin-bottom:8px;">Sản phẩm</div><div style="font-size:13px;color:#999;padding:6px 0;">Không có dữ liệu sản phẩm trong bộ lọc này.</div></div>`;
   }
@@ -3859,7 +3912,12 @@ function showReportDetail(idx) {
     if (item.type === 'khach') return r.loai === 'Xuất' && r.tenkhach.trim() === item.key;
     if (item.type === 'sp')    return [r.ma, r.hanghoa, r.kichthuoc].join('||') === item.key;
     return false;
-  }).sort((a, b) => b.thoigian_raw - a.thoigian_raw);
+  }).sort(function(a, b) {
+    if (_reportSortMode === 'oldest') return a.thoigian_raw - b.thoigian_raw;
+    if (_reportSortMode === 'az') return (a.hanghoa||'').localeCompare(b.hanghoa||'', 'vi');
+    if (_reportSortMode === 'za') return (b.hanghoa||'').localeCompare(a.hanghoa||'', 'vi');
+    return b.thoigian_raw - a.thoigian_raw;
+  });
 
   const list = document.getElementById('rpt-detail-list');
   if (!list) return;
@@ -3891,6 +3949,7 @@ function showReportDetail(idx) {
           <div style="text-align:right;flex-shrink:0;">
             <div style="font-size:11px;color:#666;">${fmt(r.soluong)} × ${fmt(r.gia)}đ</div>
             <div style="font-size:13px;font-weight:700;color:${isNhap?'#0d47a1':'#e65100'};">${fmt(total)}đ</div>
+            ${r.phichanh ? `<div style="font-size:11px;color:#e65100;">Phí chành xe: ${fmt(Math.abs(Number(r.phichanh)))}đ</div>` : ''}
           </div>
         </div>`;
       }).join('') +
@@ -3945,8 +4004,8 @@ function renderReport() {
     return;
   }
 
-  const suppliers = _groupReportEntries(rows, r => r.ncc.trim(), r => r.ncc.trim(), r => r.loai === 'Nhập' && r.ncc.trim()).map(item => ({ ...item, extra: item.count + ' dòng nhập' }));
-  const customers = _groupReportEntries(rows, r => r.tenkhach.trim(), r => r.tenkhach.trim(), r => r.loai === 'Xuất' && r.tenkhach.trim()).map(item => ({ ...item, extra: item.count + ' dòng xuất' }));
+  const suppliers = _sortReportItems(_groupReportEntries(rows, r => r.ncc.trim(), r => r.ncc.trim(), r => r.loai === 'Nhập' && r.ncc.trim()).map(item => ({ ...item, extra: item.count + ' dòng nhập' })));
+  const customers = _sortReportItems(_groupReportEntries(rows, r => r.tenkhach.trim(), r => r.tenkhach.trim(), r => r.loai === 'Xuất' && r.tenkhach.trim()).map(item => ({ ...item, extra: item.count + ' dòng xuất' })));
 
   list.innerHTML = [
     _renderReportSection('Nhà cung cấp', '#1976d2', suppliers, 'Không có dữ liệu nhà cung cấp trong bộ lọc này.', 'ncc'),
@@ -3955,18 +4014,82 @@ function renderReport() {
   ].join('');
 }
 
+function toggleReportSortPanel(e) {
+  if (e) e.stopPropagation();
+  const p = document.getElementById('report-sort-panel');
+  if (!p) return;
+  const open = p.style.display === 'none' || p.style.display === '';
+  _closeReportDatePanel();
+  p.style.display = open ? 'block' : 'none';
+}
+function _closeReportSortPanel() {
+  const p = document.getElementById('report-sort-panel');
+  if (p) p.style.display = 'none';
+}
+const _rptSortLabels = { newest: 'Mới', oldest: 'Cũ', az: 'A-Z', za: 'Z-A' };
+function setReportSort(mode) {
+  _reportSortMode = mode;
+  const lbl = document.getElementById('report-sort-label');
+  if (lbl) lbl.textContent = _rptSortLabels[mode] || '';
+  ['newest','oldest','az','za'].forEach(k => {
+    const b = document.getElementById('rs-' + k);
+    if (b) b.classList.toggle('active', k === mode);
+  });
+  _closeReportSortPanel();
+  renderReport();
+}
+function _sortReportItems(items) {
+  const c = [...items];
+  if (_reportSortMode === 'az')     return c.sort((a,b) => (a.name||'').localeCompare(b.name||'', 'vi'));
+  if (_reportSortMode === 'za')     return c.sort((a,b) => (b.name||'').localeCompare(a.name||'', 'vi'));
+  if (_reportSortMode === 'oldest') return c.sort((a,b) => (a.latestTs||0) - (b.latestTs||0));
+  return c.sort((a,b) => (b.latestTs||0) - (a.latestTs||0));
+}
+
+function toggleHistSortPanel(e) {
+  if (e) e.stopPropagation();
+  const p = document.getElementById('hist-sort-panel');
+  if (!p) return;
+  const open = p.style.display === 'none' || p.style.display === '';
+  _closeHistDatePanel();
+  p.style.display = open ? 'block' : 'none';
+}
+function _closeHistSortPanel() {
+  const p = document.getElementById('hist-sort-panel');
+  if (p) p.style.display = 'none';
+}
+const _histSortLabels = { newest: 'Mới', oldest: 'Cũ', az: 'A-Z', za: 'Z-A' };
+function setHistSort(mode) {
+  _histSortMode = mode;
+  const lbl = document.getElementById('hist-sort-label');
+  if (lbl) lbl.textContent = _histSortLabels[mode] || '';
+  ['newest','oldest','az','za'].forEach(k => {
+    const b = document.getElementById('hs-' + k);
+    if (b) b.classList.toggle('active', k === mode);
+  });
+  _closeHistSortPanel();
+  _renderHistory();
+}
+
 // Đóng panel khi click ra ngoài
 document.addEventListener('click', () => {
   _closeHistDatePanel();
+  _closeHistSortPanel();
   _closeReportDatePanel();
+  _closeReportSortPanel();
 });
 
 function _renderHistory() {
   const list = document.getElementById('history-list');
   if (!list) return;
   let filtered = _historyData;
-  if (_historyFilter === 'xuat') filtered = _historyData.filter(r => r.loai === 'Xuất');
-  else if (_historyFilter === 'nhap') filtered = _historyData.filter(r => r.loai === 'Nhập');
+  if (currentRole !== 'owner') {
+    filtered = _historyData.filter(r => r.loai === 'Xuất');
+  } else if (_historyFilter === 'xuat') {
+    filtered = _historyData.filter(r => r.loai === 'Xuất');
+  } else if (_historyFilter === 'nhap') {
+    filtered = _historyData.filter(r => r.loai === 'Nhập');
+  }
 
   // Lọc theo thời gian
   if (_historyTimeFilter !== 'all') {
@@ -4015,7 +4138,15 @@ function _renderHistory() {
     }
     groupMap.get(key).rows.push(r);
   });
-  _historyGroups = [...groupMap.values()].sort((a, b) => b.thoigian_raw - a.thoigian_raw);
+  _historyGroups = [...groupMap.values()].sort((a, b) => {
+    if (_histSortMode === 'oldest') return a.thoigian_raw - b.thoigian_raw;
+    if (_histSortMode === 'az' || _histSortMode === 'za') {
+      const na = a.tenkhach || (a.rows[0] && (a.rows[0].ncc || a.rows[0].hanghoa)) || '';
+      const nb = b.tenkhach || (b.rows[0] && (b.rows[0].ncc || b.rows[0].hanghoa)) || '';
+      return _histSortMode === 'az' ? na.localeCompare(nb, 'vi') : nb.localeCompare(na, 'vi');
+    }
+    return b.thoigian_raw - a.thoigian_raw;
+  });
 
   // Cập nhật thanh tổng kết
   let _nhapSP = 0, _nhapTien = 0, _xuatSP = 0, _xuatTien = 0;
@@ -4062,10 +4193,10 @@ function _renderHistory() {
         </div>
         <div class="history-card-actions">
           ${invoiceBtn}
-          <div class="history-card-tools">
+          ${currentRole === 'owner' ? `<div class="history-card-tools">
             <button onclick="event.stopPropagation();histEditGroup(${i})" title="Sửa" class="history-action-btn edit">✏️</button>
             <button onclick="event.stopPropagation();histDeleteGroup(${i})" title="Xóa" class="history-action-btn delete">🗑️</button>
-          </div>
+          </div>` : ''}
         </div>
       </div>
     </div>`;
@@ -4112,6 +4243,8 @@ function showHistoryDetail(idx) {
     </div>`;
   }).join('');
 
+  const hdBtns = document.getElementById('hd-action-btns');
+  if (hdBtns) hdBtns.style.display = currentRole === 'owner' ? 'flex' : 'none';
   sessionStorage.setItem('histDetailThoigian', g.thoigian);
   sessionStorage.setItem('histDetailLoai', g.loai);
   showScreen('screen-history-detail');
