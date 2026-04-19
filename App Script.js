@@ -222,15 +222,18 @@ function doGet(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
-  // ── Lấy lịch sử xuất / nhập (action=history) ───────
+  // ── Lấy lịch sử xuất / nhập / nháp (action=history) ───────
   if (e.parameter.action === 'history') {
-    const xuatSheet = ss.getSheetByName('Xuất');
-    const nhapSheet = ss.getSheetByName('Nhập');
+    const xuatSheet  = ss.getSheetByName('Xuất');
+    const nhapSheet  = ss.getSheetByName('Nhập');
+    const nhapDraftSheet = ss.getSheetByName('Nháp');
     const xuatData = xuatSheet && xuatSheet.getLastRow() > 1
       ? xuatSheet.getDataRange().getValues().slice(1).map(function(r) { r[1] = fmtDateTime(r[1]); return r; }) : [];
     const nhapData = nhapSheet && nhapSheet.getLastRow() > 1
       ? nhapSheet.getDataRange().getValues().slice(1).map(function(r) { r[1] = fmtDateTime(r[1]); return r; }) : [];
-    return ContentService.createTextOutput(JSON.stringify({ xuat: xuatData, nhap: nhapData }))
+    const draftData = nhapDraftSheet && nhapDraftSheet.getLastRow() > 1
+      ? nhapDraftSheet.getDataRange().getValues().slice(1).map(function(r) { r[1] = fmtDateTime(r[1]); return r; }) : [];
+    return ContentService.createTextOutput(JSON.stringify({ xuat: xuatData, nhap: nhapData, draft: draftData }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 
