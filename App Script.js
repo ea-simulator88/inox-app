@@ -93,14 +93,15 @@ function doPost(e) {
         if (adjSheet) {
           const dir  = delta > 0 ? 'tăng' : 'giảm';
           const note = 'Điều chỉnh tồn kho (' + dir + ' từ ' + data.sl_cu + ' → ' + data.sl_moi + ')';
-          const adjRow = [
-            data.ma, new Date(), data.row[1], data.row[2], data.row[3],
-            data.row[4], data.row[7], Math.abs(delta), 0,
-            'Điều chỉnh', '', '', note
-          ];
+          const _adjIsX = adjSheet.getName() === 'Xuất';
+          // Xuất: A-K=data, L=phiKT(empty), M=formula, N=tenkhach(empty), O=note
+          // Nhập: A-K=data, L=formula,       M=note
+          const adjRow = _adjIsX
+            ? [data.ma, new Date(), data.row[1], data.row[2], data.row[3], data.row[4], data.row[7], Math.abs(delta), 0, 'Điều chỉnh', '', '', '', '', note]
+            : [data.ma, new Date(), data.row[1], data.row[2], data.row[3], data.row[4], data.row[7], Math.abs(delta), 0, 'Điều chỉnh', '',       note];
           adjSheet.appendRow(adjRow);
           const nr = adjSheet.getLastRow();
-          adjSheet.getRange(nr, 12).setFormula('=H' + nr + '*I' + nr + '+K' + nr);
+          adjSheet.getRange(nr, _adjIsX ? 13 : 12).setFormula('=H' + nr + '*I' + nr + '+K' + nr + (_adjIsX ? '+L' + nr : ''));
         }
       }
       return ContentService.createTextOutput(JSON.stringify({
@@ -139,11 +140,12 @@ function doPost(e) {
         }
       }
       if (data.action === 'updateHistoryRows' && Array.isArray(data.rows)) {
-        const noteCol = data.sheet === 'Nhập' ? 13 : 14;
+        const noteCol = data.sheet === 'Nhập' ? 13 : 15;
+        const _isXuatUpd = data.sheet === 'Xuất' || data.sheet === 'Nháp';
         data.rows.forEach(function(row, i) {
           sheet.appendRow(row);
           const nr = sheet.getLastRow();
-          sheet.getRange(nr, 12).setFormula('=H' + nr + '*I' + nr + '+K' + nr);
+          sheet.getRange(nr, _isXuatUpd ? 13 : 12).setFormula('=H' + nr + '*I' + nr + '+K' + nr + (_isXuatUpd ? '+L' + nr : ''));
           if (data.notes && data.notes[i]) {
             const noteCell = sheet.getRange(nr, noteCol);
             const existing = noteCell.getValue() || '';
@@ -157,10 +159,11 @@ function doPost(e) {
 
     // ── MẶC ĐỊNH: ghi Xuất / Nhập (logic cũ) ──────────
     const rowsToWrite = data.rows || [data.row];
+    const _isXuatDef = data.sheet === 'Xuất' || data.sheet === 'Nháp';
     rowsToWrite.forEach(function(row) {
       sheet.appendRow(row);
       const newRow = sheet.getLastRow();
-      sheet.getRange(newRow, 12).setFormula('=H' + newRow + '*I' + newRow + '+K' + newRow);
+      sheet.getRange(newRow, _isXuatDef ? 13 : 12).setFormula('=H' + newRow + '*I' + newRow + '+K' + newRow + (_isXuatDef ? '+L' + newRow : ''));
     });
 
     // Cập nhật Giá vốn (col F=6) từ max Nhập
@@ -289,7 +292,7 @@ function onEdit(e) {
   if (row <= 1) return;
 
   const col = e.range.getColumn();
-  const noteCol = sheetName === 'Nhập' ? 13 : 14; // Nhập=M(13), Xuất=N(14)
+  const noteCol = sheetName === 'Nhập' ? 13 : 15; // Nhập=M(13), Xuất=O(15) sau khi thêm cột L Phí(KT)
   if (col === noteCol) return;
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
