@@ -403,8 +403,8 @@ const CONFIG = {
 
       <!-- Role selector -->
       <div class="ln-role-row">
-        <button type="button" id="ln-role-owner" class="ln-role-btn active" onclick="_lnSetRole('owner')">👑 Admin</button>
-        <button type="button" id="ln-role-staff" class="ln-role-btn" onclick="_lnSetRole('staff')">👷 Nhân viên</button>
+        <button type="button" id="ln-role-owner" class="ln-role-btn active" onclick="_lnSetRole('owner')">Admin</button>
+        <button type="button" id="ln-role-staff" class="ln-role-btn" onclick="_lnSetRole('staff')">Staff</button>
       </div>
       <input type="hidden" id="login-role" value="owner" />
 
@@ -1163,11 +1163,14 @@ const CONFIG = {
 <!-- SETTINGS -->
 <div id="screen-settings" class="screen">
   <div class="header" style="flex-shrink:0;">
-    <button class="btn-back" onclick="goHome()">← Quay lại</button>
-    <div class="header-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;">⚙️ Cài đặt</div>
+    <div style="max-width:1000px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;position:relative;">
+      <button class="btn-back" onclick="goMain()" style="flex-shrink:0;position:relative;z-index:1;">← Quay lại</button>
+      <div class="header-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;">⚙️ Cài đặt</div>
+      <button onclick="goHome()" title="Trang chính" style="background:none;border:none;cursor:pointer;padding:4px 2px;line-height:1;flex-shrink:0;position:relative;z-index:1;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/></svg></button>
+    </div>
   </div>
   <div style="padding:12px;overflow-y:auto;flex:1;">
-    <div class="card" style="margin-bottom:0;">
+    <div class="card" style="max-width:1000px;margin:0 auto;width:100%;margin-bottom:0;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
         <div style="font-size:14px;font-weight:700;">👥 Quản lý người dùng</div>
         <button onclick="openUserModal(null)" style="padding:6px 14px;background:#4CAF50;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">+ Thêm</button>
@@ -1235,8 +1238,8 @@ const CONFIG = {
     <input id="user-modal-pass" type="password" placeholder="Tối thiểu 4 ký tự" />
     <label>Vai trò</label>
     <select id="user-modal-role">
-      <option value="owner">👑 Admin</option>
-      <option value="staff">🙋 Nhân viên</option>
+      <option value="owner">Admin</option>
+      <option value="staff">Staff</option>
     </select>
     <div id="user-modal-error" style="display:none;color:#f44336;font-size:12px;margin-top:10px;padding:7px 9px;background:#fff3f3;border-radius:7px;border:1px solid #ffc9c9;"></div>
     <div style="display:flex;gap:10px;margin-top:18px;">
@@ -1634,7 +1637,7 @@ async function doLogin() {
   try {
     const cached = JSON.parse(localStorage.getItem('login_cache') || 'null');
     if (cached && cached.role === role && cached.pass === pass) {
-      const cachedName = cached.name || (role === 'owner' ? 'Admin' : 'Nhân viên');
+      const cachedName = cached.name || (role === 'owner' ? 'Admin' : 'Staff');
       await loadProducts();
       startAutoRefresh();
       startInactivityWatch();
@@ -1759,15 +1762,15 @@ function _lnOnPassInput() {
     filterManageProducts();
     updateProductStats();
     currentRole = cached.role;
-    currentUserName = cached.name || (cached.role === 'owner' ? 'Admin' : 'Nhân viên');
+    currentUserName = cached.name || (cached.role === 'owner' ? 'Admin' : 'Staff');
     _setUserBadges(currentUserName, cached.role);
     document.getElementById('btn-manage-products').style.display = cached.role === 'owner' ? 'flex' : 'none';
     applyRolePermissions(cached.role);
     const _lastScreen = sessionStorage.getItem('lastScreen') || 'screen-main';
-    const _safeScreens = ['screen-main', 'screen-products', 'screen-product-form', 'screen-cart', 'screen-history', 'screen-history-detail', 'screen-report', 'screen-report-detail'];
+    const _safeScreens = ['screen-main', 'screen-products', 'screen-product-form', 'screen-cart', 'screen-history', 'screen-history-detail', 'screen-report', 'screen-report-detail', 'screen-settings'];
     const _isStaff = cached.role !== 'owner';
     const _rawTarget = _safeScreens.includes(_lastScreen) ? _lastScreen : 'screen-main';
-    const _targetScreen = (_isStaff && (_rawTarget === 'screen-report' || _rawTarget === 'screen-report-detail')) ? 'screen-main' : _rawTarget;
+    const _targetScreen = (_isStaff && (_rawTarget === 'screen-report' || _rawTarget === 'screen-report-detail' || _rawTarget === 'screen-settings')) ? 'screen-main' : _rawTarget;
     if (window.innerWidth >= 768) { dtInitLayout(); dtFilterProducts(); }
     if (_targetScreen === 'screen-product-form') {
       openProductForm('add', null, true); // render form ngay, không chờ server
@@ -1791,6 +1794,8 @@ function _lnOnPassInput() {
       } else { showReport(); }
     } else if (_targetScreen === 'screen-report') {
       showReport();
+    } else if (_targetScreen === 'screen-settings') {
+      showSettings();
     } else {
       showScreen(_targetScreen);
       if (_targetScreen === 'screen-cart') { setCartMode(cartMode); renderCart(); }
@@ -1868,11 +1873,11 @@ function _renderSettingsUsers() {
     return;
   }
   let rows = _settingsUsers.map(u => {
-    const roleLabel = u.vaitro === 'owner' ? '<span class="st-role-pill st-role-owner">👑 Admin</span>' : '<span class="st-role-pill st-role-staff">🙋 Nhân viên</span>';
+    const roleLabel = u.vaitro === 'owner' ? '<span class="st-role-pill st-role-owner">Admin</span>' : '<span class="st-role-pill st-role-staff">Staff</span>';
     const isSelf = u.ten === currentUserName;
     return `<tr>
       <td style="font-weight:600;">${u.ten}${isSelf ? ' <span style="font-size:10px;color:#4CAF50;">(bạn)</span>' : ''}</td>
-      <td style="letter-spacing:2px;color:#aaa;">••••</td>
+      <td style="letter-spacing:2px;color:#aaa;">••••••••</td>
       <td>${roleLabel}</td>
       <td style="white-space:nowrap;">
         <button class="st-btn st-edit" onclick="openUserModal('${u.ten}')">Sửa</button>
