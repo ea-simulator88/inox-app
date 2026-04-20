@@ -941,12 +941,17 @@ const CONFIG = {
           </div>
         </div>
       </div>
-      <div id="report-collapsible">
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px;">
-          <input type="text" id="report-filter-supplier" placeholder="Lọc NCC..." oninput="renderReport()" style="padding:11px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;outline:none;">
-          <input type="text" id="report-filter-customer" placeholder="Lọc khách hàng..." oninput="renderReport()" style="padding:11px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;outline:none;">
-          <input type="text" id="report-filter-product" placeholder="Lọc sản phẩm..." oninput="renderReport()" style="padding:11px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;outline:none;">
-          <button onclick="clearReportFilters()" style="padding:11px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fff;color:#666;font-weight:600;cursor:pointer;">Xóa lọc</button>
+        <div id="report-collapsible">
+        <div style="position:relative;margin-bottom:10px;">
+          <input type="text" id="report-search" placeholder="Tìm chung (tên SP, mã, NCC, khách...)"
+            style="width:100%;box-sizing:border-box;padding:9px 56px 9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;outline:none;"
+            oninput="renderReport();reportUpdateFilterClearBtn()"
+            onblur="reportSaveSearchHistory()" />
+          <button id="report-btn-filter-clear" onclick="reportClearFilterInput()" tabindex="-1"
+            style="display:none;position:absolute;right:30px;top:50%;transform:translateY(-50%);background:none;border:none;padding:4px;cursor:pointer;color:#bbb;font-size:13px;line-height:1;">✕</button>
+          <button id="report-btn-filter-history" onclick="reportToggleSearchHistory(event)" tabindex="-1"
+            style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;padding:4px;cursor:pointer;color:#bbb;line-height:1;display:flex;align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div id="report-search-history-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:1000;overflow:hidden;"></div>
         </div>
         <div id="report-summary" class="report-summary-grid"></div>
       </div>
@@ -957,7 +962,7 @@ const CONFIG = {
       </div>
     </div>
   </div>
-  <div style="max-width:1000px;margin:0 auto;width:100%;padding:10px 0 12px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;margin-top: -20px;">
+  <div style="max-width:1000px;margin:0 auto;width:100%;padding:10px 0 12px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;margin-top: -10px;">
     <div id="report-list"></div>
   </div>
 </div>
@@ -4159,7 +4164,7 @@ function showReport() {
   _reportDateFrom = null;
   _reportDateTo = null;
   _reportSortMode = 'newest';
-  ['report-filter-supplier', 'report-filter-customer', 'report-filter-product', 'report-from-date', 'report-to-date'].forEach(id => {
+  ['report-search', 'report-from-date', 'report-to-date'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -4300,7 +4305,7 @@ function reportApplyDateRange() {
 }
 
 function clearReportFilters() {
-  ['report-filter-supplier', 'report-filter-customer', 'report-filter-product', 'report-from-date', 'report-to-date'].forEach(id => {
+  ['report-search', 'report-from-date', 'report-to-date'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -4311,6 +4316,58 @@ function clearReportFilters() {
   _syncReportTypeButtons();
   _syncReportTimeButtons();
   _updateReportDateLabel();
+  reportUpdateFilterClearBtn();
+  renderReport();
+}
+
+function reportUpdateFilterClearBtn() {
+  const val = (document.getElementById('report-search') || {}).value || '';
+  const btn = document.getElementById('report-btn-filter-clear');
+  if (btn) btn.style.display = val ? 'inline-block' : 'none';
+}
+function reportClearFilterInput() {
+  const el = document.getElementById('report-search');
+  if (el) { el.value = ''; el.focus(); }
+  reportUpdateFilterClearBtn();
+  renderReport();
+  const dd = document.getElementById('report-search-history-dropdown');
+  if (dd) dd.style.display = 'none';
+}
+function reportSaveSearchHistory() {
+  const val = ((document.getElementById('report-search') || {}).value || '').trim();
+  if (!val) return;
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('searchHistory_report') || '[]'); } catch(e) {}
+  hist = hist.filter(function(x) { return x !== val; });
+  hist.unshift(val);
+  localStorage.setItem('searchHistory_report', JSON.stringify(hist.slice(0, 5)));
+}
+function reportToggleSearchHistory(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const dd = document.getElementById('report-search-history-dropdown');
+  if (!dd) return;
+  if (dd.style.display !== 'none') { dd.style.display = 'none'; return; }
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('searchHistory_report') || '[]'); } catch(e) {}
+  if (!hist.length) return;
+  dd.innerHTML = hist.map(function(h) {
+    const esc = h.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/'/g,"\\'");
+    return `<div onclick="reportApplySearchHistory('${esc}')" style="padding:9px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid #f5f5f5;color:#333;background:#fff;">${h.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>`;
+  }).join('');
+  dd.style.display = 'block';
+  setTimeout(function() {
+    function closeHist(ev) {
+      if (!dd.contains(ev.target) && ev.target.id !== 'report-btn-filter-history') { dd.style.display = 'none'; document.removeEventListener('click', closeHist); }
+    }
+    document.addEventListener('click', closeHist);
+  }, 0);
+}
+function reportApplySearchHistory(val) {
+  const el = document.getElementById('report-search');
+  if (el) { el.value = val; el.focus(); }
+  const dd = document.getElementById('report-search-history-dropdown');
+  if (dd) dd.style.display = 'none';
+  reportUpdateFilterClearBtn();
   renderReport();
 }
 
@@ -4324,15 +4381,18 @@ function _reportFilterRows() {
     rows = rows.filter(r => (startTs === undefined || r.thoigian_raw >= startTs) && (endTs === undefined || r.thoigian_raw < endTs));
   }
 
-  const supplierQ = removeDiacritics(document.getElementById('report-filter-supplier')?.value || '').trim();
-  const customerQ = removeDiacritics(document.getElementById('report-filter-customer')?.value || '').trim();
-  const productQ  = removeDiacritics(document.getElementById('report-filter-product')?.value || '').trim();
-  if (supplierQ) rows = rows.filter(r => removeDiacritics(r.ncc).includes(supplierQ));
-  if (customerQ) rows = rows.filter(r => removeDiacritics(r.tenkhach).includes(customerQ));
-  if (productQ) rows = rows.filter(r => {
-    const productText = [r.ma, r.hanghoa, r.kichthuoc].filter(Boolean).join(' ');
-    return removeDiacritics(productText).includes(productQ);
-  });
+  const rawReportQ = ((document.getElementById('report-search') || {}).value || '').trim();
+  const reportQ = removeDiacritics(rawReportQ);
+  if (reportQ) {
+    const keywords = reportQ.split(/\s+/);
+    rows = rows.filter(r => {
+      const rowText = removeDiacritics([
+        r.hanghoa || '', r.ma || '', r.ncc || '', r.tenkhach || '',
+        r.kichthuoc || '', r.giaodich || '', r.loai || ''
+      ].join(' '));
+      return keywords.every(kw => rowText.includes(kw));
+    });
+  }
   return rows;
 }
 
@@ -4560,14 +4620,12 @@ function renderReport() {
 
   const suppliers = _sortReportItems(_groupReportEntries(rows, r => r.ncc.trim(), r => r.ncc.trim(), r => r.loai === 'Nhập' && r.ncc.trim()).map(item => ({ ...item, extra: item.count + ' dòng nhập' })));
   const customers = _sortReportItems(_groupReportEntries(rows, r => r.tenkhach.trim(), r => r.tenkhach.trim(), r => r.loai === 'Xuất' && r.tenkhach.trim()).map(item => ({ ...item, extra: item.count + ' dòng xuất' })));
-  const rawSupplierQ = (document.getElementById('report-filter-supplier')?.value || '').trim();
-  const rawCustomerQ = (document.getElementById('report-filter-customer')?.value || '').trim();
-  const rawProductQ  = (document.getElementById('report-filter-product')?.value || '').trim();
+  const rawReportQ = ((document.getElementById('report-search') || {}).value || '').trim();
 
   list.innerHTML = [
-    _renderReportSection('Nhà cung cấp', '#1976d2', suppliers, 'Không có dữ liệu nhà cung cấp trong bộ lọc này.', 'ncc', rawSupplierQ),
-    _renderReportSection('Khách hàng', '#8e24aa', customers, 'Không có dữ liệu khách hàng trong bộ lọc này.', 'khach', rawCustomerQ),
-    _renderProductReportSection(rows, rawProductQ)
+    _renderReportSection('Nhà cung cấp', '#1976d2', suppliers, 'Không có dữ liệu nhà cung cấp trong bộ lọc này.', 'ncc', rawReportQ),
+    _renderReportSection('Khách hàng', '#8e24aa', customers, 'Không có dữ liệu khách hàng trong bộ lọc này.', 'khach', rawReportQ),
+    _renderProductReportSection(rows, rawReportQ)
   ].join('');
 }
 
