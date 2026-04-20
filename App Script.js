@@ -5,12 +5,61 @@ function _maxPriceByMa_(srcSheet, ma) {
   }, 0);
 }
 
+function _json(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function _getCfgUsers(ss) {
+  const cfg = ss.getSheetByName('Config');
+  if (!cfg) return [];
+  return cfg.getDataRange().getValues().slice(1)
+    .filter(r => r[0] || r[1] || r[2])
+    .map(r => ({ ten: String(r[0]).trim(), matkhau: String(r[1]).trim(), vaitro: String(r[2]).trim() }));
+}
+
 function doPost(e) {
   if (e.parameter.token !== 'inox2026xK9m')
-    return ContentService.createTextOutput(JSON.stringify({error:'unauthorized'}));
+    return _json({ error: 'unauthorized' });
   try {
     const data = JSON.parse(e.postData.contents);
     const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // ── Thêm user ──────────────────────────────────────
+    if (data.action === 'addUser') {
+      const cfg = ss.getSheetByName('Config');
+      if (!cfg) return _json({ ok: false, error: 'Sheet Config không tồn tại' });
+      cfg.appendRow([data.ten, data.matkhau, data.vaitro]);
+      return _json({ ok: true });
+    }
+
+    // ── Sửa user ───────────────────────────────────────
+    if (data.action === 'updateUser') {
+      const cfg = ss.getSheetByName('Config');
+      if (!cfg) return _json({ ok: false, error: 'Sheet Config không tồn tại' });
+      const vals = cfg.getDataRange().getValues();
+      for (let i = 1; i < vals.length; i++) {
+        if (String(vals[i][0]).trim() === String(data.oldTen).trim()) {
+          cfg.getRange(i + 1, 1, 1, 3).setValues([[data.ten, data.matkhau, data.vaitro]]);
+          return _json({ ok: true });
+        }
+      }
+      return _json({ ok: false, error: 'Không tìm thấy user: ' + data.oldTen });
+    }
+
+    // ── Xóa user ───────────────────────────────────────
+    if (data.action === 'deleteUser') {
+      const cfg = ss.getSheetByName('Config');
+      if (!cfg) return _json({ ok: false, error: 'Sheet Config không tồn tại' });
+      const vals = cfg.getDataRange().getValues();
+      for (let i = 1; i < vals.length; i++) {
+        if (String(vals[i][0]).trim() === String(data.ten).trim()) {
+          cfg.deleteRow(i + 1);
+          return _json({ ok: true });
+        }
+      }
+      return _json({ ok: false, error: 'Không tìm thấy user: ' + data.ten });
+    }
 
     // ── ẨN / HIỆN sản phẩm (ghi cột "Ẩn") ────────────
     if (data.action === 'setHidden') {
@@ -188,9 +237,7 @@ function doPost(e) {
       .setMimeType(ContentService.MimeType.JSON);
 
   } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({
-      success: false, error: err.message
-    })).setMimeType(ContentService.MimeType.JSON);
+    return _json({ success: false, error: err.message });
   }
 }
 
@@ -209,20 +256,22 @@ function doGet(e) {
     return ContentService.createTextOutput(JSON.stringify({error:'unauthorized'}));
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  // ── Xử lý login ────────────────────────────────────
+  // ── Lấy danh sách users (action=getUsers) ──────────
+  if (e.parameter.action === 'getUsers') {
+    try {
+      return _json({ ok: true, users: _getCfgUsers(ss) });
+    } catch(ex) {
+      return _json({ ok: false, error: ex.message });
+    }
+  }
+
+  // ── Xử lý login (action=login) — giữ tương thích ───
   if (e.parameter.action === 'login') {
     const role = e.parameter.role;
     const pass = e.parameter.pass;
-    const sheet = ss.getSheetByName('Config');
-    const data = sheet.getDataRange().getValues();
-    const config = {};
-    data.forEach(row => config[row[0]] = row[1]);
-
-    const correct = (role === 'owner' && pass === config['owner_pass'].toString()) ||
-                    (role === 'staff'  && pass === config['staff_pass'].toString());
-
-    return ContentService.createTextOutput(JSON.stringify({ ok: correct }))
-      .setMimeType(ContentService.MimeType.JSON);
+    const users = _getCfgUsers(ss);
+    const ok = users.some(u => u.vaitro === role && u.matkhau === pass);
+    return _json({ ok });
   }
 
   // ── Lấy lịch sử xuất / nhập / nháp (action=history) ───────

@@ -7,7 +7,7 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; overflow-x: hidden; }
-#app { max-width: 420px; margin: 0 auto; padding: 1rem; min-height: 100vh; overflow-x: hidden; }
+#app { max-width: 420px; margin: 0 auto; padding: 1rem; min-height: 100dvh; overflow-x: hidden; }
 .screen { display: none; }
 .screen.active { display: block; }
 #screen-form, #screen-cart, #screen-history, #screen-history-detail, #screen-report { flex-direction: column; height: calc(100vh - 1rem); overflow: hidden; }
@@ -297,6 +297,20 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .ln-btn-primary:disabled { opacity:.65; cursor:not-allowed; }
 .ln-btn-primary:active { transform:scale(0.98); }
 .ln-footer { text-align:center; padding:0 4px; }
+/* ===== SETTINGS ===== */
+#screen-form, #screen-cart, #screen-history, #screen-history-detail, #screen-report, #screen-settings { flex-direction:column; height:calc(100vh - 1rem); overflow:hidden; }
+#screen-settings.active { display:flex; }
+#screen-settings { background:#f5f5f5; }
+.st-user-table { width:100%; border-collapse:collapse; font-size:13px; }
+.st-user-table th { padding:8px 10px; text-align:left; color:#888; font-weight:600; font-size:12px; border-bottom:2px solid #e0e0e0; }
+.st-user-table td { padding:9px 10px; border-bottom:1px solid #f0f0f0; vertical-align:middle; }
+.st-user-table tr:last-child td { border-bottom:none; }
+.st-role-pill { display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+.st-role-owner { background:#fff3e0; color:#e65100; }
+.st-role-staff { background:#e8f5e9; color:#2e7d32; }
+.st-btn { padding:4px 10px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; border:none; }
+.st-edit { background:#e3f2fd; color:#0d47a1; }
+.st-del { background:#ffebee; color:#c62828; margin-left:3px; }
 </style>
 
 <!-- ====== CONFIG - ANH JAMES CHỈ SỬA TRONG KHỐI NÀY ====== -->
@@ -436,7 +450,7 @@ const CONFIG = {
       <button onclick="showHistory()" title="Lịch sử" style="background:none;border:none;cursor:pointer;font-size:18.5px;padding:4px 2px;line-height:1;color:#1a1a1a;"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M9 4.5h6"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></button>
       <button id="btn-manage-products" onclick="showManageProducts()" title="Quản lý sản phẩm" style="display:none;background:none;border:none;cursor:pointer;font-size:18.5px;padding:4px 2px;line-height:1;color:#1a1a1a;"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7l8 4 8-4-8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg></button>
       <button class="cart-btn" onclick="goCart()" title="Giỏ hàng" style="color:#1a1a1a;font-size:18.5px;"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true" style="width:19px;height:19px;"><circle cx="9" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/><path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H7"/></svg><span class="badge-cart" id="cart-badge" style="display:none;">0</span></button>
-      </button>
+      <button id="btn-settings" onclick="showSettings()" title="Cài đặt" style="display:none;background:none;border:none;cursor:pointer;font-size:18.5px;padding:4px 2px;line-height:1;color:#1a1a1a;"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
       <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
     </div>
   </div>
@@ -979,6 +993,8 @@ const CONFIG = {
       <button onclick="showHistory()" style="font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#e3f2fd;color:#0d47a1;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M9 4.5h6"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg><span>Lịch sử</span></span></button>
       <button id="dt-btn-manage" onclick="showManageProducts()"
         style="display:none;font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#e8f5e9;color:#065a0a;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7l8 4 8-4-8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg><span>Quản lý SP</span></span></button>
+      <button id="dt-btn-settings" onclick="showSettings()" style="display:none;font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#f5f5f5;color:#555;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span>Cài đặt</span></span></button>
+      <span class="badge" id="role-badge-dt" style="font-size:12px;display:flex;justify-content:center;"></span>
       <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
     </div>
   </div>
@@ -1192,6 +1208,44 @@ const CONFIG = {
   </div>
 </div>
 
+<!-- SETTINGS -->
+<div id="screen-settings" class="screen">
+  <div class="header" style="flex-shrink:0;">
+    <button class="btn-back" onclick="goHome()">← Quay lại</button>
+    <div class="header-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;">⚙️ Cài đặt</div>
+  </div>
+  <div style="padding:12px;overflow-y:auto;flex:1;">
+    <div class="card" style="margin-bottom:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div style="font-size:14px;font-weight:700;">👥 Quản lý người dùng</div>
+        <button onclick="openUserModal(null)" style="padding:6px 14px;background:#4CAF50;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">+ Thêm</button>
+      </div>
+      <div id="settings-user-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- User add/edit modal -->
+<div id="user-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3200;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:24px 20px;width:300px;max-width:92vw;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+    <div style="font-size:16px;font-weight:700;margin-bottom:18px;" id="user-modal-title">Thêm người dùng</div>
+    <label style="margin-top:0;">Tên đăng nhập</label>
+    <input id="user-modal-ten" type="text" placeholder="Tên người dùng" />
+    <label>Mật khẩu</label>
+    <input id="user-modal-pass" type="password" placeholder="Tối thiểu 4 ký tự" />
+    <label>Vai trò</label>
+    <select id="user-modal-role">
+      <option value="owner">👑 Admin</option>
+      <option value="staff">🙋 Nhân viên</option>
+    </select>
+    <div id="user-modal-error" style="display:none;color:#f44336;font-size:12px;margin-top:10px;padding:7px 9px;background:#fff3f3;border-radius:7px;border:1px solid #ffc9c9;"></div>
+    <div style="display:flex;gap:10px;margin-top:18px;">
+      <button onclick="saveUserModal()" style="flex:1;padding:11px;background:#4CAF50;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">💾 Lưu</button>
+      <button onclick="document.getElementById('user-modal').style.display='none'" style="flex:1;padding:11px;background:#f0f0f0;color:#555;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">✕ Hủy</button>
+    </div>
+  </div>
+</div>
+
 <div id="inv-print-root" style="display:none;"></div>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
@@ -1199,6 +1253,18 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuMnQQXseZ6YtZgv7bO
 const LOW_STOCK_THRESHOLD = 2; // Tồn kho thấp
 
 let currentRole = null;
+let currentUserName = null;
+
+function _setUserBadges(name, role) {
+  const icon = role === 'owner' ? '👑' : '🙋';
+  const label = icon + ' ' + name;
+  const cls = 'badge ' + (role === 'owner' ? 'badge-owner' : 'badge-staff');
+  ['role-badge', 'role-badge-cart', 'role-badge-dt'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = label; el.className = cls; }
+  });
+}
+
 let _autoRefreshTimer = null;
 function startAutoRefresh() {
   if (_autoRefreshTimer) clearInterval(_autoRefreshTimer);
@@ -1511,7 +1577,7 @@ function showScreen(id) {
   const isDesktop = window.innerWidth >= 768;
 
   if (isDesktop && currentRole) {
-    if (id === 'screen-products' || id === 'screen-product-form' || id === 'screen-history' || id === 'screen-history-detail' || id === 'screen-report' || id === 'screen-report-detail') {
+    if (id === 'screen-products' || id === 'screen-product-form' || id === 'screen-history' || id === 'screen-history-detail' || id === 'screen-report' || id === 'screen-report-detail' || id === 'screen-settings') {
       document.getElementById('desktop-layout').style.display = 'none';
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
@@ -1531,6 +1597,32 @@ function showScreen(id) {
 }
 
 // ===== LOGIN =====
+const _BTN_LOGIN_NORMAL = 'Đăng nhập <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+const _BTN_LOGIN_LOADING = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Đang đăng nhập...';
+
+function _applyLogin(r, name) {
+  currentRole = r;
+  currentUserName = name;
+  document.getElementById('login-error').classList.remove('visible');
+  try {
+    const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const savedDtCart = JSON.parse(localStorage.getItem('dtCart') || '[]');
+    cart = savedCart.map(i => { const p = products.find(p => p.ma === i.product.ma); return p ? { product: p, sl: i.sl, gia: i.gia } : null; }).filter(Boolean);
+    dtCart = savedDtCart.map(i => { const p = products.find(p => p.ma === i.product.ma); return p ? { product: p, sl: i.sl, gia: i.gia } : null; }).filter(Boolean);
+  } catch(e) { cart = []; dtCart = []; }
+  updateCartBadge();
+  _setUserBadges(name, r);
+  document.getElementById('btn-manage-products').style.display = r === 'owner' ? 'flex' : 'none';
+  applyRolePermissions(r);
+  if (window.innerWidth >= 768) {
+    dtInitLayout();
+    document.getElementById('desktop-layout').style.display = 'flex';
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  } else {
+    showScreen('screen-main');
+  }
+}
+
 async function doLogin() {
   const role = document.getElementById('login-role').value;
   const pass = document.getElementById('login-pass').value.trim();
@@ -1538,82 +1630,56 @@ async function doLogin() {
   const loginBtn = document.getElementById('btn-login');
   if (!pass) { document.getElementById('login-error-text').textContent = '⚠️ Vui lòng nhập mật khẩu!'; err.classList.add('visible'); return; }
 
-  function applyLogin(r) {
-    currentRole = r;
-    err.classList.remove('visible');
-    // Restore cart from localStorage
-    try {
-      const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
-      const savedDtCart = JSON.parse(localStorage.getItem('dtCart') || '[]');
-      // Re-link product refs to live products array
-      cart = savedCart.map(i => {
-        const p = products.find(p => p.ma === i.product.ma);
-        return p ? { product: p, sl: i.sl, gia: i.gia } : null;
-      }).filter(Boolean);
-      dtCart = savedDtCart.map(i => {
-        const p = products.find(p => p.ma === i.product.ma);
-        return p ? { product: p, sl: i.sl, gia: i.gia } : null;
-      }).filter(Boolean);
-    } catch(e) { cart = []; dtCart = []; }
-    updateCartBadge();
-    const isOwner = r === 'owner';
-    document.getElementById('role-badge').textContent = isOwner ? 'Admin' : 'Staff';
-    document.getElementById('role-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
-    document.getElementById('role-badge-cart').textContent = isOwner ? 'Admin' : 'Staff';
-    document.getElementById('role-badge-cart').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
-    document.getElementById('btn-manage-products').style.display = r === 'owner' ? 'flex' : 'none';
-    applyRolePermissions(r);
-    if (window.innerWidth >= 768) {
-      dtInitLayout();
-      document.getElementById('desktop-layout').style.display = 'flex';
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    } else {
-      showScreen('screen-main');
-    }
-  }
-
-  // Nếu cache khớp → vào ngay, verify ngầm
+  // Cache khớp → vào ngay, verify ngầm
   try {
     const cached = JSON.parse(localStorage.getItem('login_cache') || 'null');
     if (cached && cached.role === role && cached.pass === pass) {
+      const cachedName = cached.name || (role === 'owner' ? 'Admin' : 'Nhân viên');
       await loadProducts();
       startAutoRefresh();
       startInactivityWatch();
       filterProductList();
-      applyLogin(role);
-      loginBtn.innerHTML = 'Đăng nhập <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+      _applyLogin(role, cachedName);
+      loginBtn.innerHTML = _BTN_LOGIN_NORMAL;
       loginBtn.disabled = false;
-      // Verify ngầm — nếu sai thì đăng xuất
-      fetch(`${SCRIPT_URL}?action=login&role=${role}&pass=${encodeURIComponent(pass)}&token=inox2026xK9m`)
-        .then(r => r.json()).then(data => { if (!data.ok) { localStorage.removeItem('login_cache'); doLogout(); } })
-        .catch(() => {});
+      fetch(`${SCRIPT_URL}?action=getUsers&token=inox2026xK9m`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.ok) {
+            const ok = data.users.find(u => u.vaitro === role && u.matkhau === pass);
+            if (!ok) { localStorage.removeItem('login_cache'); doLogout(); }
+          }
+        }).catch(() => {});
       return;
     }
   } catch(e) {}
 
-  // Lần đầu: login bình thường
-  const _btnNormal = 'Đăng nhập <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
-  const _btnLoading = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Đang đăng nhập...';
-  loginBtn.innerHTML = _btnLoading;
+  loginBtn.innerHTML = _BTN_LOGIN_LOADING;
   loginBtn.disabled = true;
   try {
-    const res = await fetch(`${SCRIPT_URL}?action=login&role=${role}&pass=${encodeURIComponent(pass)}&token=inox2026xK9m`);
+    const res = await fetch(`${SCRIPT_URL}?action=getUsers&token=inox2026xK9m`);
     const data = await res.json();
     if (data.ok) {
-      localStorage.setItem('login_cache', JSON.stringify({ role, pass }));
-      await loadProducts();
-      startAutoRefresh();
-      startInactivityWatch();
-      filterProductList();
-      applyLogin(role);
+      const match = data.users.find(u => u.vaitro === role && u.matkhau === pass);
+      if (match) {
+        localStorage.setItem('login_cache', JSON.stringify({ role, pass, name: match.ten }));
+        await loadProducts();
+        startAutoRefresh();
+        startInactivityWatch();
+        filterProductList();
+        _applyLogin(role, match.ten);
+      } else {
+        document.getElementById('login-error-text').textContent = '❌ Sai mật khẩu, thử lại!';
+        err.classList.add('visible');
+      }
     } else {
-      document.getElementById('login-error-text').textContent = '❌ Sai mật khẩu, thử lại!';
+      document.getElementById('login-error-text').textContent = '❌ Lỗi server, thử lại sau!';
       err.classList.add('visible');
     }
   } catch(e) {
     alert('Lỗi kết nối, thử lại!');
   } finally {
-    loginBtn.innerHTML = _btnNormal;
+    loginBtn.innerHTML = _BTN_LOGIN_NORMAL;
     loginBtn.disabled = false;
   }
 }
@@ -1692,11 +1758,9 @@ function _lnOnPassInput() {
     filterProductList();
     filterManageProducts();
     updateProductStats();
-    const isOwner = cached.role === 'owner';
-    document.getElementById('role-badge').textContent = isOwner ? 'Admin' : 'Staff';
-    document.getElementById('role-badge').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
-    document.getElementById('role-badge-cart').textContent = isOwner ? 'Admin' : 'Staff';
-    document.getElementById('role-badge-cart').className = 'badge ' + (isOwner ? 'badge-owner' : 'badge-staff');
+    currentRole = cached.role;
+    currentUserName = cached.name || (cached.role === 'owner' ? 'Admin' : 'Nhân viên');
+    _setUserBadges(currentUserName, cached.role);
     document.getElementById('btn-manage-products').style.display = cached.role === 'owner' ? 'flex' : 'none';
     applyRolePermissions(cached.role);
     const _lastScreen = sessionStorage.getItem('lastScreen') || 'screen-main';
@@ -1732,9 +1796,14 @@ function _lnOnPassInput() {
       if (_targetScreen === 'screen-cart') { setCartMode(cartMode); renderCart(); }
     }
     // Verify ngầm
-    fetch(`${SCRIPT_URL}?action=login&role=${cached.role}&pass=${encodeURIComponent(cached.pass)}&token=inox2026xK9m`)
-      .then(r => r.json()).then(data => { if (!data.ok) { localStorage.removeItem('login_cache'); doLogout(); } })
-      .catch(() => {});
+    fetch(`${SCRIPT_URL}?action=getUsers&token=inox2026xK9m`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.ok) {
+          const ok = data.users.find(u => u.vaitro === cached.role && u.matkhau === cached.pass);
+          if (!ok) { localStorage.removeItem('login_cache'); doLogout(); }
+        }
+      }).catch(() => {});
   } catch(e) {}
 })();
 
@@ -1745,6 +1814,8 @@ function applyRolePermissions(role) {
   d(document.getElementById('dt-btn-report'),     isOwner);
   d(document.getElementById('hist-btn-nhap'),     isOwner);
   d(document.getElementById('hist-nhap-summary'), isOwner);
+  d(document.getElementById('btn-settings'),      isOwner);
+  d(document.getElementById('dt-btn-settings'),   isOwner);
 }
 
 function doLogout() {
@@ -1752,6 +1823,7 @@ function doLogout() {
   stopAutoRefresh();
   stopInactivityWatch();
   currentRole = null;
+  currentUserName = null;
   products = [];
   cart = [];
   cartGiaodich = '';
@@ -1766,6 +1838,133 @@ function doLogout() {
   document.getElementById('desktop-layout').style.display = 'none';
   updateCartBadge();
   showScreen('screen-login');
+}
+
+// ===== SETTINGS =====
+let _settingsUsers = [];
+let _userModalEditingName = null;
+
+async function showSettings() {
+  showScreen('screen-settings');
+  document.getElementById('settings-user-list').innerHTML = '<div style="color:#555;font-size:13px;text-align:center;padding:20px;">⏳ Đang tải danh sách người dùng...</div>';
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getUsers&token=inox2026xK9m`);
+    const data = await res.json();
+    if (data.ok) {
+      _settingsUsers = data.users;
+      _renderSettingsUsers();
+    } else {
+      document.getElementById('settings-user-list').innerHTML = '<div style="color:#f44336;font-size:13px;text-align:center;padding:20px;">Lỗi tải dữ liệu!</div>';
+    }
+  } catch(e) {
+    document.getElementById('settings-user-list').innerHTML = '<div style="color:#f44336;font-size:13px;text-align:center;padding:20px;">Lỗi kết nối!</div>';
+  }
+}
+
+function _renderSettingsUsers() {
+  const el = document.getElementById('settings-user-list');
+  if (!_settingsUsers.length) {
+    el.innerHTML = '<div style="color:#888;font-size:13px;text-align:center;padding:16px;">Chưa có người dùng nào. Nhấn "+ Thêm" để tạo người dùng.</div>';
+    return;
+  }
+  let rows = _settingsUsers.map(u => {
+    const roleLabel = u.vaitro === 'owner' ? '<span class="st-role-pill st-role-owner">👑 Admin</span>' : '<span class="st-role-pill st-role-staff">🙋 Nhân viên</span>';
+    const isSelf = u.ten === currentUserName;
+    return `<tr>
+      <td style="font-weight:600;">${u.ten}${isSelf ? ' <span style="font-size:10px;color:#4CAF50;">(bạn)</span>' : ''}</td>
+      <td style="letter-spacing:2px;color:#aaa;">••••</td>
+      <td>${roleLabel}</td>
+      <td style="white-space:nowrap;">
+        <button class="st-btn st-edit" onclick="openUserModal('${u.ten}')">Sửa</button>
+        <button class="st-btn st-del" onclick="deleteSettingsUser('${u.ten}')">Xóa</button>
+      </td>
+    </tr>`;
+  }).join('');
+  el.innerHTML = `<table class="st-user-table"><thead><tr><th>Tên</th><th>Mật khẩu</th><th>Vai trò</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function openUserModal(editingName) {
+  _userModalEditingName = editingName;
+  const modal = document.getElementById('user-modal');
+  const errEl = document.getElementById('user-modal-error');
+  errEl.style.display = 'none';
+  if (editingName) {
+    const u = _settingsUsers.find(u => u.ten === editingName);
+    document.getElementById('user-modal-title').textContent = 'Sửa người dùng';
+    document.getElementById('user-modal-ten').value = u ? u.ten : '';
+    document.getElementById('user-modal-pass').value = u ? u.matkhau : '';
+    document.getElementById('user-modal-role').value = u ? u.vaitro : 'staff';
+  } else {
+    document.getElementById('user-modal-title').textContent = 'Thêm người dùng';
+    document.getElementById('user-modal-ten').value = '';
+    document.getElementById('user-modal-pass').value = '';
+    document.getElementById('user-modal-role').value = 'staff';
+  }
+  modal.style.display = 'flex';
+}
+
+async function saveUserModal() {
+  const ten = document.getElementById('user-modal-ten').value.trim();
+  const pass = document.getElementById('user-modal-pass').value.trim();
+  const role = document.getElementById('user-modal-role').value;
+  const errEl = document.getElementById('user-modal-error');
+
+  function showErr(msg) { errEl.textContent = msg; errEl.style.display = 'block'; }
+
+  if (!ten) return showErr('Vui lòng nhập tên.');
+  if (!pass || pass.length < 4) return showErr('Mật khẩu phải ít nhất 4 ký tự.');
+
+  const isEditing = !!_userModalEditingName;
+  // Validate trùng tên
+  if (!isEditing || ten !== _userModalEditingName) {
+    if (_settingsUsers.find(u => u.ten === ten)) return showErr('Tên này đã tồn tại!');
+  }
+  // Validate trùng mật khẩu trong cùng role
+  const sameRoleConflict = _settingsUsers.find(u => u.vaitro === role && u.matkhau === pass && u.ten !== _userModalEditingName);
+  if (sameRoleConflict) return showErr('Mật khẩu đã dùng bởi "' + sameRoleConflict.ten + '" (cùng vai trò)!');
+
+  const saveBtn = document.querySelector('#user-modal button[onclick="saveUserModal()"]');
+  saveBtn.disabled = true;
+  saveBtn.textContent = '⏳ Đang lưu...';
+  try {
+    const action = isEditing ? 'updateUser' : 'addUser';
+    const body = { action, ten, matkhau: pass, vaitro: role };
+    if (isEditing) body.oldTen = _userModalEditingName;
+    const res = await fetch(SCRIPT_URL + '?token=inox2026xK9m', { method: 'POST', body: JSON.stringify(body) });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('user-modal').style.display = 'none';
+      showSettings();
+      // Nếu đang sửa user hiện tại thì cập nhật cache
+      if (isEditing && _userModalEditingName === currentUserName) {
+        currentUserName = ten;
+        const cached = JSON.parse(localStorage.getItem('login_cache') || 'null');
+        if (cached) { cached.name = ten; cached.pass = pass; localStorage.setItem('login_cache', JSON.stringify(cached)); }
+        _setUserBadges(ten, role);
+      }
+    } else {
+      showErr(data.error || 'Lỗi server!');
+    }
+  } catch(e) {
+    showErr('Lỗi kết nối!');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = '💾 Lưu';
+  }
+}
+
+async function deleteSettingsUser(ten) {
+  if (ten === currentUserName) { showToast('❌ Không thể xóa tài khoản đang đăng nhập!'); return; }
+  const ownerCount = _settingsUsers.filter(u => u.vaitro === 'owner').length;
+  const isOwner = _settingsUsers.find(u => u.ten === ten && u.vaitro === 'owner');
+  if (isOwner && ownerCount <= 1) { showToast('❌ Phải có ít nhất 1 Admin!'); return; }
+  if (!confirm(`Xóa người dùng "${ten}"?`)) return;
+  try {
+    const res = await fetch(SCRIPT_URL + '?token=inox2026xK9m', { method: 'POST', body: JSON.stringify({ action: 'deleteUser', ten }) });
+    const data = await res.json();
+    if (data.ok) { showSettings(); }
+    else { showToast('❌ ' + (data.error || 'Lỗi xóa user!')); }
+  } catch(e) { showToast('❌ Lỗi kết nối!'); }
 }
 
 // ===== PRODUCTS =====
