@@ -1454,7 +1454,7 @@ async function doLogin() {
   const pass = document.getElementById('login-pass').value.trim();
   const err = document.getElementById('login-error');
   const loginBtn = document.getElementById('btn-login');
-  if (!pass) { err.style.display = 'block'; return; }
+  if (!pass) { err.textContent = '⚠️ Vui lòng nhập mật khẩu!'; err.style.display = 'block'; return; }
 
   function applyLogin(r) {
     currentRole = r;
@@ -1523,6 +1523,7 @@ async function doLogin() {
       filterProductList();
       applyLogin(role);
     } else {
+      err.textContent = '❌ Sai mật khẩu, thử lại!';
       err.style.display = 'block';
     }
   } catch(e) {
