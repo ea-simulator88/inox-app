@@ -402,10 +402,19 @@ const CONFIG = {
       </div>
 
       <!-- Role selector -->
-      <div class="ln-role-row">
-        <button type="button" id="ln-role-owner" class="ln-role-btn active" onclick="_lnSetRole('owner')">Admin</button>
-        <button type="button" id="ln-role-staff" class="ln-role-btn" onclick="_lnSetRole('staff')">Staff</button>
-      </div>
+        <div class="ln-role-row">
+        <button type="button" id="ln-role-owner" class="ln-role-btn active" onclick="_lnSetRole('owner')"
+            style="display:inline-flex;align-items:center;justify-content:center;gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"style="display:block;"><path d="M3 7l5 5 4-8 4 8 5-5v10H3z"/></svg>
+            <span style="line-height:1;">Admin</span>
+        </button>
+
+        <button type="button" id="ln-role-staff" class="ln-role-btn" onclick="_lnSetRole('staff')"
+            style="display:inline-flex;align-items:center;justify-content:center;gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"style="display:block;"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+            <span style="line-height:1;">Staff</span>
+        </button>
+        </div>
       <input type="hidden" id="login-role" value="owner" />
 
       <!-- Password field -->
@@ -994,7 +1003,7 @@ const CONFIG = {
       <button id="dt-btn-manage" onclick="showManageProducts()"
         style="display:none;font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#e8f5e9;color:#065a0a;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7l8 4 8-4-8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg><span>Quản lý SP</span></span></button>
       <button id="dt-btn-settings" onclick="showSettings()" style="display:none;font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#f5f5f5;color:#555;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span>Cài đặt</span></span></button>
-      <span class="badge" id="role-badge-dt" style="font-size:12px;display:flex;justify-content:center;"></span>
+      <span class="badge" id="role-badge-dt" style="font-size:12px;display:inline-flex;align-items:center;justify-content:center;"></span>
       <button class="logout-btn" onclick="doLogout()">Đăng xuất</button>
     </div>
   </div>
@@ -1261,12 +1270,25 @@ let currentRole = null;
 let currentUserName = null;
 
 function _setUserBadges(name, role) {
-  const icon = role === 'owner' ? '👑' : '🙋';
-  const label = icon + ' ' + name;
+
+  const icon = role === 'owner'
+    ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l5 5 4-8 4 8 5-5v10H3z"/></svg>`
+    : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>`;
+
+  const label = `${icon}<span>${name}</span>`;
   const cls = 'badge ' + (role === 'owner' ? 'badge-owner' : 'badge-staff');
+
   ['role-badge', 'role-badge-cart', 'role-badge-dt'].forEach(function(id) {
     const el = document.getElementById(id);
-    if (el) { el.textContent = label; el.className = cls; }
+    if (el) {
+      el.innerHTML = label; // 🔥 quan trọng
+      el.className = cls;
+
+      // cho icon + text đẹp
+      el.style.display = 'inline-flex';
+      el.style.alignItems = 'center';
+      el.style.gap = '5px';
+    }
   });
 }
 
