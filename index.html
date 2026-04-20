@@ -1399,17 +1399,48 @@ function updateProductStats() {
 // ===== HIGHLIGHT / HIDDEN / LOW-STOCK HELPERS =====
 function highlightText(text, kw) {
   if (!kw || !text) return text || '';
+  // Tách câu tìm kiếm thành các từ khóa lẻ (giống với bộ lọc)
+  const keywords = removeDiacritics(kw).trim().split(/\s+/).filter(Boolean);
+  if (!keywords.length) return text || '';
+
   const stripped = removeDiacritics(text);
-  const strippedKw = removeDiacritics(kw);
-  let result = '';
-  let i = 0;
-  while (i < stripped.length) {
-    const idx = stripped.indexOf(strippedKw, i);
-    if (idx === -1) { result += text.slice(i); break; }
-    result += text.slice(i, idx);
-    result += '<mark style="background:#FFF176;color:#5D4037;border-radius:2px;padding:0 1px">' + text.slice(idx, idx + strippedKw.length) + '</mark>';
-    i = idx + strippedKw.length;
+  let intervals = [];
+
+  // Tìm tất cả các vị trí khớp với từng từ khóa
+  keywords.forEach(k => {
+    let i = 0;
+    while (i < stripped.length) {
+      const idx = stripped.indexOf(k, i);
+      if (idx === -1) break;
+      intervals.push({ start: idx, end: idx + k.length });
+      i = idx + 1;
+    }
+  });
+
+  if (!intervals.length) return text;
+
+  // Gộp các vùng bôi vàng bị đè lên nhau (tránh lỗi giao diện)
+  intervals.sort((a, b) => a.start - b.start);
+  let merged = [intervals[0]];
+  for (let i = 1; i < intervals.length; i++) {
+    let last = merged[merged.length - 1];
+    let curr = intervals[i];
+    if (curr.start <= last.end) {
+      last.end = Math.max(last.end, curr.end);
+    } else {
+      merged.push(curr);
+    }
   }
+
+  // Lắp ghép lại chuỗi với thẻ <mark> bôi vàng
+  let result = '';
+  let lastEnd = 0;
+  for (let m of merged) {
+    result += text.slice(lastEnd, m.start);
+    result += '<mark style="background:#FFF176;color:#5D4037;border-radius:2px;padding:0 1px">' + text.slice(m.start, m.end) + '</mark>';
+    lastEnd = m.end;
+  }
+  result += text.slice(lastEnd);
   return result;
 }
 
@@ -1545,12 +1576,13 @@ function filterManageProducts() {
   else if (manageFilterVisible) list = list.filter(p => !isHidden(p.ma));
   // manageFilterAll (default): hiện tất cả kể cả ẩn
   if (q) {
-    list = list.filter(p =>
-      removeDiacritics(p.ma).includes(q) ||
-      removeDiacritics(p.ten).includes(q) ||
-      removeDiacritics(p.kichthuoc).includes(q) ||
-      removeDiacritics(p.ncc).includes(q)
-    );
+    const keywords = q.split(/\s+/);
+    list = list.filter(p => {
+      const text = removeDiacritics([
+        p.ma || '', p.ten || '', p.kichthuoc || '', p.ncc || ''
+      ].join(' '));
+      return keywords.every(kw => text.includes(kw));
+    });
   }
   const tonkhoFilterEl = document.getElementById('manage-tonkho-filter');
   if (tonkhoFilterEl && tonkhoFilterEl.value !== '') {
@@ -2174,7 +2206,8 @@ function fmtTime(d) {
   const D  = String(d.getDate()).padStart(2, '0');
   const HH = String(d.getHours()).padStart(2, '0');
   const mm = String(d.getMinutes()).padStart(2, '0');
-  return `${Y}-${M}-${D} ${HH}:${mm}`;
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return `${Y}-${M}-${D} ${HH}:${mm}:${ss}`;
 }
 
 function fmtMoney(val) {
@@ -2215,16 +2248,16 @@ function filterProductList() {
     : (products || []).filter(p => !isHidden(p.ma));
   if (mobileFilterLow) list = list.filter(p => (p.tonkho || 0) <= LOW_STOCK_THRESHOLD);
   if (q) {
-    list = list.filter(p =>
-      removeDiacritics(p.ma).includes(q) ||
-      removeDiacritics(p.ten).includes(q) ||
-      removeDiacritics(p.kichthuoc).includes(q) ||
-      removeDiacritics(p.ncc).includes(q) ||
-      removeDiacritics(p.motaSP).includes(q) ||
-      removeDiacritics(p.phanloai).includes(q) ||
-      removeDiacritics(p.nhanHieu).includes(q)
-    );
+    const keywords = q.split(/\s+/);
+    list = list.filter(p => {
+      const text = removeDiacritics([
+        p.ma || '', p.ten || '', p.kichthuoc || '',
+        p.ncc || '', p.motaSP || '', p.phanloai || '', p.nhanHieu || ''
+      ].join(' '));
+      return keywords.every(kw => text.includes(kw));
+    });
   }
+
   const mobTonEl = document.getElementById('mob-tonkho-filter');
   if (mobTonEl && mobTonEl.value !== '') list = list.filter(p => (Number(p.tonkho) || 0) <= Number(mobTonEl.value));
   renderProductList(list, rawQ.trim());
@@ -3333,13 +3366,14 @@ function dtFilterProducts() {
     : (products || []).filter(p => !isHidden(p.ma));
   if (dtFilterLow) list = list.filter(p => (p.tonkho || 0) <= LOW_STOCK_THRESHOLD);
   if (q) {
-    list = list.filter(p =>
-      removeDiacritics(p.ma).includes(q) ||
-      removeDiacritics(p.ten).includes(q) ||
-      removeDiacritics(p.kichthuoc).includes(q) ||
-      removeDiacritics(p.ncc).includes(q) ||
-      removeDiacritics(p.motaSP).includes(q)
-    );
+    const keywords = q.split(/\s+/);
+    list = list.filter(p => {
+      const text = removeDiacritics([
+        p.ma || '', p.ten || '', p.kichthuoc || '',
+        p.ncc || '', p.motaSP || ''
+      ].join(' '));
+      return keywords.every(kw => text.includes(kw));
+    });
   }
   const dtTonEl = document.getElementById('dt-tonkho-filter');
   if (dtTonEl && dtTonEl.value !== '') list = list.filter(p => (Number(p.tonkho) || 0) <= Number(dtTonEl.value));
@@ -4320,7 +4354,7 @@ function _groupReportEntries(rows, keyBuilder, nameBuilder, rowFilter = null) {
   return [...map.values()].sort((a, b) => b.amount - a.amount || b.qty - a.qty || a.name.localeCompare(b.name, 'vi'));
 }
 
-function _renderReportSection(title, color, items, emptyText, type) {
+function _renderReportSection(title, color, items, emptyText, type, kw) {
   if (!items.length) {
     return `<div class="report-detail-section"><div style="font-size:13px;font-weight:700;color:${color};margin-bottom:8px;">${title}</div><div style="font-size:13px;color:#999;padding:6px 0;">${emptyText}</div></div>`;
   }
@@ -4334,7 +4368,7 @@ function _renderReportSection(title, color, items, emptyText, type) {
         const idx = _rptDetailData.push({ type, key: item.key, name: item.name }) - 1;
         return `<div class="report-detail-item" onclick="showReportDetail(${idx})" style="cursor:pointer;">
           <div style="min-width:0;">
-            <div class="report-detail-name">${item.name}</div>
+            <div class="report-detail-name">${highlightText(item.name, kw)}</div>
             <div class="report-detail-meta">${item.extra || (item.count + ' dòng')}</div>
           </div>
           <div class="report-detail-value">
@@ -4347,7 +4381,7 @@ function _renderReportSection(title, color, items, emptyText, type) {
   </div>`;
 }
 
-function _renderProductReportSection(rows) {
+function _renderProductReportSection(rows, kw) {
   const map = new Map();
   rows.forEach(r => {
     const key = [r.ma, r.hanghoa, r.kichthuoc].join('||');
@@ -4379,8 +4413,8 @@ function _renderProductReportSection(rows) {
         const idx = _rptDetailData.push({ type: 'sp', key: item.key, name: item.name, ma: item.ma, ncc: item.ncc, kichthuoc: item.kichthuoc }) - 1;
         return `<div class="report-detail-item" onclick="showReportDetail(${idx})" style="cursor:pointer;">
           <div style="min-width:0;flex:1;">
-            <div class="report-detail-name">${item.name}${item.ncc ? ` <span style="color:#1565c0;font-weight:500;">· ${item.ncc}</span>` : ''}</div>
-            ${meta ? `<div class="report-detail-meta">${meta}</div>` : ''}
+            <div class="report-detail-name">${highlightText(item.name, kw)}${item.ncc ? ` <span style="color:#1565c0;font-weight:500;">· ${highlightText(item.ncc, kw)}</span>` : ''}</div>
+            ${meta ? `<div class="report-detail-meta">${highlightText(meta, kw)}</div>` : ''}
           </div>
           <div style="text-align:right;flex-shrink:0;">${nhapLine}${xuatLine}</div>
         </div>`;
@@ -4526,11 +4560,14 @@ function renderReport() {
 
   const suppliers = _sortReportItems(_groupReportEntries(rows, r => r.ncc.trim(), r => r.ncc.trim(), r => r.loai === 'Nhập' && r.ncc.trim()).map(item => ({ ...item, extra: item.count + ' dòng nhập' })));
   const customers = _sortReportItems(_groupReportEntries(rows, r => r.tenkhach.trim(), r => r.tenkhach.trim(), r => r.loai === 'Xuất' && r.tenkhach.trim()).map(item => ({ ...item, extra: item.count + ' dòng xuất' })));
+  const rawSupplierQ = (document.getElementById('report-filter-supplier')?.value || '').trim();
+  const rawCustomerQ = (document.getElementById('report-filter-customer')?.value || '').trim();
+  const rawProductQ  = (document.getElementById('report-filter-product')?.value || '').trim();
 
   list.innerHTML = [
-    _renderReportSection('Nhà cung cấp', '#1976d2', suppliers, 'Không có dữ liệu nhà cung cấp trong bộ lọc này.', 'ncc'),
-    _renderReportSection('Khách hàng', '#8e24aa', customers, 'Không có dữ liệu khách hàng trong bộ lọc này.', 'khach'),
-    _renderProductReportSection(rows)
+    _renderReportSection('Nhà cung cấp', '#1976d2', suppliers, 'Không có dữ liệu nhà cung cấp trong bộ lọc này.', 'ncc', rawSupplierQ),
+    _renderReportSection('Khách hàng', '#8e24aa', customers, 'Không có dữ liệu khách hàng trong bộ lọc này.', 'khach', rawCustomerQ),
+    _renderProductReportSection(rows, rawProductQ)
   ].join('');
 }
 
@@ -4643,16 +4680,25 @@ function _renderHistory() {
     }
   }
 
-  // Lọc theo text search
+  // Lọc theo text search thông minh (hỗ trợ nhiều từ khóa)
   const histQ = removeDiacritics(((document.getElementById('hist-search') || {}).value || '').trim());
   if (histQ) {
-    filtered = filtered.filter(r =>
-      removeDiacritics(r.hanghoa || '').includes(histQ) ||
-      removeDiacritics(r.ma || '').includes(histQ) ||
-      removeDiacritics(r.ncc || '').includes(histQ) ||
-      removeDiacritics(r.tenkhach || '').includes(histQ) ||
-      removeDiacritics(r.kichthuoc || '').includes(histQ)
-    );
+    const keywords = histQ.split(/\s+/); // Tách câu tìm kiếm thành các từ khóa rời bằng dấu cách
+    filtered = filtered.filter(r => {
+      // Gom toàn bộ thông tin của giao dịch thành 1 chuỗi dài
+      const rowText = removeDiacritics([
+        r.hanghoa || '',
+        r.ma || '',
+        r.ncc || '',
+        r.tenkhach || '',
+        r.kichthuoc || '',
+        r.giaodich || '', // Bổ sung cho phép tìm theo loại Giao dịch (Tiền mặt, CK...)
+        r.loai || ''
+      ].join(' '));
+
+      // Yêu cầu chuỗi thông tin phải chứa TẤT CẢ các từ khóa người dùng gõ vào
+      return keywords.every(kw => rowText.includes(kw));
+    });
   }
 
   // Gom nhóm theo thoigian + tenkhach + loai
@@ -4709,6 +4755,7 @@ function _renderHistory() {
     list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Ch\u01B0a c\u00F3 d\u1EEF li\u1EC7u.</div>';
     return;
   }
+  const rawHistQ = ((document.getElementById('hist-search') || {}).value || '').trim();
 
   list.innerHTML = _historyGroups.map((g, i) => {
     const total = g.rows.reduce((s, r) => s + r.soluong * r.gia, 0);
@@ -4725,16 +4772,16 @@ function _renderHistory() {
       <div class="history-card-row">
         <div class="history-card-main">
           <div class="history-card-time">${fmtTime(new Date(g.thoigian_raw))}</div>
-          <div class="history-card-meta">
+            <div class="history-card-meta">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-              <span style="font-size:12px;padding:2px 8px;border-radius:10px;background:${loaiBg};color:${loaiColor};font-weight:600;">${g.loai}</span>
+              <span style="font-size:12px;padding:2px 8px;border-radius:10px;background:${loaiBg};color:${loaiColor};font-weight:600;">${highlightText(g.loai, rawHistQ)}</span>
               <span style="font-size:13px;color:#555;">${g.rows.length} SP</span>
               <span style="font-size:13px;font-weight:600;color:#1a1a1a;">${total.toLocaleString('en-US')} đ</span>
-              ${g.giaodich ? `<span style="font-size:12px;color:#888;">· ${g.giaodich.replace('Tiền mặt + Chuyển khoản','TM + CK')}</span>` : ''}
+              ${g.giaodich ? `<span style="font-size:12px;color:#888;">· ${highlightText(g.giaodich.replace('Tiền mặt + Chuyển khoản','TM + CK'), rawHistQ)}</span>` : ''}
             </div>
             ${(g.tenkhach || (g.loai === 'Nhập' && g.rows[0]?.ncc)) ? `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-              ${g.tenkhach ? `<span style="font-size:12px;color:#555;">· ${g.tenkhach}</span>` : ''}
-              ${g.loai === 'Nhập' && g.rows[0]?.ncc ? `<span style="font-size:12px;color:#1976d2;">· ${g.rows[0].ncc}</span>` : ''}
+              ${g.tenkhach ? `<span style="font-size:12px;color:#555;">· ${highlightText(g.tenkhach, rawHistQ)}</span>` : ''}
+              ${g.loai === 'Nhập' && g.rows[0]?.ncc ? `<span style="font-size:12px;color:#1976d2;">· ${highlightText(g.rows[0].ncc, rawHistQ)}</span>` : ''}
             </div>` : ''}
           </div>
         </div>
@@ -5329,7 +5376,7 @@ async function _doDraftConfirm(idx, giaodich) {
   const g = _historyGroups[idx];
   if (!g || g.loai !== 'Nháp') return;
   if (!confirm('Xác nhận Xuất đơn nháp này?\n' + g.rows.length + ' SP · ' + g.rows.reduce((s,r)=>s+r.soluong*r.gia,0).toLocaleString('en-US') + ' đ')) return;
-  const _nowTs = new Date().toISOString();
+  const _nowTs = fmtTime(new Date());
   const rows = g.rows.map(r => [r.ma, _nowTs, r.ncc, r.hanghoa, r.kichthuoc, r.mota, r.dvt, r.soluong, r.gia, giaodich || r.giaodich, r.phichanh || '', r.phikhachtra || '', '', r.tenkhach || '', r.ghichu || '']);
   try {
     await fetch(SCRIPT_URL + '?token=inox2026xK9m', { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'application/json'}, body: JSON.stringify({sheet:'Nháp', action:'deleteHistoryRows', thoigian:g.thoigian, token:'inox2026xK9m'}) });
