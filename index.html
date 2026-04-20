@@ -4604,14 +4604,17 @@ function _renderHistory() {
   const list = document.getElementById('history-list');
   if (!list) return;
   let filtered = _historyData;
+  // Bước 1: Lọc theo Quyền (Staff chỉ thấy Xuất và Nháp)
   if (currentRole !== 'owner') {
-    filtered = _historyData.filter(r => r.loai === 'Xuất' || r.loai === 'Nháp');
-  } else if (_historyFilter === 'xuat') {
-    filtered = _historyData.filter(r => r.loai === 'Xuất');
+    filtered = filtered.filter(r => r.loai === 'Xuất' || r.loai === 'Nháp');
+  }
+  // Bước 2: Lọc theo nút Tab (áp dụng chung cho mọi quyền)
+  if (_historyFilter === 'xuat') {
+    filtered = filtered.filter(r => r.loai === 'Xuất');
   } else if (_historyFilter === 'nhap') {
-    filtered = _historyData.filter(r => r.loai === 'Nhập');
+    filtered = filtered.filter(r => r.loai === 'Nhập');
   } else if (_historyFilter === 'draft') {
-    filtered = _historyData.filter(r => r.loai === 'Nháp');
+    filtered = filtered.filter(r => r.loai === 'Nháp');
   }
 
   // Lọc theo thời gian
