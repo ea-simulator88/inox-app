@@ -1160,6 +1160,23 @@ const CONFIG = {
   </div>
 </div>
 
+<!-- SETTINGS -->
+<div id="screen-settings" class="screen">
+  <div class="header" style="flex-shrink:0;">
+    <button class="btn-back" onclick="goHome()">← Quay lại</button>
+    <div class="header-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;">⚙️ Cài đặt</div>
+  </div>
+  <div style="padding:12px;overflow-y:auto;flex:1;">
+    <div class="card" style="margin-bottom:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div style="font-size:14px;font-weight:700;">👥 Quản lý người dùng</div>
+        <button onclick="openUserModal(null)" style="padding:6px 14px;background:#4CAF50;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">+ Thêm</button>
+      </div>
+      <div id="settings-user-list"></div>
+    </div>
+  </div>
+</div>
+
 </div><!-- #app -->
 
 <!-- HISTORY EDIT MODAL -->
@@ -1204,23 +1221,6 @@ const CONFIG = {
     <div style="display:flex;gap:10px;margin-top:14px;">
       <button id="hedit-save-btn" onclick="histSaveEdit()" style="flex:1;padding:12px;background:#4CAF50;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">💾 Lưu</button>
       <button onclick="document.getElementById('hist-edit-modal').style.display='none'" style="flex:1;padding:12px;background:#f0f0f0;color:#555;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">&#10005; Hủy</button>
-    </div>
-  </div>
-</div>
-
-<!-- SETTINGS -->
-<div id="screen-settings" class="screen">
-  <div class="header" style="flex-shrink:0;">
-    <button class="btn-back" onclick="goHome()">← Quay lại</button>
-    <div class="header-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;">⚙️ Cài đặt</div>
-  </div>
-  <div style="padding:12px;overflow-y:auto;flex:1;">
-    <div class="card" style="margin-bottom:0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <div style="font-size:14px;font-weight:700;">👥 Quản lý người dùng</div>
-        <button onclick="openUserModal(null)" style="padding:6px 14px;background:#4CAF50;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">+ Thêm</button>
-      </div>
-      <div id="settings-user-list"></div>
     </div>
   </div>
 </div>
