@@ -245,11 +245,11 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .cart-warn { border-color: #f44336 !important; background: #fff3f3 !important; }
 @media print {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  body * { visibility: hidden !important; }
-  #invoice-print-area, #invoice-print-area * { visibility: visible !important; }
-  #invoice-modal-btns, #invoice-modal-btns * { visibility: hidden !important; display: none !important; }
-  #invoice-print-area { position: fixed !important; left: 0 !important; top: 0 !important; width: 148mm !important; max-height: none !important; overflow: visible !important; box-shadow: none !important; background: #fff !important; }
-  @page { size: A5 portrait; margin: 8mm 10mm; }
+  body > *:not(#inv-print-root) { display: none !important; }
+  #inv-print-root { display: block !important; }
+  .inv-print-page { width: 148mm; padding: 8mm 10mm; font-family: 'Times New Roman', serif; font-size: 12px; line-height: 1.2; color: #d32f2f; page-break-after: always; box-sizing: border-box; }
+  .inv-print-page:last-child { page-break-after: auto; }
+  @page { size: A5 portrait; margin: 0; }
 }
 /* Manage stats bar - responsive */
 .manage-stats-bar { display:flex; flex-wrap:wrap; align-items:center; padding:7px 10px 8px; margin-bottom:8px; background:#fff; border:1px solid #e0e0e0; border-radius:10px; }
@@ -649,21 +649,21 @@ const CONFIG = {
           </div>
         </div>
         <button id="hist-date-toggle" onclick="toggleHistDatePanel(event)"
-          style="flex:0 0 auto;width:100px;padding:8px 9px;border-radius:20px;border:1.5px solid #1976d2;background:#e3f2fd;color:#1976d2;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;overflow:hidden;">
+          style="flex:0 0 auto;width:100px;padding:8px 9px;border-radius:20px;border:1.5px solid #1976d2;background:#e3f2fd;color:#1976d2;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;overflow:hidden;">
           <span style="flex-shrink:0;display:inline-flex;align-items:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
-          <span id="hist-date-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44px;">Tất cả</span>
+          <span id="hist-date-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65px;">Tất cả</span>
           <span id="hist-date-arrow" style="flex-shrink:0;display:inline-flex;align-items:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
         </button>
         <div style="position:relative;flex:0 0 auto;">
           <button id="hist-sort-btn" onclick="toggleHistSortPanel(event)"
-            style="width:70px;padding:8px 9px;border-radius:20px;border:1.5px solid #2e7d32;background:#f5f5f5;color:#2e7d32;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;overflow:hidden;">
+            style="width:70px;padding:8px 9px;border-radius:20px;border:1.5px solid #2e7d32;background:#f5f5f5;color:#2e7d32;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;overflow:hidden;">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
             <span id="hist-sort-label" style="overflow:hidden;text-overflow:ellipsis;max-width:32px;">Mới</span>
           </button>
           <div id="hist-sort-panel" onclick="event.stopPropagation()"
-            style="display:none;position:absolute;top:calc(100% + 4px);right:0;width:155px;background:#fff;border:1.5px solid #e0e0e0;border-radius:12px;padding:6px;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,0.12);">
-            <button id="hs-newest" onclick="setHistSort('newest')" class="sort-option active">↓ Mới nhất trước</button>
-            <button id="hs-oldest" onclick="setHistSort('oldest')" class="sort-option">↑ Cũ nhất trước</button>
+            style="display:none;position:absolute;top:calc(100% + 4px);right:0;width:155px;background:#fff;border:1.5px solid #e0e0e0;border-radius:11px;padding:6px;z-index:200;box-shadow:0 4px 16px rgba(0,0,0,0.12);">
+            <button id="hs-newest" onclick="setHistSort('newest')" class="sort-option active">↓ Mới nhất</button>
+            <button id="hs-oldest" onclick="setHistSort('oldest')" class="sort-option">↑ Cũ nhất</button>
             <button id="hs-az"     onclick="setHistSort('az')"     class="sort-option">A → Z</button>
             <button id="hs-za"     onclick="setHistSort('za')"     class="sort-option">Z → A</button>
           </div>
@@ -825,7 +825,7 @@ const CONFIG = {
             <button id="report-t-today" onclick="reportTimeFilter('today')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Hôm nay</button>
             <button id="report-t-week" onclick="reportTimeFilter('week')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Tuần này</button>
             <button id="report-t-month" onclick="reportTimeFilter('month')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Tháng này</button>
-            <button id="report-t-year" onclick="reportTimeFilter('year')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Năm này</button>
+            <button id="report-t-year" onclick="reportTimeFilter('year')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Năm nay</button>
           </div>
           <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;">KHOẢNG NGÀY TÙY CHỌN</div>
           <div style="display:flex;align-items:center;gap:6px;">
@@ -1035,80 +1035,30 @@ const CONFIG = {
 <!-- INVOICE MODAL -->
 <div id="invoice-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:flex-start;justify-content:center;padding:10px;overflow-y:auto;">
   <div id="invoice-print-area" style="background:#fff;width:148mm;min-height:210mm;padding:8mm 10mm;font-family:'Times New Roman',serif;font-size:12px;line-height:1.2;margin:auto;color:#d32f2f;">
-
-    <div style="text-align:center;margin-bottom:2mm;">
-      <div style="font-size:5.0mm;font-weight:700;letter-spacing:0.6px;line-height:1;text-transform:uppercase;">HỘ KINH DOANH HÀNG GIA DỤNG</div>
-      <div style="font-size:3.2mm;line-height:1.15;margin-top:1.2mm;">
-      <div>&#127968; Địa chỉ: 49 Lê Quang Sung, P. Bình Tây, TP.HCM</div>
-      <div>&#128222; SĐT-Zalo: 090.6265.980, 0937.359.789</div>
-      <div>&#9993; Email: hkd.hanggiadung88@gmail.com</div>
-      </div>
-      <div style="font-size:2.8mm;font-weight:700;line-height:1.18;margin-top:1.2mm;">Chuyên Sỉ Lẻ Hàng Inox Đồ Gia Dụng, Thiết Bị Nhà Bếp, Phòng Tắm, Bàn Ghế, Kệ, Sườn Võng, Giường Xếp, Thang Inox Vv...
-      </div>
-      <div style="font-size:4.5mm;font-weight:700;line-height:1;margin-top:2.3mm;text-transform:uppercase;">HÓA ĐƠN BÁN HÀNG</div>
-    </div>
-
-    <div style="font-size:3.5mm;margin-bottom:1.2mm;display:flex;align-items:flex-end;">
-      <span style="white-space:nowrap;">Khách Hàng:</span>
-      <span id="inv-tenkhach-line" style="flex:1;border-bottom:1px dotted #d32f2f;height:6mm;padding-left:2mm;display:flex;align-items:flex-end;font-weight:700;"></span>
-      <span style="white-space:nowrap;margin-left:2mm;">ĐT:</span>
-      <span id="inv-phone-line" style="width:36mm;border-bottom:1px dotted #d32f2f;height:6mm;"></span>
-    </div>
-    <div style="font-size:3.5mm;margin-bottom:1.8mm;display:flex;align-items:flex-end;">
-      <span style="white-space:nowrap;">Địa chỉ:</span>
-      <span id="inv-address-line" style="flex:1;border-bottom:1px dotted #d32f2f;height:6mm;"></span>
-    </div>
-
-    <table style="width:100%;border-collapse:collapse;table-layout:fixed;color:#d32f2f;">
-      <thead>
-        <tr>
-          <th style="border:1px solid #d32f2f;padding:1.8mm 1mm;text-align:center;width:6%;font-size:3.0mm;font-weight:700;">TT</th>
-          <th style="border:1px solid #d32f2f;padding:1.8mm 1mm;text-align:center;width:50%;font-size:3.0mm;font-weight:700;">Tên Hàng</th>
-          <th style="border:1px solid #d32f2f;padding:1.8mm 1mm;text-align:center;width:8.5%;font-size:3.0mm;font-weight:700;">ĐVT</th>
-          <th style="border:1px solid #d32f2f;padding:1.8mm 1mm;text-align:center;width:8.5%;font-size:3.0mm;font-weight:700;">SL</th>
-          <th style="border:1px solid #d32f2f;padding:1.8mm 1mm;text-align:center;width:16.0%;font-size:3.0mm;font-weight:700;">Đơn Giá</th>
-          <th style="border:1px solid #d32f2f;padding:1.8mm 1mm;text-align:center;width:19.5%;font-size:3.0mm;font-weight:700;">Thành Tiền</th>
-        </tr>
-      </thead>
-      <tbody id="inv-tbody"></tbody>
-      <tfoot>
-        <tr>
-          <td colspan="2" style="border:1px solid #d32f2f;padding:2mm 1mm;text-align:center;font-size:3.5mm;font-weight:700;">Tổng Cộng</td>
-          <td style="border:1px solid #d32f2f;"></td>
-          <td style="border:1px solid #d32f2f;"></td>
-          <td style="border:1px solid #d32f2f;"></td>
-          <td id="inv-total" style="border:1px solid #d32f2f;padding:2mm 1.2mm;text-align:right;font-size:3.5mm;font-weight:700;"></td>
-        </tr>
-      </tfoot>
-    </table>
-
-    <div style="display:flex;gap:5mm;align-items:flex-start;margin-top:2.6mm;">
-      <div style="width:34mm;text-align:center;flex-shrink:0;">
-        <img src="qr-zalo.png" width="95mm" height="95mm" style="display:block;margin:0 auto 1mm;" />
-        <div style="font-size:2.5mm;font-weight:700;line-height:1;">GIA DỤNG LÊ QUANG SUNG</div>
-      </div>
-      <div style="width:24mm;height:28mm;text-align:center;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;">
-        <div style="font-size:3.5mm;font-style:italic;font-weight:700;line-height:1;margin-bottom:1.4mm;">Thank You !</div>
-        <div style="font-size:15mm;line-height:1;">🐱</div>
-      </div>
-      <div style="flex:1;">
-        <div id="inv-date" style="text-align:right;font-size:3.2mm;font-style:italic;margin-bottom:2mm;"></div>
-        <div style="display:flex;justify-content:space-between;text-align:center;font-size:3.2mm;font-weight:700;padding:0 2mm;">
-          <div style="width:50%;">
-            <div>Khách Hàng</div>
-          </div>
-          <div style="width:50%;">
-            <div>Người Viết Hóa Đơn</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
+    <div id="inv-content"></div>
     <div id="invoice-modal-btns" style="display:flex;gap:10px;margin-top:16px;padding-top:12px;border-top:1px solid #e0e0e0;">
       <button onclick="window.print()" style="flex:1;padding:11px;background:#d32f2f;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">In hóa đơn</button>
       <button onclick="document.getElementById('invoice-modal').style.display='none'" style="flex:1;padding:11px;background:#f0f0f0;color:#555;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Đóng</button>
     </div>
+  </div>
+</div>
 
+<!-- INVOICE PICKER MODAL -->
+<div id="invoice-picker-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3100;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:24px 20px;width:280px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
+    <div style="font-weight:700;font-size:15px;color:#333;margin-bottom:16px;">Chọn loại hóa đơn</div>
+    <label style="display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:14px;color:#333;cursor:pointer;">
+      <input type="checkbox" id="inv-pick-full" checked style="width:18px;height:18px;accent-color:#d32f2f;cursor:pointer;">
+      Tờ đầy đủ (có giá &amp; tổng tiền)
+    </label>
+    <label style="display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:14px;color:#333;cursor:pointer;">
+      <input type="checkbox" id="inv-pick-noprice" style="width:18px;height:18px;accent-color:#d32f2f;cursor:pointer;">
+      Tờ không hiện giá
+    </label>
+    <div style="display:flex;gap:8px;">
+      <button onclick="_doShowInvoice()" style="flex:1;padding:11px;background:#d32f2f;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Xem &amp; In</button>
+      <button onclick="document.getElementById('invoice-picker-modal').style.display='none'" style="flex:1;padding:11px;background:#f0f0f0;color:#555;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Hủy</button>
+    </div>
   </div>
 </div>
 
@@ -1160,6 +1110,7 @@ const CONFIG = {
   </div>
 </div>
 
+<div id="inv-print-root" style="display:none;"></div>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuMnQQXseZ6YtZgv7bOR0V5v0700bq8Vn_kNgpMjAPDX6x8dFmxvWgDsn6ch8hp7dNdg/exec';
@@ -3634,11 +3585,12 @@ async function showHistory() {
   showScreen('screen-history');
   const list = document.getElementById('history-list');
   list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+  _historyFilter = 'all';
+  _historyTimeFilter = 'today';
+  _histDateFrom = null; _histDateTo = null;
+  _updateHistDateLabel();
   try {
     await _fetchHistoryData();
-    _historyFilter = 'all';
-    _historyTimeFilter = 'all';
-    _histDateFrom = null; _histDateTo = null;
     histFilter('all');
   } catch(e) {
     list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được lịch sử.</div>';
@@ -3733,6 +3685,7 @@ function toggleHistDatePanel(e) {
   const arrow = document.getElementById('hist-date-arrow');
   if (!panel) return;
   const open = panel.style.display === 'none' || panel.style.display === '';
+  _closeHistFilterPanel(); _closeHistSortPanel();
   panel.style.display = open ? 'block' : 'none';
   if (arrow) arrow.textContent = open ? '\u25B4' : '\u25BE';
 }
@@ -3747,7 +3700,7 @@ function _closeHistDatePanel() {
 function _updateHistDateLabel() {
   const label  = document.getElementById('hist-date-label');
   const toggle = document.getElementById('hist-date-toggle');
-  const labels = { all:'T\u1EA5t c\u1EA3', today:'H\u00F4m nay', week:'Tu\u1EA7n n\u00E0y', month:'Th\u00E1ng n\u00E0y' };
+  const labels = { all:'T\u1EA5t c\u1EA3', today:'H\u00F4m nay', week:'Tu\u1EA7n', month:'Th\u00E1ng' };
   let text;
   if (_historyTimeFilter === 'custom') {
     const fd = d => d ? d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear() : '?';
@@ -3832,7 +3785,7 @@ function showReport() {
   if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
   if (summary) summary.innerHTML = '';
   _reportTypeFilter = 'all';
-  _reportTimeFilter = 'all';
+  _reportTimeFilter = 'today';
   _reportDateFrom = null;
   _reportDateTo = null;
   _reportSortMode = 'newest';
@@ -3914,7 +3867,7 @@ function _closeReportDatePanel() {
 function _updateReportDateLabel() {
   const label = document.getElementById('report-date-label');
   const toggle = document.getElementById('report-date-toggle');
-  const labels = { all:'Tất cả', today:'Hôm nay', week:'Tuần này', month:'Tháng này', year:'Năm này' };
+  const labels = { all:'Tất cả', today:'Hôm nay', week:'Tuần', month:'Tháng', year:'Năm' };
   let text;
   if (_reportTimeFilter === 'custom') {
     const fd = d => d ? d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear() : '?';
@@ -4282,7 +4235,7 @@ function toggleHistSortPanel(e) {
   const p = document.getElementById('hist-sort-panel');
   if (!p) return;
   const open = p.style.display === 'none' || p.style.display === '';
-  _closeHistDatePanel();
+  _closeHistFilterPanel(); _closeHistDatePanel();
   p.style.display = open ? 'block' : 'none';
 }
 function _closeHistSortPanel() {
@@ -4523,45 +4476,127 @@ async function histDetailDelete() {
   }
 }
 
+let _invoicePickerIdx = -1;
+
 function showInvoice(idx) {
-  const g = _historyGroups[idx];
+  _invoicePickerIdx = idx;
+  const fullCb = document.getElementById('inv-pick-full');
+  const noPriceCb = document.getElementById('inv-pick-noprice');
+  if (fullCb) fullCb.checked = true;
+  if (noPriceCb) noPriceCb.checked = false;
+  const picker = document.getElementById('invoice-picker-modal');
+  picker.style.display = 'flex';
+  picker.onclick = e => { if (e.target === picker) picker.style.display = 'none'; };
+}
+
+function _doShowInvoice() {
+  const showFull = document.getElementById('inv-pick-full').checked;
+  const showNoPrice = document.getElementById('inv-pick-noprice').checked;
+  if (!showFull && !showNoPrice) return;
+  document.getElementById('invoice-picker-modal').style.display = 'none';
+  const g = _historyGroups[_invoicePickerIdx];
   if (!g) return;
-  const rows = g.rows;
-
-  document.getElementById('inv-tenkhach-line').textContent = g.tenkhach || '';
-  document.getElementById('inv-phone-line').textContent = '';
-  document.getElementById('inv-address-line').textContent = '';
-
-  const paddedRows = Array.from({ length: 12 }, (_, i) => rows[i] || null); // sửa số dòng hóa đơn
-  document.getElementById('inv-tbody').innerHTML = paddedRows.map((r, i) => {
-    const productName = r ? `${r.hanghoa || ''}${r.kichthuoc ? ' - ' + r.kichthuoc : ''}` : '';
-    const qty = r ? r.soluong : '';
-    const price = r ? r.gia.toLocaleString('vi-VN') : '';
-    const amount = r ? (r.soluong * r.gia).toLocaleString('vi-VN') : '';
-    const dvt = r ? (r.dvt || '') : '';
-    return `
-    <tr>
-      <td style="border-left:1px solid #d73c3c;border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;height:8mm;padding:0 1mm;text-align:center;font-size:3.0mm;font-weight:700;">${i + 1}</td>
-      <td style="border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;padding:0 2mm;font-size:3.0mm;">${productName}</td>
-      <td style="border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;padding:0 1mm;text-align:center;font-size:3.0mm;">${dvt}</td>
-      <td style="border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;padding:0 1mm;text-align:center;font-size:3.0mm;">${qty}</td>
-      <td style="border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;padding:0 1.5mm;text-align:right;font-size:3.0mm;">${price}</td>
-      <td style="border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;padding:0 1.5mm;text-align:right;font-size:3.0mm;">${amount}</td>
-    </tr>`;
-  }).join('');
-
-  const total = rows.reduce((s, r) => s + r.soluong * r.gia, 0);
-  document.getElementById('inv-total').textContent = total.toLocaleString('vi-VN') + ' \u0111';
-
-  const d = new Date(g.thoigian_raw);
-  const dd = d.getDate();
-  const mm = d.getMonth() + 1;
-  const yyyy = d.getFullYear();
-  document.getElementById('inv-date').textContent = `Ng\u00E0y ${dd} th\u00E1ng ${String(mm).padStart(2,'0')} n\u0103m ${yyyy}`;
-
+  // Screen preview: both invoices stacked with dashed separator
+  let screenHtml = '';
+  let printHtml = '';
+  if (showFull && showNoPrice) {
+    screenHtml = _buildInvoiceHTML(g, false) + '<div style="border-top:2px dashed #ccc;margin:8mm 0;"></div>' + _buildInvoiceHTML(g, true);
+    printHtml = '<div class="inv-print-page">' + _buildInvoiceHTML(g, false) + '</div><div class="inv-print-page">' + _buildInvoiceHTML(g, true) + '</div>';
+  } else if (showFull) {
+    screenHtml = _buildInvoiceHTML(g, false);
+    printHtml = '<div class="inv-print-page">' + _buildInvoiceHTML(g, false) + '</div>';
+  } else {
+    screenHtml = _buildInvoiceHTML(g, true);
+    printHtml = '<div class="inv-print-page">' + _buildInvoiceHTML(g, true) + '</div>';
+  }
+  document.getElementById('inv-content').innerHTML = screenHtml;
+  document.getElementById('inv-print-root').innerHTML = printHtml;
   const modal = document.getElementById('invoice-modal');
   modal.style.display = 'flex';
   modal.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
+}
+
+function _buildInvoiceHTML(g, hidePrice) {
+  const rows = g.rows;
+  const paddedRows = Array.from({ length: 15 }, (_, i) => rows[i] || null);
+  const d = new Date(g.thoigian_raw);
+  const dateStr = `Ng\u00E0y ${d.getDate()} th\u00E1ng ${String(d.getMonth()+1).padStart(2,'0')} n\u0103m ${d.getFullYear()}`;
+  const total = rows.reduce((s, r) => s + r.soluong * r.gia, 0);
+  const phiKT = Number((rows[0] && rows[0].phikhachtra) || 0);
+  const tenkhach = g.tenkhach || '';
+  const B = 'border:1px solid #d73c3c;';
+  const thS = B + 'padding:1.6mm 1mm;text-align:center;font-size:3.0mm;font-weight:700;'; // chỉnh kích thước hóa đơn các dòng đầu tiên
+  const tdBase = 'border-left:1px solid #d73c3c;border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;height:6mm;font-size:3.0mm;'; // chỉnh kích thước hóa đơn các dòng
+
+  const headerHTML = hidePrice
+    ? `<th style="${thS}width:6%;">TT</th><th style="${thS}width:60%;">T\u00ean H\u00e0ng</th><th style="${thS}width:17%;">\u0110VT</th><th style="${thS}width:17%;">SL</th>`
+    : `<th style="${thS}width:6%;">TT</th><th style="${thS}width:50%;">T\u00ean H\u00e0ng</th><th style="${thS}width:8.5%;">\u0110VT</th><th style="${thS}width:8.5%;">SL</th><th style="${thS}width:16%;">\u0110\u01a1n Gi\u00e1</th><th style="${thS}width:19.5%;">Th\u00e0nh Ti\u1ec1n</th>`;
+
+  const bodyHTML = paddedRows.map((r, i) => {
+    const name = r ? (r.hanghoa || '') + (r.kichthuoc ? ' - ' + r.kichthuoc : '') : '';
+    const dvt = r ? (r.dvt || '') : '';
+    const qty = r ? r.soluong : '';
+    const price = r ? r.gia.toLocaleString('vi-VN') : '';
+    const amount = r ? (r.soluong * r.gia).toLocaleString('vi-VN') : '';
+    if (hidePrice) {
+      return `<tr><td style="${tdBase}padding:0 1mm;text-align:center;font-weight:700;">${i+1}</td><td style="${tdBase}padding:0 2mm;">${name}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${dvt}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${qty}</td></tr>`;
+    }
+    return `<tr><td style="${tdBase}padding:0 1mm;text-align:center;font-weight:700;">${i+1}</td><td style="${tdBase}padding:0 2mm;">${name}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${dvt}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${qty}</td><td style="${tdBase}padding:0 1.5mm;text-align:right;">${price}</td><td style="${tdBase}padding:0 1.5mm;text-align:right;">${amount}</td></tr>`;
+  }).join('');
+
+  const grandTotal = total + phiKT;
+  const phiKTRow = phiKT > 0
+    ? (hidePrice
+        ? `<div style="font-size:3.5mm;font-weight:700;color:#d32f2f;text-align:right;margin-top:1.5mm;padding-right:1mm;">Phí chành khách trả: + ${phiKT.toLocaleString('vi-VN')} \u0111</div>`
+        : `<tr><td colspan="5" style="${B}padding:2mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">Phí chành khách trả</td><td style="${B}padding:2mm 1.2mm;text-align:right;font-size:3.2mm;font-weight:700;">+ ${phiKT.toLocaleString('vi-VN')} \u0111</td></tr>`)
+    : '';
+  const footerHTML = hidePrice
+    ? ''
+    : `<tfoot>${phiKTRow}<tr><td colspan="5" style="${B}padding:2mm 1mm;text-align:center;font-size:3.5mm;font-weight:700;">T\u1ed5ng C\u1ed9ng</td><td style="${B}padding:2mm 1.2mm;text-align:right;font-size:3.5mm;font-weight:700;">${grandTotal.toLocaleString('vi-VN')} \u0111</td></tr></tfoot>`;
+
+  return `<div style="text-align:center;margin-bottom:2mm;">
+    <div style="font-size:5.0mm;font-weight:700;letter-spacing:0.6px;line-height:1;text-transform:uppercase;">H\u1ed8 KINH DOANH H\u00c0NG GIA D\u1ee4NG</div>
+    <div style="font-size:3.2mm;line-height:1.15;margin-top:1.2mm;">
+      <div>&#127968; \u0110\u1ecba ch\u1ec9: 49 L\u00ea Quang Sung, P. B\u00ecnh T\u00e2y, TP.HCM</div>
+      <div>&#128222; S\u0110T-Zalo: 090.6265.980, 0937.359.789</div>
+      <div>&#9993; Email: hkd.hanggiadung88@gmail.com</div>
+    </div>
+    <div style="font-size:2.8mm;font-weight:700;line-height:1.18;margin-top:1.2mm;">Chuy\u00ean S\u1ec9 L\u1ebb H\u00e0ng Inox \u0110\u1ed3 Gia D\u1ee5ng, Thi\u1ebft B\u1ecb Nh\u00e0 B\u1ebfp, Ph\u00f2ng T\u1eafm, B\u00e0n Gh\u1ebf, K\u1ec7, S\u01b0\u1eddn V\u00f5ng, Gi\u01b0\u1eddng X\u1ebfp, Thang Inox Vv...</div>
+    <div style="font-size:4.5mm;font-weight:700;line-height:1;margin-top:1.6mm;text-transform:uppercase;">H\u00d3A \u0110\u01a0N B\u00c1N H\u00c0NG</div>
+  </div>
+  <div style="font-size:3.5mm;margin-bottom:1mm;display:flex;align-items:flex-end;margin-top:-2mm;">
+    <span style="white-space:nowrap;">Kh\u00e1ch H\u00e0ng:</span>
+    <span style="flex:1;border-bottom:1px dotted #d32f2f;height:6mm;padding-left:2mm;display:flex;align-items:flex-end;font-weight:700;">${tenkhach}</span>
+    <span style="white-space:nowrap;margin-left:2mm;">\u0110T:</span>
+    <span style="width:36mm;border-bottom:1px dotted #d32f2f;height:6mm;"></span>
+  </div>
+  <div style="font-size:3.5mm;margin-bottom:1.8mm;display:flex;align-items:flex-end;">
+    <span style="white-space:nowrap;">\u0110\u1ecba ch\u1ec9:</span>
+    <span style="flex:1;border-bottom:1px dotted #d32f2f;height:6mm;"></span>
+  </div>
+  <table style="width:100%;border-collapse:collapse;table-layout:fixed;color:#d32f2f;">
+    <thead><tr>${headerHTML}</tr></thead>
+    <tbody>${bodyHTML}</tbody>
+    ${footerHTML}
+  </table>
+  ${hidePrice ? phiKTRow : ''}
+  <div style="display:flex;gap:5mm;align-items:flex-start;margin-top:2.6mm;">
+    <div style="width:34mm;text-align:center;flex-shrink:0;">
+      <img src="qr-zalo.png" width="95mm" height="95mm" style="display:block;margin:0 auto 1mm;" />
+      <div style="font-size:2.5mm;font-weight:700;line-height:1;">GIA D\u1ee4NG L\u00ca QUANG SUNG</div>
+    </div>
+    <div style="width:24mm;height:28mm;text-align:center;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;">
+      <div style="font-size:3.5mm;font-style:italic;font-weight:700;line-height:1;margin-bottom:1.4mm;">Thank You !</div>
+      <div style="font-size:15mm;line-height:1;">&#128049;</div>
+    </div>
+    <div style="flex:1;">
+      <div style="text-align:right;font-size:3.2mm;font-style:italic;margin-bottom:2mm;">${dateStr}</div>
+      <div style="display:flex;justify-content:space-between;text-align:center;font-size:3.2mm;font-weight:700;padding:0 2mm;">
+        <div style="width:50%;"><div>Kh\u00e1ch H\u00e0ng</div></div>
+        <div style="width:50%;"><div>Ng\u01b0\u1eddi Vi\u1ebft H\u00f3a \u0110\u01a1n</div></div>
+      </div>
+    </div>
+  </div>`;
 }
 
 // ===== HISTORY EDIT / DELETE =====
@@ -4941,7 +4976,8 @@ async function _doDraftConfirm(idx, giaodich) {
   const g = _historyGroups[idx];
   if (!g || g.loai !== 'Nháp') return;
   if (!confirm('Xác nhận Xuất đơn nháp này?\n' + g.rows.length + ' SP · ' + g.rows.reduce((s,r)=>s+r.soluong*r.gia,0).toLocaleString('en-US') + ' đ')) return;
-  const rows = g.rows.map(r => [r.ma, r.thoigian, r.ncc, r.hanghoa, r.kichthuoc, r.mota, r.dvt, r.soluong, r.gia, giaodich || r.giaodich, r.phichanh || '', r.phikhachtra || '', '', r.tenkhach || '', r.ghichu || '']);
+  const _nowTs = new Date().toISOString();
+  const rows = g.rows.map(r => [r.ma, _nowTs, r.ncc, r.hanghoa, r.kichthuoc, r.mota, r.dvt, r.soluong, r.gia, giaodich || r.giaodich, r.phichanh || '', r.phikhachtra || '', '', r.tenkhach || '', r.ghichu || '']);
   try {
     await fetch(SCRIPT_URL + '?token=inox2026xK9m', { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'application/json'}, body: JSON.stringify({sheet:'Nháp', action:'deleteHistoryRows', thoigian:g.thoigian, token:'inox2026xK9m'}) });
     await fetch(SCRIPT_URL + '?token=inox2026xK9m', { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'application/json'}, body: JSON.stringify({sheet:'Xuất', rows, token:'inox2026xK9m'}) });
