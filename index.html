@@ -962,7 +962,7 @@ const CONFIG = {
       </div>
     </div>
   </div>
-  <div style="max-width:1000px;margin:0 auto;width:100%;padding:10px 0 12px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;margin-top: -10px;">
+  <div style="max-width:1000px;margin:0 auto;width:100%;padding:10px 0 12px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;margin-top: -15px;">
     <div id="report-list"></div>
   </div>
 </div>
@@ -4516,35 +4516,67 @@ function showReportDetail(idx) {
   if (!rows.length) {
     list.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">Không có dữ liệu.</div>';
   } else {
-    list.innerHTML = '<div class="report-detail-section"><div class="report-detail-list">' +
-      rows.map(function(r) {
-        const isNhap = r.loai === 'Nhập';
-        const total = r.soluong * r.gia;
-        const badge = `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${isNhap?'#e8f5e9':'#ffebee'};color:${isNhap?'#2e7d32':'#c62828'};">${r.loai}</span>`;
-        let subLabel = '', subMeta = '';
-        if (item.type === 'sp') {
-          subLabel = isNhap ? (r.ncc || '—') : (r.tenkhach || '—');
-        } else if (item.type === 'ncc') {
-          subLabel = r.hanghoa || '—';
-          subMeta = [r.ma, r.kichthuoc].filter(Boolean).join(' · ');
-        } else if (item.type === 'khach') {
-          subLabel = r.hanghoa || '—';
-          subMeta = [r.ncc, r.ma, r.kichthuoc].filter(Boolean).join(' · ');
-        }
-        return `<div class="report-detail-item" style="cursor:default;">
-          <div style="min-width:0;flex:1;">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">${badge}<span style="font-size:11px;color:#999;">${r.thoigian||''}</span></div>
-            <div class="report-detail-name">${subLabel||'—'}</div>
-            ${subMeta ? `<div class="report-detail-meta">${subMeta}</div>` : ''}
+    // VẪN TÍNH TOÁN TỔNG CHI TIẾT ĐỂ HIỆN Ở DƯỚI
+    let sumQty = 0, sumHang = 0, sumPhiVC = 0, sumPhiKT = 0;
+    rows.forEach(r => {
+      sumQty += r.soluong;
+      sumHang += r.soluong * r.gia;
+      sumPhiVC += Math.abs(r.phichanh || 0);
+      sumPhiKT += (r.phikhachtra || 0);
+    });
+
+    let html = '<div class="report-detail-section"><div class="report-detail-list">';
+
+    // RENDER TỪNG DÒNG (ĐÃ XÓA PHÍ VẬN CHUYỂN VÀ PHÍ KHÁCH TRẢ)
+    html += rows.map(function(r) {
+      const isNhap = r.loai === 'Nhập';
+      const totalHangRow = r.soluong * r.gia;
+      const badge = `<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${isNhap?'#e8f5e9':'#ffebee'};color:${isNhap?'#2e7d32':'#c62828'};">${r.loai}</span>`;
+      let subLabel = '', subMeta = '';
+      if (item.type === 'sp') {
+        subLabel = isNhap ? (r.ncc || '—') : (r.tenkhach || '—');
+      } else if (item.type === 'ncc') {
+        subLabel = r.hanghoa || '—';
+        subMeta = [r.ma, r.kichthuoc].filter(Boolean).join(' · ');
+      } else if (item.type === 'khach') {
+        subLabel = r.hanghoa || '—';
+        subMeta = [r.ncc, r.ma, r.kichthuoc].filter(Boolean).join(' · ');
+      }
+
+      return `<div class="report-detail-item" style="cursor:default;">
+        <div style="min-width:0;flex:1;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">${badge}<span style="font-size:11px;color:#999;">${r.thoigian||''}</span></div>
+          <div class="report-detail-name">${subLabel||'—'}</div>
+          ${subMeta ? `<div class="report-detail-meta">${subMeta}</div>` : ''}
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:11px;color:#666;">${fmt(r.soluong)} × ${fmt(r.gia)}đ</div>
+          <div style="font-size:13px;font-weight:700;color:${isNhap?'#0d47a1':'#e65100'};">${fmt(totalHangRow)}đ</div>
           </div>
-          <div style="text-align:right;flex-shrink:0;">
-            <div style="font-size:11px;color:#666;">${fmt(r.soluong)} × ${fmt(r.gia)}đ</div>
-            <div style="font-size:13px;font-weight:700;color:${isNhap?'#0d47a1':'#e65100'};">${fmt(total)}đ</div>
-            ${r.phichanh ? `<div style="font-size:11px;color:#e65100;">Phí vận chuyển: ${fmt(Math.abs(Number(r.phichanh)))}đ</div>` : ''}
-          </div>
-        </div>`;
-      }).join('') +
-    '</div></div>';
+      </div>`;
+    }).join('');
+
+    html += '</div>'; // Đóng report-detail-list
+
+    // PHẦN TỔNG CHI TIẾT Ở CUỐI (GIỮ NGUYÊN ĐỂ XEM TỔNG PHÍ)
+    html += `
+      <div style="margin-top:12px;padding-top:10px;border-top:1.5px solid #eee;font-size:14px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#666;font-weight:750;">
+          <span>Tổng hàng (${fmt(sumQty)} SL):</span>
+          <span style="font-weight:600;color:#333;">${fmt(sumHang)} đ</span>
+        </div>
+        ${sumPhiVC > 0 ? `<div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#666;font-weight:750;">
+          <span>Tổng Phí vận chuyển:</span>
+          <span style="font-weight:600;color:#d32f2f;">${fmt(sumPhiVC)} đ</span>
+        </div>` : ''}
+        ${sumPhiKT > 0 ? `<div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#666;font-weight:750;">
+          <span>Tổng Phí khách trả:</span>
+          <span style="font-weight:600;color:#2e7d32;">+ ${fmt(sumPhiKT)} đ</span>
+        </div>` : ''}
+      </div>`;
+
+    html += '</div>'; // Đóng report-detail-section
+    list.innerHTML = html;
   }
 
   sessionStorage.setItem('rptDetailItem', JSON.stringify({ type: item.type, key: item.key, name: item.name, ma: item.ma||'', ncc: item.ncc||'', kichthuoc: item.kichthuoc||'' }));
