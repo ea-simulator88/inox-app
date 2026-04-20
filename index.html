@@ -232,7 +232,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 @media (min-width: 768px) {
   body { background: #ebebeb; }
   #app { max-width: 100%; padding: 12px; min-height: 100vh; display: flex; flex-direction: column; }
-  #screen-login { max-width: 380px; margin: 60px auto; }
+  #screen-login { max-width: 100%; margin: 0; }
   .report-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #hist-filter-btns { display: contents; }
   #hist-filter-select-wrap { display: none; }
@@ -262,6 +262,41 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   .manage-filter-btn { flex:1; padding:3px 9px; }
   #manage-refresh-btn { margin-left:5px; order:1; }
 }
+/* ===== LOGIN REDESIGN ===== */
+#screen-login { min-height:100vh; align-items:center; justify-content:center; background:linear-gradient(135deg,#f0f7f0 0%,#e8f5e9 40%,#f5f5f5 100%); padding:16px; }
+#screen-login.active { display:flex; }
+.ln-shell { width:100%; max-width:400px; display:flex; flex-direction:column; gap:12px; }
+.ln-topbar { display:flex; align-items:center; justify-content:space-between; padding:0 4px; }
+.ln-brand { display:flex; align-items:center; gap:7px; font-size:13px; font-weight:700; letter-spacing:0.08em; color:#2e7d32; text-transform:uppercase; }
+.ln-mark { width:26px; height:26px; background:#4CAF50; border-radius:7px; display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0; }
+.ln-clock { display:flex; align-items:center; gap:6px; }
+.ln-pulse { width:7px; height:7px; background:#4CAF50; border-radius:50%; animation:lnPulse 2s ease-in-out infinite; }
+@keyframes lnPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.75)} }
+@keyframes spin { to { transform:rotate(360deg); } }
+.ln-card { background:#fff; border-radius:20px; box-shadow:0 8px 32px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06); padding:28px 24px 24px; display:flex; flex-direction:column; gap:18px; }
+.ln-logo { display:flex; flex-direction:column; align-items:center; gap:10px; padding-bottom:4px; }
+.ln-logo-mark { width:60px; height:60px; background:linear-gradient(135deg,#4CAF50,#2e7d32); border-radius:16px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(76,175,80,.35); }
+.ln-logo-title { font-size:15px; font-weight:700; color:#1a1a1a; text-align:center; }
+.ln-logo-sub { font-size:12px; color:#888; text-align:center; }
+.ln-card-head { text-align:center; }
+.ln-card-head h2 { font-size:20px; font-weight:700; color:#1a1a1a; margin-bottom:4px; }
+.ln-card-head p { font-size:13px; color:#888; line-height:1.4; }
+.ln-role-row { display:flex; gap:8px; }
+.ln-role-btn { flex:1; padding:10px 8px; border:1.5px solid #e0e0e0; border-radius:10px; background:#fafafa; color:#888; font-size:13px; font-weight:600; cursor:pointer; transition:all .18s; }
+.ln-role-btn.active { border-color:#4CAF50; background:#e8f5e9; color:#2e7d32; }
+.ln-field { display:flex; flex-direction:column; gap:6px; }
+.ln-field-label { font-size:12px; font-weight:600; color:#555; margin:0; }
+.ln-input-wrap { position:relative; display:flex; align-items:center; }
+.ln-leading-icon { position:absolute; left:12px; color:#aaa; display:flex; align-items:center; pointer-events:none; }
+.ln-input { width:100%; padding:11px 44px 11px 40px; border:1.5px solid #e0e0e0; border-radius:10px; font-size:15px; color:#1a1a1a; background:#fafafa; outline:none; transition:border-color .18s,background .18s; }
+.ln-input:focus { border-color:#4CAF50; background:#fff; }
+.ln-eye-btn { position:absolute; right:10px; background:none; border:none; cursor:pointer; color:#aaa; display:flex; align-items:center; padding:4px; }
+.ln-error-line { display:none; align-items:center; gap:6px; background:#fff3f3; border:1px solid #f44336; border-radius:8px; padding:8px 10px; font-size:12px; color:#c62828; }
+.ln-error-line.visible { display:flex; }
+.ln-btn-primary { width:100%; padding:13px; background:linear-gradient(135deg,#4CAF50,#388e3c); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 16px rgba(76,175,80,.3); transition:opacity .18s,transform .1s; }
+.ln-btn-primary:disabled { opacity:.65; cursor:not-allowed; }
+.ln-btn-primary:active { transform:scale(0.98); }
+.ln-footer { text-align:center; padding:0 4px; }
 </style>
 
 <!-- ====== CONFIG - ANH JAMES CHỈ SỬA TRONG KHỐI NÀY ====== -->
@@ -320,28 +355,75 @@ const CONFIG = {
 
 <!-- LOGIN -->
 <div id="screen-login" class="screen active">
-  <div class="logo">
-    <div class="logo-title">🏪 Hộ Kinh Doanh Hàng Gia Dụng</div>
-    <div class="logo-sub">Quản lý xuất nhập kho</div>
-  </div>
-  <div class="card">
-    <label>Tài khoản</label>
-    <select id="login-role">
-      <option value="owner">👑 Admin</option>
-      <option value="staff">👷 Staff</option>
-    </select>
-    <label>Mật khẩu</label>
-    <div style="position:relative;">
-      <input type="password" id="login-pass" placeholder="Nhập mật khẩu..." style="padding-right:44px;" />
-      <button type="button" onclick="togglePassVis()" tabindex="-1"
-        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#aaa;line-height:1;padding:0;" id="btn-eye">
-          <svg id="btn-eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
+  <div class="ln-shell">
+    <div class="ln-topbar">
+      <div class="ln-brand">
+        <span class="ln-mark">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        NHỰA · INOX
+      </div>
+      <div class="ln-clock">
+        <span class="ln-pulse"></span>
+        <span id="ln-time" style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;">--:--:--</span>
+      </div>
     </div>
-    <div class="error-msg" id="login-error">❌ Sai mật khẩu, thử lại!</div>
-    <button class="btn-primary" id="btn-login" onclick="doLogin()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:6px;margin-bottom:2px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Đăng nhập
-    </button>
+
+    <div class="ln-card">
+      <div class="ln-logo">
+        <div class="ln-logo-mark">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-6 9 6v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>
+            <path d="M3 9h18"/>
+            <path d="M9 22V13h6v9"/>
+          </svg>
+        </div>
+        <div class="ln-logo-title">Hộ Kinh Doanh Hàng Gia Dụng</div>
+        <div class="ln-logo-sub">Quản lý xuất nhập kho</div>
+      </div>
+
+      <div class="ln-card-head">
+        <h2>Đăng nhập</h2>
+        <p>Chọn tài khoản và nhập mật khẩu để tiếp tục.</p>
+      </div>
+
+      <!-- Role selector -->
+      <div class="ln-role-row">
+        <button type="button" id="ln-role-owner" class="ln-role-btn active" onclick="_lnSetRole('owner')">👑 Admin</button>
+        <button type="button" id="ln-role-staff" class="ln-role-btn" onclick="_lnSetRole('staff')">👷 Nhân viên</button>
+      </div>
+      <input type="hidden" id="login-role" value="owner" />
+
+      <!-- Password field -->
+      <div class="ln-field">
+        <label class="ln-field-label" for="login-pass">Mật khẩu</label>
+        <div class="ln-input-wrap">
+          <span class="ln-leading-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </span>
+          <input type="password" id="login-pass" class="ln-input" placeholder="••••••••" autocomplete="current-password" oninput="_lnOnPassInput()" />
+          <button type="button" class="ln-eye-btn" onclick="togglePassVis()" tabindex="-1" id="btn-eye">
+            <svg id="btn-eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div id="login-error" class="ln-error-line">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="login-error-text"></span>
+      </div>
+
+      <!-- Submit -->
+      <button id="btn-login" class="ln-btn-primary" onclick="doLogin()">
+        Đăng nhập
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+
+    <div class="ln-footer">
+      <span id="ln-date" style="font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:#8b938a;"></span>
+    </div>
   </div>
 </div>
 
@@ -1454,11 +1536,11 @@ async function doLogin() {
   const pass = document.getElementById('login-pass').value.trim();
   const err = document.getElementById('login-error');
   const loginBtn = document.getElementById('btn-login');
-  if (!pass) { err.textContent = '⚠️ Vui lòng nhập mật khẩu!'; err.style.display = 'block'; return; }
+  if (!pass) { document.getElementById('login-error-text').textContent = '⚠️ Vui lòng nhập mật khẩu!'; err.classList.add('visible'); return; }
 
   function applyLogin(r) {
     currentRole = r;
-    err.style.display = 'none';
+    err.classList.remove('visible');
     // Restore cart from localStorage
     try {
       const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -1499,7 +1581,7 @@ async function doLogin() {
       startInactivityWatch();
       filterProductList();
       applyLogin(role);
-      loginBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:6px;margin-bottom:2px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Đăng nhập';
+      loginBtn.innerHTML = 'Đăng nhập <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
       loginBtn.disabled = false;
       // Verify ngầm — nếu sai thì đăng xuất
       fetch(`${SCRIPT_URL}?action=login&role=${role}&pass=${encodeURIComponent(pass)}&token=inox2026xK9m`)
@@ -1510,7 +1592,9 @@ async function doLogin() {
   } catch(e) {}
 
   // Lần đầu: login bình thường
-  loginBtn.innerHTML = '⏳ Đang đăng nhập...';
+  const _btnNormal = 'Đăng nhập <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+  const _btnLoading = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Đang đăng nhập...';
+  loginBtn.innerHTML = _btnLoading;
   loginBtn.disabled = true;
   try {
     const res = await fetch(`${SCRIPT_URL}?action=login&role=${role}&pass=${encodeURIComponent(pass)}&token=inox2026xK9m`);
@@ -1523,13 +1607,13 @@ async function doLogin() {
       filterProductList();
       applyLogin(role);
     } else {
-      err.textContent = '❌ Sai mật khẩu, thử lại!';
-      err.style.display = 'block';
+      document.getElementById('login-error-text').textContent = '❌ Sai mật khẩu, thử lại!';
+      err.classList.add('visible');
     }
   } catch(e) {
     alert('Lỗi kết nối, thử lại!');
   } finally {
-    loginBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-right:6px;margin-bottom:2px;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Đăng nhập';
+    loginBtn.innerHTML = _btnNormal;
     loginBtn.disabled = false;
   }
 }
@@ -1551,6 +1635,29 @@ function togglePassVis() {
     icon.style.stroke = '#aaa';
   }
 }
+
+// ===== LOGIN HELPERS =====
+function _lnSetRole(role) {
+  document.getElementById('login-role').value = role;
+  document.getElementById('ln-role-owner').classList.toggle('active', role === 'owner');
+  document.getElementById('ln-role-staff').classList.toggle('active', role === 'staff');
+}
+
+function _lnOnPassInput() {
+  document.getElementById('login-error').classList.remove('visible');
+}
+
+(function _lnStartClock() {
+  function tick() {
+    const now = new Date();
+    const t = document.getElementById('ln-time');
+    const d = document.getElementById('ln-date');
+    if (t) t.textContent = now.toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+    if (d) d.textContent = now.toLocaleDateString('vi-VN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
 
 // Auto-login khi F5 (nếu có cache hợp lệ)
 (async function autoLoginOnLoad() {

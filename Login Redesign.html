@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Đăng nhập — Hộ Kinh Doanh Hàng Gia Dụng</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ===== TWEAKABLE DEFAULTS ===== */
+:root {
+  --brand: #4CAF50;        /* xanh lá – giữ nguyên DNA của app gốc, nhưng đậm hơn một chút cho contrast */
+  --brand-soft: #e8f5e9;
+  --brand-deep: #2e7d32;
+
+  --bg: #f6f7f5;
+  --surface: #ffffff;
+  --surface-2: #fafbfa;
+  --border: #e8eae6;
+  --border-strong: #d4d7d1;
+  --text: #151814;
+  --text-2: #5b635a;
+  --text-3: #8b938a;
+  --danger: #d64545;
+  --warn: #c08a2f;
+
+  --radius-xs: 8px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  --shadow-xs: 0 1px 2px rgba(20,28,22,.04);
+  --shadow-sm: 0 1px 2px rgba(20,28,22,.04), 0 2px 6px rgba(20,28,22,.04);
+  --shadow-md: 0 2px 4px rgba(20,28,22,.04), 0 12px 32px rgba(20,28,22,.06);
+  --shadow-lg: 0 8px 16px rgba(20,28,22,.06), 0 24px 60px rgba(20,28,22,.08);
+}
+
+[data-theme="dark"] {
+  --brand: #57c97d;
+  --brand-soft: #14281d;
+  --brand-deep: #8de3a9;
+
+  --bg: #0d110f;
+  --surface: #161a17;
+  --surface-2: #1b1f1c;
+  --border: #262b27;
+  --border-strong: #343a35;
+  --text: #eef1ed;
+  --text-2: #a2aaa3;
+  --text-3: #6e766f;
+  --danger: #e86a6a;
+  --warn: #dfa855;
+
+  --shadow-xs: 0 1px 2px rgba(0,0,0,.3);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.3), 0 2px 6px rgba(0,0,0,.3);
+  --shadow-md: 0 2px 4px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.4);
+  --shadow-lg: 0 8px 16px rgba(0,0,0,.4), 0 24px 60px rgba(0,0,0,.5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background 0.3s, color 0.3s;
+}
+button { font-family: inherit; }
+input, select { font-family: inherit; }
+a { color: inherit; }
+
+.mono { font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace; }
+
+/* =========================================================
+   SHARED UI — inputs, buttons, checkbox, etc.
+   ========================================================= */
+.field {
+  position: relative;
+  margin-bottom: 12px;
+}
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-2);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-wrap .leading-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-3);
+  pointer-events: none;
+  display: flex;
+}
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.input.has-leading { padding-left: 44px; }
+.input.has-trailing { padding-right: 48px; }
+.input::placeholder { color: var(--text-3); }
+.input:hover { border-color: var(--border-strong); }
+.input:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 18%, transparent);
+}
+.input.error {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--danger) 18%, transparent);
+}
+.trailing-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+.trailing-btn:hover { color: var(--text); background: var(--surface-2); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.05s, background 0.15s, box-shadow 0.15s;
+}
+.btn-primary {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(76,175,80,.25), 0 4px 12px rgba(76,175,80,.2);
+}
+.btn-primary:hover { background: var(--brand-deep); }
+.btn-primary:active { transform: translateY(1px); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-2);
+  font-size: 13px;
+  padding: 8px 10px;
+  width: auto;
+  border-radius: 8px;
+}
+.btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+
+/* Checkbox */
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.checkbox input { position: absolute; opacity: 0; pointer-events: none; }
+.checkbox .box {
+  width: 18px; height: 18px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 5px;
+  background: var(--surface);
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.checkbox .box svg { opacity: 0; color: #fff; transition: opacity 0.15s; }
+.checkbox input:checked + .box {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.checkbox input:checked + .box svg { opacity: 1; }
+.checkbox:hover .box { border-color: var(--brand); }
+
+/* Error line */
+.error-line {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--danger);
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: color-mix(in oklab, var(--danger) 8%, transparent);
+  border-radius: var(--radius-sm);
+}
+.error-line.show { display: flex; }
+
+/* Role hint pill — shown tiny after typing */
+.role-pill {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 5px 10px;
+  background: var(--brand-soft);
+  color: var(--brand-deep);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  width: fit-content;
+  animation: pillIn 0.2s ease-out;
+}
+.role-pill.show { display: inline-flex; }
+@keyframes pillIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.role-pill .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--brand);
+}
+
+/* =========================================================
+   VARIATION WRAPPER
+   ========================================================= */
+.variation { display: none; min-height: 100vh; }
+.variation.active { display: block; }
+.v2.active { display: grid; }
+.v3.active { display: grid; }
+
+/* =========================================================
+   VARIATION 1 — CLASSIC CARD (centered minimal)
+   ========================================================= */
+.v1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse at top left, color-mix(in oklab, var(--brand) 6%, transparent), transparent 50%),
+    radial-gradient(ellipse at bottom right, color-mix(in oklab, var(--brand) 4%, transparent), transparent 50%),
+    var(--bg);
+}
+.v1-shell {
+  width: 100%;
+  max-width: 420px;
+}
+.v1-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 48px;
+  padding: 0 4px;
+}
+.v1-brand {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+.v1-brand .mark {
+  width: 26px; height: 26px;
+  border-radius: 7px;
+  background: var(--brand);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(76,175,80,.3);
+}
+.v1-clock {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.v1-clock .pulse {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand) 50%, transparent);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand) 50%, transparent); }
+  70% { box-shadow: 0 0 0 8px color-mix(in oklab, var(--brand) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand) 0%, transparent); }
+}
+
+.v1-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 40px 36px 32px;
+  box-shadow: var(--shadow-lg);
+}
+.v1-logo {
+  display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 32px;
+}
+.v1-logo-mark {
+  width: 64px; height: 64px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px color-mix(in oklab, var(--brand) 30%, transparent),
+              inset 0 1px 0 rgba(255,255,255,.2);
+  position: relative;
+}
+.v1-logo-mark::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 15px;
+  border: 1px solid rgba(255,255,255,.15);
+  pointer-events: none;
+}
+.v1-logo-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  text-align: center;
+}
+.v1-logo-sub {
+  font-size: 14px;
+  color: var(--text-2);
+  text-align: center;
+}
+.v1-card-head {
+  margin-bottom: 24px;
+}
+.v1-card-head h2 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.v1-card-head p {
+  font-size: 13px;
+  color: var(--text-2);
+}
+.v1-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 20px;
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.v1-footer a { color: var(--text-2); text-decoration: none; }
+.v1-footer a:hover { color: var(--text); }
+
+.remember-row { display: flex; align-items: center; margin: 6px 0 18px; }
+[data-theme="dark"] /* =========================================================
+   VARIATION 2 — SPLIT SCREEN
+   ========================================================= */
+.v2 {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  min-height: 100vh;
+}
+.v2-brand-panel {
+  background: linear-gradient(160deg, var(--brand-deep) 0%, var(--brand) 70%, color-mix(in oklab, var(--brand) 85%, #111) 100%);
+  color: #fff;
+  padding: 48px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+[data-theme="dark"] .v2-brand-panel {
+  background: linear-gradient(160deg, #0e1a12 0%, #12321f 60%, #2e7d32 100%);
+}
+.v2-brand-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 80% 10%, rgba(255,255,255,.1), transparent 40%),
+    radial-gradient(circle at 10% 90%, rgba(255,255,255,.08), transparent 50%);
+  pointer-events: none;
+}
+.v2-brand-panel::after {
+  content: '';
+  position: absolute;
+  right: -120px;
+  bottom: -120px;
+  width: 420px; height: 420px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.06);
+  pointer-events: none;
+}
+.v2-brand-top, .v2-brand-mid, .v2-brand-bottom { position: relative; z-index: 1; }
+
+.v2-brand-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.v2-brand-top .mark {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(8px);
+}
+.v2-brand-mid h1 {
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 20px;
+  max-width: 420px;
+}
+.v2-brand-mid p {
+  font-size: 15px;
+  line-height: 1.6;
+  opacity: 0.85;
+  max-width: 360px;
+}
+
+.v2-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 40px;
+  max-width: 480px;
+}
+.v2-stat {
+  border-top: 1px solid rgba(255,255,255,.15);
+  padding-top: 16px;
+}
+.v2-stat .n {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.v2-stat .l {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
+.v2-brand-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  opacity: 0.7;
+}
+.v2-brand-bottom .mono { letter-spacing: 0.04em; }
+
+.v2-form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  background: var(--surface);
+}
+.v2-form-inner {
+  width: 100%;
+  max-width: 400px;
+}
+.v2-form-inner h2 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+.v2-form-inner .sub {
+  font-size: 14px;
+  color: var(--text-2);
+  margin-bottom: 36px;
+}
+
+/* =========================================================
+   VARIATION 3 — FLOATING MINIMAL (large time, no card)
+   ========================================================= */
+.v3 {
+  min-height: 100vh;
+  padding: 32px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 32px;
+  background:
+    linear-gradient(180deg, var(--bg) 0%, var(--surface-2) 100%);
+}
+.v3-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.v3-brand {
+  display: flex; align-items: center; gap: 12px;
+}
+.v3-brand .mark {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  background: var(--brand);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--brand) 30%, transparent);
+}
+.v3-brand .name {
+  font-size: 15px; font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.v3-brand .role {
+  font-size: 12px; color: var(--text-2);
+}
+.v3-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-2);
+  box-shadow: var(--shadow-xs);
+}
+.v3-status .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand) 20%, transparent);
+}
+
+.v3-middle {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 64px;
+  align-items: center;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+.v3-hero {
+  display: flex; flex-direction: column; gap: 24px;
+}
+.v3-greeting {
+  font-size: 15px;
+  color: var(--text-2);
+  display: flex; align-items: center; gap: 10px;
+}
+.v3-greeting::before {
+  content: '';
+  width: 24px; height: 1px;
+  background: var(--text-3);
+}
+.v3-time {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 92px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--text);
+}
+.v3-time .sep { color: var(--text-3); font-weight: 400; }
+.v3-time .sec {
+  font-size: 44px;
+  color: var(--text-2);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.v3-date {
+  font-size: 16px;
+  color: var(--text-2);
+  text-transform: capitalize;
+}
+.v3-tagline {
+  font-size: 18px;
+  color: var(--text);
+  max-width: 400px;
+  line-height: 1.5;
+  margin-top: 12px;
+  letter-spacing: -0.01em;
+}
+
+.v3-form-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-md);
+}
+.v3-form-wrap h2 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.v3-form-wrap .sub {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 28px;
+}
+
+.v3-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-3);
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+.v3-bottom-links { display: flex; gap: 20px; }
+.v3-bottom a { text-decoration: none; color: var(--text-2); }
+.v3-bottom a:hover { color: var(--text); }
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 900px) {
+  .v2 { grid-template-columns: 1fr; }
+  .v2-brand-panel {
+    padding: 32px 24px;
+    min-height: 240px;
+  }
+  .v2-brand-mid h1 { font-size: 28px; margin-bottom: 12px; }
+  .v2-brand-mid p { font-size: 14px; }
+  .v2-stat-grid { margin-top: 24px; gap: 16px; }
+  .v2-stat .n { font-size: 22px; }
+  .v2-form-panel { padding: 32px 20px; }
+
+  .v3-middle { grid-template-columns: 1fr; gap: 24px; }
+  .v3-time { font-size: 64px; }
+  .v3-time .sec { font-size: 32px; }
+  .v3 { padding: 20px; gap: 20px; }
+  .v3-bottom { flex-direction: column; gap: 8px; }
+}
+@media (max-width: 480px) {
+  .v1 { padding: 16px; }
+  .v1-topbar { margin-bottom: 24px; }
+  .v1-card { padding: 28px 22px 24px; border-radius: 20px; }
+  .v1-logo-mark { width: 56px; height: 56px; }
+  .v1-logo-title { font-size: 19px; }
+
+  .v2-brand-panel { padding: 24px 20px; min-height: 200px; }
+  .v2-brand-mid h1 { font-size: 24px; }
+  .v2-stat-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .v2-stat .n { font-size: 18px; }
+  .v2-stat .l { font-size: 11px; }
+
+  .v3 { padding: 16px; }
+  .v3-time { font-size: 52px; }
+  .v3-time .sec { font-size: 26px; }
+  .v3-form-wrap { padding: 24px 20px; }
+}
+
+/* =========================================================
+   TWEAKS PANEL
+   ========================================================= */
+#tweaks-panel {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 280px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  font-size: 13px;
+  display: none;
+}
+#tweaks-panel.show { display: block; }
+#tweaks-panel h3 {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#tweaks-panel h3::before {
+  content: '';
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--brand);
+}
+.tweak-row {
+  margin-bottom: 14px;
+}
+.tweak-row:last-child { margin-bottom: 0; }
+.tweak-row label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.tweak-seg {
+  display: flex;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+.tweak-seg button {
+  flex: 1;
+  padding: 7px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.tweak-seg button.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-xs);
+}
+.tweak-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+.switch {
+  position: relative;
+  width: 38px; height: 22px;
+  background: var(--border-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 18px; height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.switch.on { background: var(--brand); }
+.switch.on::after { transform: translateX(16px); }
+
+/* Demo toolbar (mini) — outside tweaks for quick variation switching */
+.demo-bar {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px;
+  box-shadow: var(--shadow-md);
+  z-index: 9998;
+  display: flex;
+  gap: 2px;
+}
+.demo-bar button {
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.demo-bar button.active {
+  background: var(--brand);
+  color: #fff;
+}
+.demo-bar button:not(.active):hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+@media (max-width: 600px) {
+  .demo-bar { top: 12px; padding: 3px; }
+  .demo-bar button { padding: 6px 10px; font-size: 11px; }
+  #tweaks-panel { width: calc(100% - 24px); right: 12px; bottom: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========================================================
+     DEMO TOOLBAR (switch between variations)
+     ======================================================== -->
+<div class="demo-bar" id="demo-bar">
+  <button data-v="1" class="active">01 · Classic</button>
+  <button data-v="2">02 · Split</button>
+  <button data-v="3">03 · Floating</button>
+</div>
+
+<!-- ========================================================
+     VARIATION 1 — CLASSIC CARD
+     ======================================================== -->
+<section class="variation v1 active" id="variation-1" data-screen-label="01 Classic Card">
+  <div class="v1-shell">
+    <div class="v1-topbar">
+      <div class="v1-brand">
+        <span class="mark">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </span>
+        INOX · KHO
+      </div>
+      <div class="v1-clock">
+        <span class="pulse"></span>
+        <span id="v1-time" class="mono">--:--:--</span>
+      </div>
+    </div>
+
+    <div class="v1-card">
+      <div class="v1-logo">
+        <div class="v1-logo-mark">
+          <!-- Icon: cái kho / cửa hàng — cách điệu -->
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-6 9 6v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>
+            <path d="M3 9h18"/>
+            <path d="M9 22V13h6v9"/>
+          </svg>
+        </div>
+        <div class="v1-logo-title">Hộ Kinh Doanh Hàng Gia Dụng</div>
+        <div class="v1-logo-sub">Quản lý xuất nhập kho</div>
+      </div>
+
+      <div class="v1-card-head">
+        <h2>Đăng nhập</h2>
+        <p>Nhập mật khẩu để tiếp tục vào hệ thống.</p>
+      </div>
+
+      <form onsubmit="return handleLogin(event, 'v1')" novalidate>
+        <div class="field">
+          <label class="field-label" for="v1-pass">Mật khẩu</label>
+          <div class="input-wrap">
+            <span class="leading-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+            <input type="password" id="v1-pass" class="input has-leading has-trailing" placeholder="••••••••" autocomplete="current-password" data-pass-input />
+            <button type="button" class="trailing-btn" onclick="togglePass('v1-pass', this)" tabindex="-1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="role-pill" data-role-pill>
+            <span class="dot"></span>
+            <span class="label"></span>
+          </div>
+        </div>
+
+        <div class="remember-row">
+          <label class="checkbox">
+            <input type="checkbox" data-remember checked />
+            <span class="box">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </span>
+            Nhớ đăng nhập
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" data-submit>
+          Đăng nhập
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+
+        <div class="error-line" data-error>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>Sai mật khẩu, vui lòng thử lại.</span>
+        </div>
+      </form>
+    </div>
+
+    <div class="v1-footer">
+      <span>v2.4.1 · <span id="v1-date" class="mono"></span></span>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================
+     VARIATION 2 — SPLIT SCREEN
+     ======================================================== -->
+<section class="variation v2" id="variation-2" data-screen-label="02 Split Screen">
+  <!-- Brand panel -->
+  <div class="v2-brand-panel">
+    <div class="v2-brand-top">
+      <span class="mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-6 9 6v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>
+          <path d="M3 9h18"/>
+          <path d="M9 22V13h6v9"/>
+        </svg>
+      </span>
+      INOX · KHO
+    </div>
+
+    <div class="v2-brand-mid">
+      <h1>Quản lý<br/>xuất nhập kho, gọn gàng.</h1>
+      <p>Hộ Kinh Doanh Hàng Gia Dụng — theo dõi tồn kho, ghi nhận giao dịch, in đơn nhanh ngay trên điện thoại.</p>
+
+      <div class="v2-stat-grid">
+        <div class="v2-stat">
+          <div class="n" id="v2-stat-products">1,248</div>
+          <div class="l">Mã sản phẩm</div>
+        </div>
+        <div class="v2-stat">
+          <div class="n" id="v2-stat-tx">36</div>
+          <div class="l">Giao dịch / tuần</div>
+        </div>
+        <div class="v2-stat">
+          <div class="n">99.9%</div>
+          <div class="l">Uptime</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="v2-brand-bottom">
+      <span class="mono" id="v2-date">--</span>
+      <span class="mono" id="v2-time">--:--:--</span>
+    </div>
+  </div>
+
+  <!-- Form panel -->
+  <div class="v2-form-panel">
+    <div class="v2-form-inner">
+      <h2>Chào mừng trở lại 👋</h2>
+      <div class="sub">Đăng nhập để tiếp tục quản lý kho của bạn.</div>
+
+      <form onsubmit="return handleLogin(event, 'v2')" novalidate>
+        <div class="field">
+          <label class="field-label" for="v2-pass">Mật khẩu</label>
+          <div class="input-wrap">
+            <span class="leading-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+            <input type="password" id="v2-pass" class="input has-leading has-trailing" placeholder="Nhập mật khẩu..." autocomplete="current-password" data-pass-input />
+            <button type="button" class="trailing-btn" onclick="togglePass('v2-pass', this)" tabindex="-1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="role-pill" data-role-pill>
+            <span class="dot"></span>
+            <span class="label"></span>
+          </div>
+        </div>
+
+        <div class="remember-row">
+          <label class="checkbox">
+            <input type="checkbox" data-remember checked />
+            <span class="box">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </span>
+            Nhớ đăng nhập
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" data-submit>
+          Đăng nhập vào hệ thống
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+
+        <div class="error-line" data-error>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>Sai mật khẩu, vui lòng thử lại.</span>
+        </div></form>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================
+     VARIATION 3 — FLOATING MINIMAL
+     ======================================================== -->
+<section class="variation v3" id="variation-3" data-screen-label="03 Floating Minimal">
+  <div class="v3-top">
+    <div class="v3-brand">
+      <span class="mark">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-6 9 6v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>
+          <path d="M3 9h18"/>
+          <path d="M9 22V13h6v9"/>
+        </svg>
+      </span>
+      <div>
+        <div class="name">Hộ Kinh Doanh Hàng Gia Dụng</div>
+        <div class="role">Quản lý xuất nhập kho</div>
+      </div>
+    </div>
+    <div class="v3-status">
+      <span class="dot"></span>
+      Hệ thống online
+    </div>
+  </div>
+
+  <div class="v3-middle">
+    <div class="v3-hero">
+      <div class="v3-greeting" id="v3-greeting">Chào buổi sáng.</div>
+      <div class="v3-time">
+        <span id="v3-hh">--</span><span class="sep">:</span><span id="v3-mm">--</span><span class="sec"> <span id="v3-ss">--</span></span>
+      </div>
+      <div class="v3-date" id="v3-date">—</div>
+      <div class="v3-tagline">Đăng nhập để tiếp tục theo dõi tồn kho và giao dịch trong ngày.</div>
+    </div>
+
+    <div class="v3-form-wrap">
+      <h2>Đăng nhập</h2>
+      <div class="sub">Chỉ cần mật khẩu — hệ thống tự nhận diện vai trò.</div>
+
+      <form onsubmit="return handleLogin(event, 'v3')" novalidate>
+        <div class="field">
+          <label class="field-label" for="v3-pass">Mật khẩu</label>
+          <div class="input-wrap">
+            <span class="leading-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+            <input type="password" id="v3-pass" class="input has-leading has-trailing" placeholder="••••••••" autocomplete="current-password" data-pass-input />
+            <button type="button" class="trailing-btn" onclick="togglePass('v3-pass', this)" tabindex="-1">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="role-pill" data-role-pill>
+            <span class="dot"></span>
+            <span class="label"></span>
+          </div>
+        </div>
+
+        <div class="remember-row">
+          <label class="checkbox">
+            <input type="checkbox" data-remember checked />
+            <span class="box">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </span>
+            Nhớ đăng nhập
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" data-submit>
+          Đăng nhập
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+
+        <div class="error-line" data-error>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>Sai mật khẩu, vui lòng thử lại.</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="v3-bottom">
+    <span>© 2026 Hộ Kinh Doanh Hàng Gia Dụng</span>
+    <div class="v3-bottom-links">
+      <a href="#">Phiên bản 2.4.1</a>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================
+     TWEAKS PANEL
+     ======================================================== -->
+<div id="tweaks-panel">
+  <h3>Tweaks</h3>
+  <div class="tweak-row">
+    <label>Variation</label>
+    <div class="tweak-seg" id="tweak-variation">
+      <button data-v="1" class="active">01</button>
+      <button data-v="2">02</button>
+      <button data-v="3">03</button>
+    </div>
+  </div>
+  <div class="tweak-row">
+    <div class="tweak-switch">
+      <label style="margin:0;">Dark mode</label>
+      <div class="switch" id="tweak-dark"></div>
+    </div>
+  </div>
+  <div class="tweak-row">
+    <label>Màu chủ đạo</label>
+    <div class="tweak-seg" id="tweak-brand">
+      <button data-brand="green" class="active" style="color: #4CAF50;">● Xanh lá</button>
+      <button data-brand="blue" style="color: #2563eb;">● Xanh DL</button>
+      <button data-brand="amber" style="color: #b45309;">● Đồng</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   TWEAKABLE DEFAULTS — persisted by host
+   ========================================================= */
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "variation": 1,
+  "dark": false,
+  "brand": "green"
+}/*EDITMODE-END*/;
+
+let state = { ...TWEAK_DEFAULTS };
+
+/* ---------- Brand palettes ---------- */
+const BRAND_PALETTES = {
+  green: { brand: '#4CAF50', soft: '#e8f5e9', deep: '#2e7d32', darkBrand: '#57c97d', darkSoft: '#14281d', darkDeep: '#8de3a9' },
+  blue:  { brand: '#2563eb', soft: '#e5edfc', deep: '#1d4ed8', darkBrand: '#6a93f0', darkSoft: '#121c30', darkDeep: '#a4c0f7' },
+  amber: { brand: '#b45309', soft: '#fcf0d8', deep: '#7c3a03', darkBrand: '#e2a050', darkSoft: '#28190a', darkDeep: '#f0c37c' }
+};
+
+function applyBrand(key) {
+  const p = BRAND_PALETTES[key] || BRAND_PALETTES.green;
+  const root = document.documentElement;
+  const isDark = state.dark;
+  root.style.setProperty('--brand', isDark ? p.darkBrand : p.brand);
+  root.style.setProperty('--brand-soft', isDark ? p.darkSoft : p.soft);
+  root.style.setProperty('--brand-deep', isDark ? p.darkDeep : p.deep);
+}
+
+function applyDark(on) {
+  document.documentElement.setAttribute('data-theme', on ? 'dark' : 'light');
+  applyBrand(state.brand);
+  document.getElementById('tweak-dark').classList.toggle('on', on);
+}
+
+function applyVariation(n) {
+  document.querySelectorAll('.variation').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById('variation-' + n);
+  if (target) target.classList.add('active');
+  document.querySelectorAll('#demo-bar button').forEach(b => b.classList.toggle('active', +b.dataset.v === +n));
+  document.querySelectorAll('#tweak-variation button').forEach(b => b.classList.toggle('active', +b.dataset.v === +n));
+  try { localStorage.setItem('login_variation', n); } catch(e) {}
+}
+
+/* ---------- Init from state ---------- */
+function initState() {
+  try {
+    const saved = +(localStorage.getItem('login_variation'));
+    if (saved >= 1 && saved <= 3) state.variation = saved;
+  } catch(e) {}
+  applyVariation(state.variation);
+  applyDark(state.dark);
+  applyBrand(state.brand);
+  document.querySelectorAll('#tweak-brand button').forEach(b => b.classList.toggle('active', b.dataset.brand === state.brand));
+}
+
+/* ---------- Demo bar ---------- */
+document.getElementById('demo-bar').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  state.variation = +btn.dataset.v;
+  applyVariation(state.variation);
+  persist({ variation: state.variation });
+});
+
+/* ---------- Tweaks ---------- */
+document.getElementById('tweak-variation').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  state.variation = +btn.dataset.v;
+  applyVariation(state.variation);
+  persist({ variation: state.variation });
+});
+document.getElementById('tweak-dark').addEventListener('click', () => {
+  state.dark = !state.dark;
+  applyDark(state.dark);
+  persist({ dark: state.dark });
+});
+document.getElementById('tweak-brand').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  state.brand = btn.dataset.brand;
+  document.querySelectorAll('#tweak-brand button').forEach(b => b.classList.toggle('active', b === btn));
+  applyBrand(state.brand);
+  persist({ brand: state.brand });
+});
+
+/* =========================================================
+   EDIT MODE HOST PROTOCOL
+   ========================================================= */
+window.addEventListener('message', (e) => {
+  const d = e.data;
+  if (!d || typeof d !== 'object') return;
+  if (d.type === '__activate_edit_mode') document.getElementById('tweaks-panel').classList.add('show');
+  if (d.type === '__deactivate_edit_mode') document.getElementById('tweaks-panel').classList.remove('show');
+});
+try { window.parent.postMessage({type:'__edit_mode_available'}, '*'); } catch(e) {}
+
+function persist(edits) {
+  try { window.parent.postMessage({type:'__edit_mode_set_keys', edits}, '*'); } catch(e) {}
+}
+
+/* =========================================================
+   CLOCK + GREETING
+   ========================================================= */
+const VI_DAYS = ['Chủ nhật','Thứ hai','Thứ ba','Thứ tư','Thứ năm','Thứ sáu','Thứ bảy'];
+function pad(n){ return String(n).padStart(2,'0'); }
+function formatDate(d) {
+  return `${VI_DAYS[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+}
+function greeting(d) {
+  const h = d.getHours();
+  if (h < 11) return 'Chào buổi sáng.';
+  if (h < 14) return 'Chào buổi trưa.';
+  if (h < 18) return 'Chào buổi chiều.';
+  return 'Chào buổi tối.';
+}
+function tick() {
+  const d = new Date();
+  const hh = pad(d.getHours()), mm = pad(d.getMinutes()), ss = pad(d.getSeconds());
+  const timeStr = `${hh}:${mm}:${ss}`;
+  const dateStr = formatDate(d);
+
+  const t1 = document.getElementById('v1-time'); if (t1) t1.textContent = timeStr;
+  const d1 = document.getElementById('v1-date'); if (d1) d1.textContent = dateStr;
+
+  const t2 = document.getElementById('v2-time'); if (t2) t2.textContent = timeStr;
+  const dd2 = document.getElementById('v2-date'); if (dd2) dd2.textContent = dateStr;
+
+  const hh3 = document.getElementById('v3-hh'); if (hh3) hh3.textContent = hh;
+  const mm3 = document.getElementById('v3-mm'); if (mm3) mm3.textContent = mm;
+  const ss3 = document.getElementById('v3-ss'); if (ss3) ss3.textContent = ss;
+  const dd3 = document.getElementById('v3-date'); if (dd3) dd3.textContent = dateStr;
+  const g3 = document.getElementById('v3-greeting'); if (g3) g3.textContent = greeting(d);
+}
+tick();
+setInterval(tick, 1000);
+
+/* =========================================================
+   ROLE AUTO-DETECTION (demo: "admin" prefix → Admin, else Staff)
+   ========================================================= */
+function detectRole(pass) {
+  if (!pass || pass.length < 3) return null;
+  const p = pass.toLowerCase();
+  if (p.includes('admin') || p.startsWith('a-') || p.startsWith('9')) return 'owner';
+  return 'staff';
+}
+function updateRolePill(wrap, role) {
+  const pill = wrap.querySelector('[data-role-pill]');
+  if (!pill) return;
+  if (!role) { pill.classList.remove('show'); return; }
+  const label = pill.querySelector('.label');
+  if (role === 'owner') {
+    label.textContent = 'Đăng nhập với vai trò Admin';
+  } else {
+    label.textContent = 'Đăng nhập với vai trò Nhân viên';
+  }
+  pill.classList.add('show');
+}
+document.querySelectorAll('[data-pass-input]').forEach(inp => {
+  inp.addEventListener('input', () => {
+    const wrap = inp.closest('.variation');
+    updateRolePill(wrap, detectRole(inp.value));
+    wrap.querySelector('[data-error]').classList.remove('show');
+    inp.classList.remove('error');
+  });
+});
+
+/* =========================================================
+   LOGIN HANDLER (demo only)
+   ========================================================= */
+function togglePass(id, btn) {
+  const i = document.getElementById(id);
+  if (!i) return;
+  i.type = i.type === 'password' ? 'text' : 'password';
+}
+function handleLogin(e, v) {
+  e.preventDefault();
+  const form = e.target;
+  const pass = form.querySelector('[data-pass-input]').value.trim();
+  const err = form.querySelector('[data-error]');
+  const inp = form.querySelector('[data-pass-input]');
+  const btn = form.querySelector('[data-submit]');
+  if (!pass) {
+    err.classList.add('show');
+    err.querySelector('span').textContent = 'Vui lòng nhập mật khẩu.';
+    inp.classList.add('error');
+    return false;
+  }
+  btn.disabled = true;
+  const originalHTML = btn.innerHTML;
+  btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><span class="spinner" style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin 0.6s linear infinite;"></span> Đang đăng nhập...</span>';
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+    // demo: any password ≥ 3 chars succeeds
+    if (pass.length < 3) {
+      err.classList.add('show');
+      err.querySelector('span').textContent = 'Sai mật khẩu, vui lòng thử lại.';
+      inp.classList.add('error');
+    } else {
+      const role = detectRole(pass);
+      err.classList.remove('show');
+      alert(`✅ Đăng nhập thành công\nVai trò: ${role === 'owner' ? 'Admin (Chủ)' : 'Nhân viên'}`);
+    }
+  }, 800);
+  return false;
+}
+
+/* Spinner keyframes */
+const styleEl = document.createElement('style');
+styleEl.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
+document.head.appendChild(styleEl);
+
+/* ---------- Boot ---------- */
+initState();
+</script>
+</body>
+</html>
