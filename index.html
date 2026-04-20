@@ -4796,16 +4796,25 @@ function _renderHistory() {
   const _xuatPhiNet = _xuatPhiVC - _xuatPhiKT;
   const _se = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   const _sd = (id, v) => { const el = document.getElementById(id); if (el) el.style.display = v; };
+
+  // Tính toán lại Tổng theo logic trang Báo cáo:
+  // Nhập = Tiền hàng + Phí chành
+  // Xuất = Tiền hàng - Phí net (Phí net = Phí chành - Phí khách trả)
+  const finalNhapTotal = _nhapTien + _nhapPhi;
+  const finalXuatTotal = _xuatTien - _xuatPhiNet;
+
   _se('hist-sum-nhap-sp',   _nhapSP  + ' SP');
-  _se('hist-sum-nhap-tien', _nhapTien.toLocaleString('en-US') + ' \u0111');
+  _se('hist-sum-nhap-tien', finalNhapTotal.toLocaleString('en-US') + ' \u0111');
   _se('hist-sum-xuat-sp',   _xuatSP  + ' SP');
-  _se('hist-sum-xuat-tien', _xuatTien.toLocaleString('en-US') + ' \u0111');
+  _se('hist-sum-xuat-tien', finalXuatTotal.toLocaleString('en-US') + ' \u0111');
+
   if (_nhapPhi > 0) {
-    _se('hist-sum-nhap-phi', '+ ' + _nhapPhi.toLocaleString('en-US'));
+    _se('hist-sum-nhap-phi', '+ ' + _nhapPhi.toLocaleString('en-US') + ' \u0111');
     _sd('hist-sum-nhap-phi-wrap', 'block');
   } else { _sd('hist-sum-nhap-phi-wrap', 'none'); }
+
   if (_xuatPhiNet > 0) {
-    _se('hist-sum-xuat-phi', '- ' + _xuatPhiNet.toLocaleString('en-US'));
+    _se('hist-sum-xuat-phi', '- ' + _xuatPhiNet.toLocaleString('en-US') + ' \u0111');
     _sd('hist-sum-xuat-phi-wrap', 'block');
   } else { _sd('hist-sum-xuat-phi-wrap', 'none'); }
 
@@ -5003,10 +5012,9 @@ function _buildInvoiceHTML(g, hidePrice) {
   }).join('');
 
   const grandTotal = total + phiKT;
-  const phiKTRow = phiKT > 0
-    ? (hidePrice
-        ? `<div style="font-size:3.5mm;font-weight:700;color:#d32f2f;text-align:right;margin-top:1.5mm;padding-right:1mm;">Phí chành khách trả: + ${phiKT.toLocaleString('vi-VN')} \u0111</div>`
-        : `<tr><td colspan="5" style="${B}padding:2mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">Phí chành khách trả</td><td style="${B}padding:2mm 1.2mm;text-align:right;font-size:3.2mm;font-weight:700;">+ ${phiKT.toLocaleString('vi-VN')} \u0111</td></tr>`)
+  // Chỉ hiện dòng phí chành nếu có phí (>0) VÀ đang ở chế độ HIỆN số tiền (!hidePrice)
+  const phiKTRow = (phiKT > 0 && !hidePrice)
+    ? `<tr><td colspan="5" style="${B}padding:2mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">Phí chành khách trả</td><td style="${B}padding:2mm 1.2mm;text-align:right;font-size:3.2mm;font-weight:700;">+ ${phiKT.toLocaleString('vi-VN')} \u0111</td></tr>`
     : '';
   const footerHTML = hidePrice
     ? ''
