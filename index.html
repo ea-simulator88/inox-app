@@ -4605,7 +4605,7 @@ function _renderHistory() {
   if (!list) return;
   let filtered = _historyData;
   if (currentRole !== 'owner') {
-    filtered = _historyData.filter(r => r.loai === 'Xuất');
+    filtered = _historyData.filter(r => r.loai === 'Xuất' || r.loai === 'Nháp');
   } else if (_historyFilter === 'xuat') {
     filtered = _historyData.filter(r => r.loai === 'Xuất');
   } else if (_historyFilter === 'nhap') {
@@ -4791,8 +4791,22 @@ function showHistoryDetail(idx) {
     </div>`;
   }).join('');
 
-  const hdBtns = document.getElementById('hd-action-btns');
-  if (hdBtns) hdBtns.style.display = currentRole === 'owner' ? 'flex' : 'none';
+ const hdBtns = document.getElementById('hd-action-btns');
+  if (hdBtns) {
+    if (currentRole === 'owner') {
+      hdBtns.style.display = 'flex';
+      if (hdBtns.children[1]) hdBtns.children[1].style.display = 'flex'; // Hiện nút Sửa
+      if (hdBtns.children[2]) hdBtns.children[2].style.display = 'flex'; // Hiện nút Xóa
+    } else if (isDraft) {
+      // Nếu là Staff và đang xem đơn Nháp -> Hiện khung nút nhưng ẩn Sửa, Xóa (chỉ giữ nút Xuất)
+      hdBtns.style.display = 'flex';
+      if (hdBtns.children[1]) hdBtns.children[1].style.display = 'none';
+      if (hdBtns.children[2]) hdBtns.children[2].style.display = 'none';
+    } else {
+      // Nếu là Staff và xem đơn Xuất -> Ẩn toàn bộ nút
+      hdBtns.style.display = 'none';
+    }
+  }
   sessionStorage.setItem('histDetailThoigian', g.thoigian);
   sessionStorage.setItem('histDetailLoai', g.loai);
   showScreen('screen-history-detail');
