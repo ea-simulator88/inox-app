@@ -4891,8 +4891,19 @@ function showHistoryDetail(idx) {
   if (g.giaodich) infoHtml += `<div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${g.giaodich}</span></div>`;
   if ((isXuat || isDraft) && g.tenkhach) infoHtml += `<div class="info-row"><span class="info-label">Khách</span><span class="info-value">${g.tenkhach}</span></div>`;
   if (g.loai === 'Nhập' && g.rows[0]?.ncc) infoHtml += `<div class="info-row"><span class="info-label">NCC</span><span class="info-value">${g.rows[0].ncc}</span></div>`;
+  const phiVC = Math.abs(Number(g.rows[0]?.phichanh) || 0);
+  const phiKT = Number(g.rows[0]?.phikhachtra) || 0;
+
   infoHtml += `<div class="info-row"><span class="info-label">Tổng SP</span><span class="info-value">${g.rows.length}</span></div>`;
-  infoHtml += `<div class="info-row"><span class="info-label">Tổng tiền</span><span class="info-value green">${total.toLocaleString('en-US')} đ</span></div>`;
+  infoHtml += `<div class="info-row"><span class="info-label">Tổng hàng</span><span class="info-value" style="font-weight:700;color:#333;">${total.toLocaleString('en-US')} đ</span></div>`;
+
+  if (phiVC > 0) {
+    infoHtml += `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value" style="font-weight:600;color:#d32f2f;">${g.loai === 'Nhập' ? '+' : '-'} ${phiVC.toLocaleString('en-US')} đ</span></div>`;
+  }
+  if (phiKT > 0) {
+    infoHtml += `<div class="info-row"><span class="info-label">Phí (KT)</span><span class="info-value" style="font-weight:600;color:#2e7d32;">+ ${phiKT.toLocaleString('en-US')} đ</span></div>`;
+  }
+
   document.getElementById('hd-info-card').innerHTML = infoHtml;
 
   document.getElementById('hd-rows').innerHTML = g.rows.map((r, i) => {
@@ -5012,9 +5023,10 @@ function _buildInvoiceHTML(g, hidePrice) {
   }).join('');
 
   const grandTotal = total + phiKT;
-  // Chỉ hiện dòng phí chành nếu có phí (>0) VÀ đang ở chế độ HIỆN số tiền (!hidePrice)
-  const phiKTRow = (phiKT > 0 && !hidePrice)
-    ? `<tr><td colspan="5" style="${B}padding:2mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">Phí chành khách trả</td><td style="${B}padding:2mm 1.2mm;text-align:right;font-size:3.2mm;font-weight:700;">+ ${phiKT.toLocaleString('vi-VN')} \u0111</td></tr>`
+  const phiKTRow = phiKT > 0
+    ? (hidePrice
+        ? '' // Đã ẩn dòng Phí khách trả trên hóa đơn không hiện giá
+        : `<tr><td colspan="5" style="${B}padding:2mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">Phí chành khách trả</td><td style="${B}padding:2mm 1.2mm;text-align:right;font-size:3.2mm;font-weight:700;">+ ${phiKT.toLocaleString('vi-VN')} \u0111</td></tr>`)
     : '';
   const footerHTML = hidePrice
     ? ''
