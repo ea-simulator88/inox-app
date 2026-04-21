@@ -813,8 +813,8 @@ const CONFIG = {
   <div id="history-list" style="max-width:1000px;margin:0 auto;margin-top:-18px;width:100%;padding:8px 0;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;"></div>
 
   <!-- SUMMARY BAR -->
- <div style="flex-shrink:0;background:#fff;border-top:1px solid #eee;padding-top:8px;">
-    <div style="max-width:1000px;margin:0 auto;padding:0 16px 10px;display:flex;flex-direction:column;gap:8px;">
+ <div style="flex-shrink:0;background:#fff;border-top:1px solid #eee;padding-top:7px;">
+    <div style="max-width:1000px;margin:0 auto;padding: 0 8px 3px;display:flex;flex-direction:column;gap:8px;">
       <div style="display:flex;gap:8px;">
         <div id="hist-nhap-summary" style="flex:1;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:12px;padding:10px;border:1px solid #e8f5e9;">
           <span style="font-size:11px;font-weight:700;color:#2e7d32;">NHẬP | <span id="hist-sum-nhap-sp">0 SP</span></span>
@@ -826,10 +826,6 @@ const CONFIG = {
           <div id="hist-sum-xuat-tien" style="font-size:16px;font-weight:700;color:#b71c1c;margin-top:2px;">0 đ</div>
           <div id="hist-sum-xuat-phi-wrap" style="display:none;font-size:10px;color:#e53935;">- Phí: <span id="hist-sum-xuat-phi"></span></div>
         </div>
-      </div>
-      <div id="hist-profit-wrap" style="background:#fff; border: 1.5px solid #eee; border-radius: 12px; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-        <span style="font-size:12px; font-weight:700; color:#666;">LỢI NHUẬN:</span>
-        <span id="hist-sum-profit" style="font-size:18px; font-weight:800; color:#1b5e20;">0 đ</span>
       </div>
     </div>
   </div>
@@ -952,9 +948,9 @@ const CONFIG = {
         </div>
         <div id="report-summary" class="report-summary-grid"></div>
       </div>
-      <div id="report-collapse-btn-wrap" style="display:none;text-align:center;margin-top:2px;">
+      <div id="report-collapse-btn-wrap" style="display:none;padding: -2px 0;text-align:center;margin-top:0px;">
         <button onclick="toggleReportCollapse()" style="background:none;border:none;cursor:pointer;padding:4px 16px;color:#aaa;line-height:1;">
-          <svg id="report-collapse-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.25s;"><polyline points="18 15 12 9 6 15"/></svg>
+          <svg id="report-collapse-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.25s;"><polyline points="18 15 12 9 6 15"/></svg>
         </button>
       </div>
     </div>
@@ -4426,7 +4422,7 @@ function _renderReportSection(title, color, items, emptyText, type, kw) {
         return `<div class="report-detail-item" onclick="showReportDetail(${idx})" style="cursor:pointer;">
           <div style="min-width:0;">
             <div class="report-detail-name">${highlightText(item.name, kw)}</div>
-            <div class="report-detail-meta">${item.extra || (item.count + ' dòng')}</div>
+            <div class="report-detail-meta">${item.extra || (item.count + ' đơn')}</div>
           </div>
           <div class="report-detail-value">
             <div class="report-detail-qty">${fmt(item.qty)} SL</div>
@@ -4548,7 +4544,7 @@ function showReportDetail(idx) {
         </div>
         <div style="text-align:right;flex-shrink:0;">
           <div style="font-size:11px;color:#666;">${fmt(r.soluong)} × ${fmt(r.gia)}đ</div>
-          <div style="font-size:13px;font-weight:700;color:${isNhap?'#0d47a1':'#e65100'};">${fmt(totalHangRow)}đ</div>
+          <div style="font-size:13px;font-weight:600;color:${isNhap?'#0d47a1':'#e65100'};">${fmt(totalHangRow)}đ</div>
           </div>
       </div>`;
     }).join('');
@@ -4558,17 +4554,17 @@ function showReportDetail(idx) {
     // PHẦN TỔNG CHI TIẾT Ở CUỐI (GIỮ NGUYÊN ĐỂ XEM TỔNG PHÍ)
     html += `
       <div style="margin-top:12px;padding-top:10px;border-top:1.5px solid #eee;font-size:14px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#666;font-weight:750;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#666;font-weight:700;">
           <span>Tổng hàng (${fmt(sumQty)} SL):</span>
-          <span style="font-weight:600;color:#333;">${fmt(sumHang)} đ</span>
+          <span style="font-weight:700;color:#333;">${fmt(sumHang)} đ</span>
         </div>
-        ${sumPhiVC > 0 ? `<div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#666;font-weight:750;">
+        ${sumPhiVC > 0 ? `<div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#666;font-weight:700;">
           <span>Tổng Phí vận chuyển:</span>
-          <span style="font-weight:600;color:#d32f2f;">${fmt(sumPhiVC)} đ</span>
+          <span style="font-weight:700;color:#d32f2f;">${fmt(sumPhiVC)} đ</span>
         </div>` : ''}
-        ${sumPhiKT > 0 ? `<div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#666;font-weight:750;">
+        ${sumPhiKT > 0 ? `<div style="display:flex;justify-content:space-between;margin-bottom:4px;color:#666;font-weight:700;">
           <span>Tổng Phí khách trả:</span>
-          <span style="font-weight:600;color:#2e7d32;">+ ${fmt(sumPhiKT)} đ</span>
+          <span style="font-weight:700;color:#2e7d32;">+ ${fmt(sumPhiKT)} đ</span>
         </div>` : ''}
       </div>`;
 
@@ -4598,7 +4594,7 @@ function showRptGdDetail(loai) {
   const html = '<div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;text-align:left;">' +
     entries.map(([gd, v]) =>
       `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 12px;background:#f9f9f9;border-radius:10px;gap:8px;">
-        <div><div style="font-size:13px;font-weight:600;color:#333;">${_esc(gd)}</div><div style="font-size:11px;color:#999;margin-top:2px;">${fmt(v.qty)} SL · ${v.count} dòng</div></div>
+        <div><div style="font-size:13px;font-weight:600;color:#333;">${_esc(gd)}</div><div style="font-size:11px;color:#999;margin-top:2px;">${fmt(v.qty)} SL · ${v.count} đơn</div></div>
         <div style="font-size:14px;font-weight:700;color:${color};white-space:nowrap;">${fmt(v.amount)} đ</div>
       </div>`
     ).join('') + '</div>';
@@ -4631,22 +4627,22 @@ function renderReport() {
  // Giữ nguyên các biến tính toán phí của bạn
  summary.innerHTML = `
     <div class="report-summary-card" onclick="showRptGdDetail('nhap')" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);cursor:pointer;position:relative;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
-      <div style="font-size:11px;color:#2e7d32;font-weight:700;margin-bottom:5px;">Tổng Nhập &nbsp;<span style="font-weight:400;color:#388e3c;">${fmt(totalNhapQty)} SL · ${nhapRows.length} dòng</span></div>
-      <div style="font-size:20px;font-weight:700;color:#1b5e20;">${fmt(totalNhapAmount)} đ</div>
+      <div style="font-size:11px;color:#2e7d32;font-weight:700;margin-bottom:5px;">Tổng Nhập &nbsp;<span style="font-weight:400;color:#388e3c;">${fmt(totalNhapQty)} SL · ${nhapRows.length} đơn</span></div>
+      <div style="font-size:20px;font-weight:700;color:#388e3c;">${fmt(totalNhapAmount)} đ</div>
       ${nhapPhiChanh > 0 ? `<div style="font-size:11px;color:#388e3c;margin-top:3px;">+ Phí: ${fmt(nhapPhiChanh)} đ</div>` : ''}
-      <div style="position:absolute;bottom:8px;right:10px;font-size:11px;color:#81c784;">chi tiết ›</div>
+      <div style="position:absolute;bottom:8px;right:10px;font-size:11px;color:#388e3c;">chi tiết ›</div>
     </div>
 
-    <div class="report-summary-card" onclick="showRptGdDetail('xuat')" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);cursor:pointer;position:relative;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
-      <div style="font-size:11px;color:#e65100;font-weight:700;margin-bottom:5px;">Tổng Xuất &nbsp;<span style="font-weight:400;color:#ef6c00;">${fmt(totalXuatQty)} SL · ${xuatRows.length} dòng</span></div>
-      <div style="font-size:20px;font-weight:700;color:#bf360c;">${fmt(totalXuatAmount)} đ</div>
+    <div class="report-summary-card" onclick="showRptGdDetail('xuat')" style="background:#fff5f5;cursor:pointer;position:relative;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+      <div style="font-size:11px;color:#c62828;font-weight:700;margin-bottom:5px;">Tổng Xuất &nbsp;<span style="font-weight:400;color:#c62828;">${fmt(totalXuatQty)} SL · ${xuatRows.length} đơn</span></div>
+      <div style="font-size:20px;font-weight:700;color:#c62828;">${fmt(totalXuatAmount)} đ</div>
       ${xuatPhiChanh > 0 ? `<div style="font-size:11px;color:#e53935;margin-top:3px;">- Phí: ${fmt(xuatPhiChanh)} đ</div>` : ''}
-      <div style="position:absolute;bottom:8px;right:10px;font-size:11px;color:#ffb74d;">chi tiết ›</div>
+      <div style="position:absolute;bottom:8px;right:10px;font-size:11px;color:#e53935;">chi tiết ›</div>
     </div>
 
-    <div style="grid-column: span 2; background: ${totalProfit >= 0 ? '#e8f5e9' : '#ffebee'}; border-radius: 12px; padding: 12px 20px; border: 1px solid ${totalProfit >= 0 ? '#a5d6a7' : '#ef9a9a'}; margin-top: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between;">
-        <div style="font-size:12px; font-weight:700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;">Lợi nhuận thực tế</div>
-        <div style="font-size:14px; font-weight:700; color: ${totalProfit >= 0 ? '#2e7d32' : '#c62828'}; line-height: 1;">${totalProfit >= 0 ? '+' : ''}${fmt(totalProfit)} đ</div>
+    <div style="grid-column: span 2; background: #FFF7ED; border-radius: 12px; padding: 12px 20px; border: 1px solid #FFF7ED; margin-top: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between;margin-top: -3px">
+        <div style="font-size:14px; font-weight:700; color: #C2410C; letter-spacing: 0.5px; line-height: 1;">Lợi nhuận thực tế </div>
+        <div style="font-size:14px; font-weight:700; color: #C2410C; line-height: 1;">${totalProfit >= 0 ? '+' : ''}${fmt(totalProfit)} đ</div>
     </div>
   `;
 
@@ -4655,8 +4651,8 @@ function renderReport() {
     return;
   }
 
-  const suppliers = _sortReportItems(_groupReportEntries(rows, r => r.ncc.trim(), r => r.ncc.trim(), r => r.loai === 'Nhập' && r.ncc.trim()).map(item => ({ ...item, extra: item.count + ' dòng nhập' })));
-  const customers = _sortReportItems(_groupReportEntries(rows, r => r.tenkhach.trim(), r => r.tenkhach.trim(), r => r.loai === 'Xuất' && r.tenkhach.trim()).map(item => ({ ...item, extra: item.count + ' dòng xuất' })));
+  const suppliers = _sortReportItems(_groupReportEntries(rows, r => r.ncc.trim(), r => r.ncc.trim(), r => r.loai === 'Nhập' && r.ncc.trim()).map(item => ({ ...item, extra: item.count + ' đơn nhập' })));
+  const customers = _sortReportItems(_groupReportEntries(rows, r => r.tenkhach.trim(), r => r.tenkhach.trim(), r => r.loai === 'Xuất' && r.tenkhach.trim()).map(item => ({ ...item, extra: item.count + ' đơn xuất' })));
   const rawReportQ = ((document.getElementById('report-search') || {}).value || '').trim();
 
   list.innerHTML = [
@@ -4844,9 +4840,6 @@ function _renderHistory() {
   _se('hist-sum-nhap-tien', finalNhapTotal.toLocaleString('en-US') + ' \u0111');
   _se('hist-sum-xuat-sp',   _xuatSP  + ' SP');
   _se('hist-sum-xuat-tien', finalXuatTotal.toLocaleString('en-US') + ' \u0111');
-  const finalProfit = finalXuatTotal - finalNhapTotal;
-  const pEl = document.getElementById('hist-sum-profit');
-  if (pEl) pEl.textContent = fmt(finalProfit) + ' đ';
 
   if (_nhapPhi > 0) {
     _se('hist-sum-nhap-phi', '+ ' + _nhapPhi.toLocaleString('en-US') + ' \u0111');
