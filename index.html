@@ -1775,7 +1775,12 @@ function _lnOnPassInput() {
     const now = new Date();
     const t = document.getElementById('ln-time');
     const d = document.getElementById('ln-date');
-    if (t) t.textContent = now.toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+    if (t) {
+      const HH = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      t.textContent = `${HH}:${mm}:${ss}`;
+    }
     if (d) d.textContent = now.toLocaleDateString('vi-VN', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   }
   tick();
