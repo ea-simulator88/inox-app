@@ -813,30 +813,27 @@ const CONFIG = {
   <div id="history-list" style="max-width:1000px;margin:0 auto;margin-top:-18px;width:100%;padding:8px 0;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;"></div>
 
   <!-- SUMMARY BAR -->
-  <div style="flex-shrink:0;background:#fff;border-top:1.5px solid #e8e8e8;">
-    <div style="max-width:1000px;margin:0 auto;padding:8px 16px;display:flex;gap:8px;">
-      <div id="hist-nhap-summary" style="flex:1;background:#e8f5e9;border-radius:10px;padding:8px 10px;">
-        <span style="font-size:11px;font-weight:600;color:#2e7d32;">Nhập | <span id="hist-sum-nhap-sp">0 SP</span></span>
-        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
-          <span id="hist-sum-nhap-tien" style="font-size:15px;font-weight:700;color:#388e3c;">0 đ</span>
+ <div style="flex-shrink:0;background:#fff;border-top:1px solid #eee;padding-top:8px;">
+    <div style="max-width:1000px;margin:0 auto;padding:0 16px 10px;display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;gap:8px;">
+        <div id="hist-nhap-summary" style="flex:1;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:12px;padding:10px;border:1px solid #e8f5e9;">
+          <span style="font-size:11px;font-weight:700;color:#2e7d32;">NHẬP | <span id="hist-sum-nhap-sp">0 SP</span></span>
+          <div id="hist-sum-nhap-tien" style="font-size:16px;font-weight:700;color:#388e3c;margin-top:2px;">0 đ</div>
+          <div id="hist-sum-nhap-phi-wrap" style="display:none;font-size:10px;color:#388e3c;">+ Phí: <span id="hist-sum-nhap-phi"></span></div>
         </div>
-        <div id="hist-sum-nhap-phi-wrap" style="display:none;font-size:11px;color:#388e3c;margin-top:2px;">
-          Phí <span id="hist-sum-nhap-phi"></span>
+        <div style="flex:1;background:#fff5f5;border-radius:12px;padding:10px;border:1px solid #ffebee;">
+          <span style="font-size:11px;font-weight:700;color:#c62828;">XUẤT | <span id="hist-sum-xuat-sp">0 SP</span></span>
+          <div id="hist-sum-xuat-tien" style="font-size:16px;font-weight:700;color:#b71c1c;margin-top:2px;">0 đ</div>
+          <div id="hist-sum-xuat-phi-wrap" style="display:none;font-size:10px;color:#e53935;">- Phí: <span id="hist-sum-xuat-phi"></span></div>
         </div>
       </div>
-      <div style="flex:1;background:#ffebee;border-radius:10px;padding:8px 10px;">
-        <span style="font-size:11px;font-weight:600;color:#c62828;">Xuất | <span id="hist-sum-xuat-sp">0 SP</span></span>
-        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
-          <span id="hist-sum-xuat-tien" style="font-size:15px;font-weight:700;color:#e53935;">0 đ</span>
-        </div>
-        <div id="hist-sum-xuat-phi-wrap" style="display:none;font-size:11px;color:#e53935;margin-top:2px;">
-          Phí <span id="hist-sum-xuat-phi"></span>
-        </div>
+      <div id="hist-profit-wrap" style="background:#fff; border: 1.5px solid #eee; border-radius: 12px; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <span style="font-size:12px; font-weight:700; color:#666;">LỢI NHUẬN:</span>
+        <span id="hist-sum-profit" style="font-size:18px; font-weight:800; color:#1b5e20;">0 đ</span>
       </div>
     </div>
   </div>
-</div>
-
+ </div>
 <!-- HISTORY DETAIL -->
 <div id="screen-history-detail" class="screen">
   <div class="header" style="flex-shrink:0;margin-bottom:0;padding-bottom:0;">
@@ -4626,22 +4623,30 @@ function renderReport() {
   const xuatPhiChanh = xuatPhiVC - xuatPhiKT; // Phí net = |phiVC| - phiKT (KT là khách bù)
   const totalNhapAmount = nhapRows.reduce((s, r) => s + (Number(r.soluong) || 0) * (Number(r.gia) || 0), 0) + nhapPhiVC;
   const totalXuatAmount = xuatRows.reduce((s, r) => s + (Number(r.soluong) || 0) * (Number(r.gia) || 0), 0) - xuatPhiChanh;
+  const totalProfit = totalXuatAmount - totalNhapAmount;
 
   _rptNhapRows = nhapRows;
   _rptXuatRows = xuatRows;
 
-  summary.innerHTML = `
-    <div class="report-summary-card" onclick="showRptGdDetail('nhap')" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);cursor:pointer;position:relative;">
+ // Giữ nguyên các biến tính toán phí của bạn
+ summary.innerHTML = `
+    <div class="report-summary-card" onclick="showRptGdDetail('nhap')" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);cursor:pointer;position:relative;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
       <div style="font-size:11px;color:#2e7d32;font-weight:700;margin-bottom:5px;">Tổng Nhập &nbsp;<span style="font-weight:400;color:#388e3c;">${fmt(totalNhapQty)} SL · ${nhapRows.length} dòng</span></div>
       <div style="font-size:20px;font-weight:700;color:#1b5e20;">${fmt(totalNhapAmount)} đ</div>
       ${nhapPhiChanh > 0 ? `<div style="font-size:11px;color:#388e3c;margin-top:3px;">+ Phí: ${fmt(nhapPhiChanh)} đ</div>` : ''}
       <div style="position:absolute;bottom:8px;right:10px;font-size:11px;color:#81c784;">chi tiết ›</div>
     </div>
-    <div class="report-summary-card" onclick="showRptGdDetail('xuat')" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);cursor:pointer;position:relative;">
+
+    <div class="report-summary-card" onclick="showRptGdDetail('xuat')" style="background:linear-gradient(135deg,#fff3e0,#ffe0b2);cursor:pointer;position:relative;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
       <div style="font-size:11px;color:#e65100;font-weight:700;margin-bottom:5px;">Tổng Xuất &nbsp;<span style="font-weight:400;color:#ef6c00;">${fmt(totalXuatQty)} SL · ${xuatRows.length} dòng</span></div>
       <div style="font-size:20px;font-weight:700;color:#bf360c;">${fmt(totalXuatAmount)} đ</div>
       ${xuatPhiChanh > 0 ? `<div style="font-size:11px;color:#e53935;margin-top:3px;">- Phí: ${fmt(xuatPhiChanh)} đ</div>` : ''}
       <div style="position:absolute;bottom:8px;right:10px;font-size:11px;color:#ffb74d;">chi tiết ›</div>
+    </div>
+
+    <div style="grid-column: span 2; background: ${totalProfit >= 0 ? '#e8f5e9' : '#ffebee'}; border-radius: 12px; padding: 12px 20px; border: 1px solid ${totalProfit >= 0 ? '#a5d6a7' : '#ef9a9a'}; margin-top: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-size:12px; font-weight:700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;">Lợi nhuận thực tế</div>
+        <div style="font-size:14px; font-weight:700; color: ${totalProfit >= 0 ? '#2e7d32' : '#c62828'}; line-height: 1;">${totalProfit >= 0 ? '+' : ''}${fmt(totalProfit)} đ</div>
     </div>
   `;
 
@@ -4839,6 +4844,9 @@ function _renderHistory() {
   _se('hist-sum-nhap-tien', finalNhapTotal.toLocaleString('en-US') + ' \u0111');
   _se('hist-sum-xuat-sp',   _xuatSP  + ' SP');
   _se('hist-sum-xuat-tien', finalXuatTotal.toLocaleString('en-US') + ' \u0111');
+  const finalProfit = finalXuatTotal - finalNhapTotal;
+  const pEl = document.getElementById('hist-sum-profit');
+  if (pEl) pEl.textContent = fmt(finalProfit) + ' đ';
 
   if (_nhapPhi > 0) {
     _se('hist-sum-nhap-phi', '+ ' + _nhapPhi.toLocaleString('en-US') + ' \u0111');
