@@ -4061,7 +4061,8 @@ function _mapHistRow(r, loai) {
     giaodich:     (r[9] || '').toString(),
     phichanh:     Number(r[10]) || 0,
     phikhachtra:  isXuat ? (Number(r[11]) || 0) : 0,
-    tenkhach:     isXuat ? (r[13] || '').toString() : ''
+    tenkhach:     isXuat ? (r[13] || '').toString() : '' ,
+    nguoighi:     (r[15] || '').toString(),
   };
 }
 
@@ -4970,8 +4971,10 @@ function showHistoryDetail(idx) {
   if (hdConfirmBtn) hdConfirmBtn.style.display = isDraft ? 'flex' : 'none';
 
   const tStr = fmtTime(new Date(g.thoigian_raw));
+  const nguoighi = g.rows[0].nguoighi || "";
 
   let infoHtml = '';
+  if (nguoighi) {infoHtml += `<div class="info-row"><span class="info-label">Người ghi</span><span class="info-value">${nguoighi}</span></div>`;}
   infoHtml += `<div class="info-row"><span class="info-label">Thời gian</span><span class="info-value">${tStr}</span></div>`;
   infoHtml += `<div class="info-row"><span class="info-label">Loại</span><span class="info-value" style="color:${isXuat ? '#c62828' : '#1976d2'};">${g.loai}</span></div>`;
   if (g.giaodich) infoHtml += `<div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${g.giaodich}</span></div>`;
