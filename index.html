@@ -2913,6 +2913,7 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra) {
   if (_gdt) _gdt.value = '';
   updateCartBadge();
   saveCart();
+  filterProductList();
   if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = mode === 'Xuất' ? '✅ Xác nhận Xuất' : '✅ Xác nhận Nhập'; }
   showScreen('screen-success');
 }
@@ -3974,7 +3975,7 @@ async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra) {
     });
   });
 
-  await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
+  fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sheet: dtMode, rows, token: 'inox2026xK9m' ,user_name: currentUserName })
@@ -3995,6 +3996,7 @@ async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra) {
   btn.disabled = false;
   dtSetMode(dtMode);
   dtRenderCart();
+  dtFilterProducts();
   fetchProductsFromServer().then(() => dtFilterProducts());
 
   // Hiện success overlay
@@ -5593,6 +5595,7 @@ async function dtSaveDraft() {
   if (draftBtn) { draftBtn.disabled = false; draftBtn.textContent = '📝 Lưu nháp'; }
   dtSetMode(dtMode);
   dtRenderCart();
+  dtFilterProducts();
   document.getElementById('dt-success-title').textContent = '📝 Lưu nháp thành công!';
   document.getElementById('dt-success-sub').textContent = thoiGian;
   document.getElementById('dt-success-detail').innerHTML = `
@@ -5650,6 +5653,7 @@ async function saveDraft() {
   const _gdt = document.getElementById('cart-giaodich');
   if (_gdt) _gdt.value = '';
   updateCartBadge(); saveCart();
+  filterProductList();
   if (draftBtn) { draftBtn.disabled = false; draftBtn.textContent = '📝 Lưu nháp'; }
   document.getElementById('success-title').textContent = '📝 Lưu nháp thành công!';
   document.getElementById('success-sub').textContent = thoiGian;
