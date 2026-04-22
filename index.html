@@ -5642,28 +5642,38 @@ async function _doDraftConfirm(idx, giaodich) {
   const _nowTs = fmtTime(new Date());
   const rows = g.rows.map(r => [r.ma, _nowTs, r.ncc, r.hanghoa, r.kichthuoc, r.mota, r.dvt, r.soluong, r.gia, giaodich || r.giaodich, r.phichanh || '', r.phikhachtra || '', '', r.tenkhach || '', r.ghichu || '' ,currentUserName ]);
 
-  // 1. CẬP NHẬT GIAO DIỆN NGAY LẬP TỨC (Không chờ server)
+  // 1. CẬP NHẬT GIAO DIỆN NGAY LẬP TỨC (Người dùng thấy mượt)
   const t = g.thoigian, k = g.tenkhach;
   _historyData = _historyData.filter(r => !(r.thoigian === t && r.loai === 'Nháp' && r.tenkhach === k));
   rows.forEach(row => _historyData.push(_mapHistRow(row, 'Xuất')));
   _renderHistory();
-  showToast('✅ Đã xác nhận Xuất.');
+  showToast('✅ Đang xử lý Xuất...');
   if (document.getElementById('screen-history-detail').classList.contains('active')) showHistory();
 
-  // 2. ÂM THẦM XỬ LÝ TRÊN GOOGLE SHEET Ở BACKGROUND (Đã xóa chữ await)
-  // Lệnh xóa Nháp
-  fetch(SCRIPT_URL + '?token=inox2026xK9m', {
-    method: 'POST', mode: 'no-cors',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({sheet:'Nháp', action:'deleteHistoryRows', thoigian:g.thoigian, token:'inox2026xK9m' ,user_name: currentUserName})
-  }).catch(e => console.log(e));
+  // 2. CHẠY NGẦM NHƯNG PHẢI TUẦN TỰ (Gửi lệnh lên Server)
+  // Tạo một hàm async tự chạy để không chặn giao diện chính
+  (async () => {
+    try {
+      // BƯỚC A: Ghi vào sheet Xuất trước để đảm bảo an toàn dữ liệu
+      const resXuat = await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
+        method: 'POST', mode: 'no-cors',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({sheet:'Xuất', rows, token:'inox2026xK9m' ,user_name: currentUserName})
+      });
 
-  // Lệnh ghi Xuất
-  fetch(SCRIPT_URL + '?token=inox2026xK9m', {
-    method: 'POST', mode: 'no-cors',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({sheet:'Xuất', rows, token:'inox2026xK9m' ,user_name: currentUserName})
-  }).catch(e => console.log(e));
+      // BƯỚC B: Sau khi ghi Xuất thành công (không lỗi), mới ra lệnh Xóa bên Nháp
+      await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
+        method: 'POST', mode: 'no-cors',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({sheet:'Nháp', action:'deleteHistoryRows', thoigian:g.thoigian, token:'inox2026xK9m' ,user_name: currentUserName})
+      });
+
+      showToast('✅ Đã xuất và xóa nháp thành công.');
+    } catch (e) {
+      console.error("Lỗi khi xử lý ngầm:", e);
+      showToast('❌ Lỗi đồng bộ server!');
+    }
+  })();
 }
 
 function histDetailConfirmDraft() {
