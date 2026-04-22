@@ -402,19 +402,17 @@ const CONFIG = {
       </div>
 
       <!-- Role selector -->
-        <div class="ln-role-row">
-        <button type="button" id="ln-role-owner" class="ln-role-btn active" onclick="_lnSetRole('owner')"
-            style="display:inline-flex;align-items:center;justify-content:center;gap:6px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"style="display:block;"><path d="M3 7l5 5 4-8 4 8 5-5v10H3z"/></svg>
+      <div class="ln-role-row">
+        <button type="button" id="ln-role-owner" class="ln-role-btn" style="pointer-events:none; display:inline-flex;align-items:center;justify-content:center;gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block;"><path d="M3 7l5 5 4-8 4 8 5-5v10H3z"/></svg>
             <span style="line-height:1;">Admin</span>
         </button>
 
-        <button type="button" id="ln-role-staff" class="ln-role-btn" onclick="_lnSetRole('staff')"
-            style="display:inline-flex;align-items:center;justify-content:center;gap:6px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"style="display:block;"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+        <button type="button" id="ln-role-staff" class="ln-role-btn" style="pointer-events:none; display:inline-flex;align-items:center;justify-content:center;gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block;"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
             <span style="line-height:1;">Staff</span>
         </button>
-        </div>
+      </div>
       <input type="hidden" id="login-role" value="owner" />
 
       <!-- Password field -->
@@ -1681,29 +1679,37 @@ function _applyLogin(r, name) {
 }
 
 async function doLogin() {
-  const role = document.getElementById('login-role').value;
   const pass = document.getElementById('login-pass').value.trim();
   const err = document.getElementById('login-error');
   const loginBtn = document.getElementById('btn-login');
+
   if (!pass) { document.getElementById('login-error-text').textContent = '⚠️ Vui lòng nhập mật khẩu!'; err.classList.add('visible'); return; }
+
+  // Reset màu của 2 nút về mặc định
+  document.getElementById('ln-role-owner').classList.remove('active');
+  document.getElementById('ln-role-staff').classList.remove('active');
 
   // Cache khớp → vào ngay, verify ngầm
   try {
     const cached = JSON.parse(localStorage.getItem('login_cache') || 'null');
-    if (cached && cached.role === role && cached.pass === pass) {
-      const cachedName = cached.name || (role === 'owner' ? 'Admin' : 'Staff');
+    if (cached && cached.pass === pass) {
+      const cachedName = cached.name || (cached.role === 'owner' ? 'Admin' : 'Staff');
+
+      // Tự động làm sáng nút dựa trên cache
+      document.getElementById(cached.role === 'owner' ? 'ln-role-owner' : 'ln-role-staff').classList.add('active');
+
       await loadProducts();
       startAutoRefresh();
       startInactivityWatch();
       filterProductList();
-      _applyLogin(role, cachedName);
+      _applyLogin(cached.role, cachedName);
       loginBtn.innerHTML = _BTN_LOGIN_NORMAL;
       loginBtn.disabled = false;
       fetch(`${SCRIPT_URL}?action=getUsers&token=inox2026xK9m`)
         .then(r => r.json())
         .then(data => {
           if (data.ok) {
-            const ok = data.users.find(u => u.vaitro === role && u.matkhau === pass);
+            const ok = data.users.find(u => u.matkhau === pass);
             if (!ok) { localStorage.removeItem('login_cache'); doLogout(); }
           }
         }).catch(() => {});
@@ -1717,9 +1723,15 @@ async function doLogin() {
     const res = await fetch(`${SCRIPT_URL}?action=getUsers&token=inox2026xK9m`);
     const data = await res.json();
     if (data.ok) {
-      const match = data.users.find(u => u.vaitro === role && u.matkhau === pass);
+      // TÌM USER CHỈ DỰA VÀO MẬT KHẨU
+      const match = data.users.find(u => u.matkhau === pass);
       if (match) {
-        localStorage.setItem('login_cache', JSON.stringify({ role, pass, name: match.ten }));
+        const role = match.vaitro;
+
+        // Tự động làm sáng nút Admin hoặc Staff tùy theo mật khẩu
+        document.getElementById(role === 'owner' ? 'ln-role-owner' : 'ln-role-staff').classList.add('active');
+
+        localStorage.setItem('login_cache', JSON.stringify({ role: role, pass: pass, name: match.ten }));
         await loadProducts();
         startAutoRefresh();
         startInactivityWatch();
@@ -1760,14 +1772,50 @@ function togglePassVis() {
 }
 
 // ===== LOGIN HELPERS =====
-function _lnSetRole(role) {
-  document.getElementById('login-role').value = role;
-  document.getElementById('ln-role-owner').classList.toggle('active', role === 'owner');
-  document.getElementById('ln-role-staff').classList.toggle('active', role === 'staff');
-}
+// 1. Khởi tạo danh sách từ bộ nhớ tạm (giúp realtime mượt mà không có độ trễ)
+let _realtimeUsers = JSON.parse(localStorage.getItem('realtime_users_cache') || '[]');
 
+// 2. Tải ngầm danh sách mới từ Sheet để luôn có mật khẩu mới nhất
+fetch(`${SCRIPT_URL}?action=getUsers&token=inox2026xK9m`)
+  .then(r => r.json())
+  .then(data => {
+    if (data.ok) {
+      _realtimeUsers = data.users;
+      localStorage.setItem('realtime_users_cache', JSON.stringify(data.users));
+      _lnOnPassInput(); // Tự quét lại nhỡ anh đã nhập xong mật khẩu trong lúc chờ tải
+    }
+  })
+  .catch(() => {});
+
+// 3. Hàm quét realtime khi anh gõ từng ký tự vào ô mật khẩu
 function _lnOnPassInput() {
+  // Tắt thông báo lỗi (nếu đang hiện)
   document.getElementById('login-error').classList.remove('visible');
+
+  const btnAdmin = document.getElementById('ln-role-owner');
+  const btnStaff = document.getElementById('ln-role-staff');
+  const pass = document.getElementById('login-pass').value.trim();
+
+  // Mặc định đưa cả 2 nút về màu xám khi đang nhập dang dở
+  if (btnAdmin && btnStaff) {
+    btnAdmin.classList.remove('active');
+    btnStaff.classList.remove('active');
+  }
+
+  // Nếu chưa nhập gì hoặc danh sách rỗng thì dừng
+  if (!pass || !_realtimeUsers.length) return;
+
+  // Dò xem mật khẩu vừa nhập có khớp với ai không
+  const match = _realtimeUsers.find(u => u.matkhau === pass);
+
+  // Khớp chức vụ nào thì highlight xanh lá chức vụ đó lập tức
+  if (match) {
+    if (match.vaitro === 'owner') {
+      btnAdmin.classList.add('active');
+    } else {
+      btnStaff.classList.add('active');
+    }
+  }
 }
 
 (function _lnStartClock() {
@@ -1864,7 +1912,7 @@ function _lnOnPassInput() {
       .then(r => r.json())
       .then(data => {
         if (data.ok) {
-          const ok = data.users.find(u => u.vaitro === cached.role && u.matkhau === cached.pass);
+          const ok = data.users.find(u => u.matkhau === cached.pass);
           if (!ok) { localStorage.removeItem('login_cache'); doLogout(); }
         }
       }).catch(() => {});
@@ -1984,8 +2032,8 @@ async function saveUserModal() {
     if (_settingsUsers.find(u => u.ten === ten)) return showErr('Tên này đã tồn tại!');
   }
   // Validate trùng mật khẩu trong cùng role
-  const sameRoleConflict = _settingsUsers.find(u => u.vaitro === role && u.matkhau === pass && u.ten !== _userModalEditingName);
-  if (sameRoleConflict) return showErr('Mật khẩu đã dùng bởi "' + sameRoleConflict.ten + '" (cùng vai trò)!');
+  const passwordConflict = _settingsUsers.find(u => u.matkhau === pass && u.ten !== _userModalEditingName);
+  if (passwordConflict) return showErr('Mật khẩu này đã được sử dụng bởi "' + passwordConflict.ten + '". Vui lòng chọn mật khẩu khác để hệ thống tự nhận diện!');
 
   const saveBtn = document.querySelector('#user-modal button[onclick="saveUserModal()"]');
   saveBtn.disabled = true;
