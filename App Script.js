@@ -206,13 +206,21 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
-    // ── MẶC ĐỊNH: ghi Xuất / Nhập (logic cũ) ──────────
+    // ── MẶC ĐỊNH: ghi Xuất / Nhập / Nháp ──────────────────
     const rowsToWrite = data.rows || [data.row];
-    const _isXuatDef = data.sheet === 'Xuất' || data.sheet === 'Nháp';
+    const _isXuatOrDraft = data.sheet === 'Xuất' || data.sheet === 'Nháp';
+
     rowsToWrite.forEach(function(row) {
+      if (_isXuatOrDraft) {
+        // Cột P là cột số 16 (index 15)
+        // Nếu data.user_name không có mới để trống, không để chữ "Hệ thống"
+        while(row.length < 15) row.push("");
+        row[15] = data.user_name || "";
+      }
+
       sheet.appendRow(row);
       const newRow = sheet.getLastRow();
-      sheet.getRange(newRow, _isXuatDef ? 13 : 12).setFormula('=H' + newRow + '*I' + newRow + '+K' + newRow + (_isXuatDef ? '+L' + newRow : ''));
+      sheet.getRange(newRow, _isXuatOrDraft ? 13 : 12).setFormula('=H' + newRow + '*I' + newRow + '+K' + newRow + (_isXuatOrDraft ? '+L' + newRow : ''));
     });
 
     // Cập nhật Giá vốn (col F=6) từ max Nhập

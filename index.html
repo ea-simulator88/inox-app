@@ -2831,7 +2831,7 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra) {
   fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sheet: mode, rows, token: 'inox2026xK9m' })
+    body: JSON.stringify({ sheet: mode, rows, token: 'inox2026xK9m' ,user_name: currentUserName })
   }).catch(() => {});
 
   const isXuat = mode === 'Xuất';
@@ -3070,7 +3070,7 @@ async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
   });
 
   try {
-    fetch(SCRIPT_URL + '?token=inox2026xK9m', { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sheet: sheetName, row, token: 'inox2026xK9m' }) });
+    fetch(SCRIPT_URL + '?token=inox2026xK9m', { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sheet: sheetName, row, token: 'inox2026xK9m' ,user_name: currentUserName }) });
   } catch(e) {}
 
   btn.disabled = false;
@@ -3920,7 +3920,7 @@ async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra) {
   await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sheet: dtMode, rows, token: 'inox2026xK9m' })
+    body: JSON.stringify({ sheet: dtMode, rows, token: 'inox2026xK9m' ,user_name: currentUserName })
   }).catch(() => {});
 
   const count = dtCart.length;
@@ -5423,7 +5423,7 @@ async function dtSaveDraft() {
   fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sheet: 'Nháp', rows, token: 'inox2026xK9m' })
+    body: JSON.stringify({ sheet: 'Nháp', rows, token: 'inox2026xK9m' ,user_name: currentUserName })
   }).catch(() => {});
   const totalItems = dtCart.length;
   const totalQty = dtCart.reduce((s, x) => s + (Number(x.sl) || 0), 0);
@@ -5481,7 +5481,7 @@ async function saveDraft() {
   fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sheet: 'Nháp', rows, token: 'inox2026xK9m' })
+    body: JSON.stringify({ sheet: 'Nháp', rows, token: 'inox2026xK9m' ,user_name: currentUserName })
   }).catch(() => {});
   const totalItems = cart.length;
   const totalQty = cart.reduce((s, x) => s + (Number(x.sl) || 0), 0);
@@ -5542,7 +5542,7 @@ async function _doDraftConfirm(idx, giaodich) {
   if (!confirm('Xác nhận Xuất đơn nháp này?\n' + g.rows.length + ' SP · ' + g.rows.reduce((s,r)=>s+r.soluong*r.gia,0).toLocaleString('en-US') + ' đ')) return;
 
   const _nowTs = fmtTime(new Date());
-  const rows = g.rows.map(r => [r.ma, _nowTs, r.ncc, r.hanghoa, r.kichthuoc, r.mota, r.dvt, r.soluong, r.gia, giaodich || r.giaodich, r.phichanh || '', r.phikhachtra || '', '', r.tenkhach || '', r.ghichu || '']);
+  const rows = g.rows.map(r => [r.ma, _nowTs, r.ncc, r.hanghoa, r.kichthuoc, r.mota, r.dvt, r.soluong, r.gia, giaodich || r.giaodich, r.phichanh || '', r.phikhachtra || '', '', r.tenkhach || '', r.ghichu || '' ,currentUserName ]);
 
   // 1. CẬP NHẬT GIAO DIỆN NGAY LẬP TỨC (Không chờ server)
   const t = g.thoigian, k = g.tenkhach;
@@ -5557,14 +5557,14 @@ async function _doDraftConfirm(idx, giaodich) {
   fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({sheet:'Nháp', action:'deleteHistoryRows', thoigian:g.thoigian, token:'inox2026xK9m'})
+    body: JSON.stringify({sheet:'Nháp', action:'deleteHistoryRows', thoigian:g.thoigian, token:'inox2026xK9m' ,user_name: currentUserName})
   }).catch(e => console.log(e));
 
   // Lệnh ghi Xuất
   fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({sheet:'Xuất', rows, token:'inox2026xK9m'})
+    body: JSON.stringify({sheet:'Xuất', rows, token:'inox2026xK9m' ,user_name: currentUserName})
   }).catch(e => console.log(e));
 }
 
