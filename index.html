@@ -2828,7 +2828,7 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra) {
     });
   });
 
-  await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
+  fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sheet: mode, rows, token: 'inox2026xK9m' })
@@ -3070,7 +3070,7 @@ async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
   });
 
   try {
-    await fetch(SCRIPT_URL + '?token=inox2026xK9m', { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sheet: sheetName, row, token: 'inox2026xK9m' }) });
+    fetch(SCRIPT_URL + '?token=inox2026xK9m', { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sheet: sheetName, row, token: 'inox2026xK9m' }) });
   } catch(e) {}
 
   btn.disabled = false;
@@ -4680,17 +4680,17 @@ function renderReport() {
  // Giữ nguyên các biến tính toán phí của bạn
  summary.innerHTML = `
     <div class="report-summary-card" onclick="showRptGdDetail('nhap')" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);cursor:pointer;position:relative;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
-      <div style="font-size:11px;color:#2e7d32;font-weight:700;margin-bottom:5px;">Tổng Nhập &nbsp;<span style="font-weight:400;color:#388e3c;">${fmt(totalNhapQty)} SL · ${nhapRows.length} đơn</span></div>
-      <div style="font-size:20px;font-weight:700;color:#388e3c;">${fmt(totalNhapAmount)} đ</div>
-      ${nhapPhiChanh > 0 ? `<div style="font-size:11px;color:#388e3c;margin-top:3px;">+ Phí: ${fmt(nhapPhiChanh)} đ</div>` : ''}
-      <div style="position:absolute;bottom:8px;right:10px;font-size:11px;color:#388e3c;">chi tiết ›</div>
+      <div style="font-size:10px;color:#2e7d32;font-weight:700;margin-bottom:5px;">Tổng Nhập &nbsp;<span style="font-weight:400;color:#388e3c;">${fmt(totalNhapQty)} SL · ${nhapRows.length} đơn</span></div>
+      <div style="font-size:15px;font-weight:700;color:#388e3c;">${fmt(totalNhapAmount)} đ</div>
+      ${nhapPhiChanh > 0 ? `<div style="font-size:10x;color:#388e3c;margin-top:3px;">+ Phí: ${fmt(nhapPhiChanh)} đ</div>` : ''}
+      <div style="position:absolute;bottom:8px;right:10px;font-size:10px;color:#388e3c;">chi tiết ›</div>
     </div>
 
     <div class="report-summary-card" onclick="showRptGdDetail('xuat')" style="background:#fff5f5;cursor:pointer;position:relative;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
-      <div style="font-size:11px;color:#c62828;font-weight:700;margin-bottom:5px;">Tổng Xuất &nbsp;<span style="font-weight:400;color:#c62828;">${fmt(totalXuatQty)} SL · ${xuatRows.length} đơn</span></div>
-      <div style="font-size:20px;font-weight:700;color:#c62828;">${fmt(totalXuatAmount)} đ</div>
-      ${xuatPhiChanh > 0 ? `<div style="font-size:11px;color:#e53935;margin-top:3px;">- Phí: ${fmt(xuatPhiChanh)} đ</div>` : ''}
-      <div style="position:absolute;bottom:8px;right:10px;font-size:11px;color:#e53935;">chi tiết ›</div>
+      <div style="font-size:10px;color:#c62828;font-weight:700;margin-bottom:5px;">Tổng Xuất &nbsp;<span style="font-weight:400;color:#c62828;">${fmt(totalXuatQty)} SL · ${xuatRows.length} đơn</span></div>
+      <div style="font-size:15px;font-weight:700;color:#c62828;">${fmt(totalXuatAmount)} đ</div>
+      ${xuatPhiChanh > 0 ? `<div style="font-size:10px;color:#e53935;margin-top:3px;">- Phí: ${fmt(xuatPhiChanh)} đ</div>` : ''}
+      <div style="position:absolute;bottom:8px;right:10px;font-size:10px;color:#e53935;">chi tiết ›</div>
     </div>
 
     <div style="grid-column: span 2; background: #FFF7ED; border-radius: 12px; padding: 12px 20px; border: 1px solid #FFF7ED; margin-top: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between;margin-top: -3px">
@@ -5420,7 +5420,7 @@ async function dtSaveDraft() {
     if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
     return '';
   }));
-  await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
+  fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sheet: 'Nháp', rows, token: 'inox2026xK9m' })
@@ -5478,7 +5478,7 @@ async function saveDraft() {
     if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
     return '';
   }));
-  await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
+  fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sheet: 'Nháp', rows, token: 'inox2026xK9m' })
