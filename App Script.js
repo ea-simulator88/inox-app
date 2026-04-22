@@ -178,14 +178,30 @@ function doPost(e) {
 
     // ── XÓA / CẬP NHẬT dòng lịch sử theo thời gian ───────
     if (data.action === 'deleteHistoryRows' || data.action === 'updateHistoryRows') {
-      const targetTime = new Date(data.thoigian).getTime();
-      if (!isNaN(targetTime) && sheet) {
+      const targetTimeKey = _historyTimeKey(data.thoigian);
+      if (targetTimeKey && sheet) {
+        const matchCounts = {};
+        if (Array.isArray(data.matchRows)) {
+          data.matchRows.forEach(function(row) {
+            const sig = _historyMatchSignature_(data.sheet, row);
+            if (sig) matchCounts[sig] = (matchCounts[sig] || 0) + 1;
+          });
+        }
         const vals = sheet.getDataRange().getValues();
+        const dvals = sheet.getDataRange().getDisplayValues();
         for (let i = vals.length - 1; i >= 1; i--) {
-          const cv = vals[i][1];
+          const cv = dvals[i][1] || vals[i][1];
           if (!cv) continue;
-          const ct = cv instanceof Date ? cv.getTime() : new Date(cv).getTime();
-          if (ct === targetTime) sheet.deleteRow(i + 1);
+          if (_historyTimeKey(cv) !== targetTimeKey) continue;
+          if (!Array.isArray(data.matchRows) || data.matchRows.length === 0) {
+            sheet.deleteRow(i + 1);
+            continue;
+          }
+          const sig = _historyMatchSignature_(data.sheet, vals[i]);
+          if (matchCounts[sig] > 0) {
+            sheet.deleteRow(i + 1);
+            matchCounts[sig]--;
+          }
         }
       }
       if (data.action === 'updateHistoryRows' && Array.isArray(data.rows)) {
@@ -250,13 +266,82 @@ function doPost(e) {
 }
 
 function fmtDateTime(d) {
-  if (!(d instanceof Date)) return d ? d.toString() : '';
-  const Y  = d.getFullYear();
-  const M  = String(d.getMonth() + 1).padStart(2, '0');
-  const D  = String(d.getDate()).padStart(2, '0');
-  const HH = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  return Y + '-' + M + '-' + D + ' ' + HH + ':' + mm;
+  if (!d) return '';
+  if (d instanceof Date) {
+    return Utilities.formatDate(d, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
+  }
+
+  const s = String(d).trim();
+  const m = s.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}(?::\d{2})?)/);
+  if (m) return m[1];
+
+  const parsed = new Date(s);
+  return isNaN(parsed.getTime())
+    ? s
+    : Utilities.formatDate(parsed, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
+}
+
+function _historyTimeKey(v) {
+  if (!v) return '';
+  if (v instanceof Date) {
+    return Utilities.formatDate(v, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm');
+  }
+
+  const s = String(v).trim();
+  const m = s.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2})/);
+  if (m) return m[1];
+
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? '' : Utilities.formatDate(d, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm');
+}
+
+function _historyMatchSignature_(sheetName, row) {
+  if (!row) return '';
+
+  const getVal = function(src, idx, key) {
+    if (Array.isArray(src)) return src[idx];
+    return src[key];
+  };
+
+  const parts = [
+    getVal(row, 0, 'ma'),
+    getVal(row, 2, 'ncc'),
+    getVal(row, 3, 'hanghoa'),
+    getVal(row, 4, 'kichthuoc'),
+    getVal(row, 5, 'mota'),
+    getVal(row, 6, 'dvt'),
+    Number(getVal(row, 7, 'soluong')) || 0,
+    Number(getVal(row, 8, 'gia')) || 0,
+    getVal(row, 9, 'giaodich'),
+    Number(getVal(row, 10, 'phichanh')) || 0
+  ];
+
+  if (sheetName === 'Xuất' || sheetName === 'Nháp') {
+    parts.push(
+      Number(getVal(row, 11, 'phikhachtra')) || 0,
+      getVal(row, 13, 'tenkhach'),
+      getVal(row, 14, 'ghichu'),
+      getVal(row, 15, 'nguoighi')
+    );
+  } else {
+    parts.push(
+      getVal(row, 12, 'ghichu'),
+      getVal(row, 15, 'nguoighi')
+    );
+  }
+
+  return parts.map(function(v) { return (v || '').toString().trim(); }).join('||');
+}
+
+function _historyRowsFromSheet_(sheet) {
+  if (!sheet || sheet.getLastRow() <= 1) return [];
+  const values = sheet.getDataRange().getValues().slice(1);
+  const displays = sheet.getDataRange().getDisplayValues().slice(1);
+  return values.map(function(r, i) {
+    const out = r.slice();
+    out[1] = (displays[i] && displays[i][1]) ? displays[i][1] : fmtDateTime(r[1]);
+    return out;
+  });
 }
 
 function doGet(e) {
@@ -287,12 +372,9 @@ function doGet(e) {
     const xuatSheet  = ss.getSheetByName('Xuất');
     const nhapSheet  = ss.getSheetByName('Nhập');
     const nhapDraftSheet = ss.getSheetByName('Nháp');
-    const xuatData = xuatSheet && xuatSheet.getLastRow() > 1
-      ? xuatSheet.getDataRange().getValues().slice(1).map(function(r) { r[1] = fmtDateTime(r[1]); return r; }) : [];
-    const nhapData = nhapSheet && nhapSheet.getLastRow() > 1
-      ? nhapSheet.getDataRange().getValues().slice(1).map(function(r) { r[1] = fmtDateTime(r[1]); return r; }) : [];
-    const draftData = nhapDraftSheet && nhapDraftSheet.getLastRow() > 1
-      ? nhapDraftSheet.getDataRange().getValues().slice(1).map(function(r) { r[1] = fmtDateTime(r[1]); return r; }) : [];
+    const xuatData = _historyRowsFromSheet_(xuatSheet);
+    const nhapData = _historyRowsFromSheet_(nhapSheet);
+    const draftData = _historyRowsFromSheet_(nhapDraftSheet);
     return ContentService.createTextOutput(JSON.stringify({ xuat: xuatData, nhap: nhapData, draft: draftData }))
       .setMimeType(ContentService.MimeType.JSON);
   }

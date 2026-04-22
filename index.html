@@ -1259,7 +1259,7 @@ const CONFIG = {
 <div id="inv-print-root" style="display:none;"></div>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuMnQQXseZ6YtZgv7bOR0V5v0700bq8Vn_kNgpMjAPDX6x8dFmxvWgDsn6ch8hp7dNdg/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzRv91ifaXcKut8yLE9IZImKB63BR5-xAChDH5plsxqm2KhbhkSxfTxzleeGwONDzTIHQ/exec';
 const LOW_STOCK_THRESHOLD = 2; // Tồn kho thấp
 
 let currentRole = null;
@@ -2259,6 +2259,63 @@ function fmtTime(d) {
   const mm = String(d.getMinutes()).padStart(2, '0');
   const ss = String(d.getSeconds()).padStart(2, '0');
   return `${Y}-${M}-${D} ${HH}:${mm}:${ss}`;
+}
+
+function parseAppDateTime(raw) {
+  if (!raw) return null;
+  if (raw instanceof Date) return raw;
+  if (typeof raw === 'number') return new Date(raw);
+
+  const s = String(raw).trim();
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/);
+  if (m) {
+    return new Date(
+      Number(m[1]),
+      Number(m[2]) - 1,
+      Number(m[3]),
+      Number(m[4]),
+      Number(m[5]),
+      Number(m[6] || 0)
+    );
+  }
+
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function formatHistoryTimeText(g) {
+  return (g && g.thoigian ? String(g.thoigian) : '').trim() || fmtTime(new Date(g.thoigian_raw || Date.now()));
+}
+
+function parseHistoryDateParts(raw) {
+  const s = String(raw || '').trim();
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) {
+    return { year: Number(m[1]), month: Number(m[2]), day: Number(m[3]) };
+  }
+  const d = parseAppDateTime(raw);
+  return d ? { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() } : null;
+}
+
+function buildHistoryMatchRows(rows) {
+  return (rows || []).map(function(r) {
+    return {
+      ma: r.ma || '',
+      ncc: r.ncc || '',
+      hanghoa: r.hanghoa || '',
+      kichthuoc: r.kichthuoc || '',
+      mota: r.mota || '',
+      dvt: r.dvt || '',
+      soluong: Number(r.soluong) || 0,
+      gia: Number(r.gia) || 0,
+      giaodich: r.giaodich || '',
+      phichanh: Number(r.phichanh) || 0,
+      phikhachtra: Number(r.phikhachtra) || 0,
+      tenkhach: r.tenkhach || '',
+      ghichu: r.ghichu || '',
+      nguoighi: r.nguoighi || ''
+    };
+  });
 }
 
 function fmtMoney(val) {
@@ -4045,7 +4102,7 @@ async function refreshHistoryData() {
 function _mapHistRow(r, loai) {
   const isXuat = loai === 'Xuất' || loai === 'Nháp';
   const raw = r[1];
-  const t = raw ? new Date(raw) : null;
+  const t = parseAppDateTime(raw);
   return {
     loai,
     ma:           (r[0] || '').toString().trim(),
@@ -4061,6 +4118,7 @@ function _mapHistRow(r, loai) {
     giaodich:     (r[9] || '').toString(),
     phichanh:     Number(r[10]) || 0,
     phikhachtra:  isXuat ? (Number(r[11]) || 0) : 0,
+    ghichu:       isXuat ? (r[14] || '').toString() : (r[12] || '').toString(),
     tenkhach:     isXuat ? (r[13] || '').toString() : '' ,
     nguoighi:     (r[15] || '').toString(),
   };
@@ -5020,7 +5078,7 @@ function _renderHistory() {
     return `<div class="history-card" onclick="showHistoryDetail(${i})" style="cursor:pointer;">
       <div class="history-card-row">
         <div class="history-card-main">
-          <div class="history-card-time">${fmtTime(new Date(g.thoigian_raw))}</div>
+          <div class="history-card-time">${formatHistoryTimeText(g)}</div>
             <div class="history-card-meta">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
               <span style="font-size:12px;padding:2px 8px;border-radius:10px;background:${loaiBg};color:${loaiColor};font-weight:600;">${highlightText(g.loai, rawHistQ)}</span>
@@ -5065,7 +5123,7 @@ function showHistoryDetail(idx) {
   const hdConfirmBtn = document.getElementById('hd-btn-confirm-draft');
   if (hdConfirmBtn) hdConfirmBtn.style.display = isDraft ? 'flex' : 'none';
 
-  const tStr = fmtTime(new Date(g.thoigian_raw));
+  const tStr = formatHistoryTimeText(g);
   const nguoighi = g.rows[0].nguoighi || "";
 
   let infoHtml = '';
@@ -5181,8 +5239,8 @@ function _doShowInvoice() {
 function _buildInvoiceHTML(g, hidePrice) {
   const rows = g.rows;
   const paddedRows = Array.from({ length: 15 }, (_, i) => rows[i] || null);
-  const d = new Date(g.thoigian_raw);
-  const dateStr = `Ng\u00E0y ${d.getDate()} th\u00E1ng ${String(d.getMonth()+1).padStart(2,'0')} n\u0103m ${d.getFullYear()}`;
+  const d = parseHistoryDateParts(g.thoigian);
+  const dateStr = d ? `Ng\u00E0y ${d.day} th\u00E1ng ${String(d.month).padStart(2,'0')} n\u0103m ${d.year}` : '';
   const total = rows.reduce((s, r) => s + r.soluong * r.gia, 0);
   const phiKT = Number((rows[0] && rows[0].phikhachtra) || 0);
   const tenkhach = g.tenkhach || '';
@@ -5304,7 +5362,7 @@ function histEditGroup(idx) {
   _histEditIdx = idx;
   const isXuat = g.loai === 'Xuất' || g.loai === 'Nháp';
 
-  document.getElementById('hedit-info').textContent = g.loai + ' · ' + fmtTime(new Date(g.thoigian_raw));
+  document.getElementById('hedit-info').textContent = g.loai + ' · ' + formatHistoryTimeText(g);
 
   const tw = document.getElementById('hedit-tenkhach-wrap');
   tw.style.display = isXuat ? 'block' : 'none';
@@ -5452,7 +5510,7 @@ async function histSaveEdit() {
     await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sheet: g.loai, action: 'updateHistoryRows', thoigian: g.thoigian, rows: updatedRows, notes, token: 'inox2026xK9m' })
+      body: JSON.stringify({ sheet: g.loai, action: 'updateHistoryRows', thoigian: g.thoigian, rows: updatedRows, matchRows: buildHistoryMatchRows(g.rows), notes, token: 'inox2026xK9m' })
     });
   } catch(e) {}
 
@@ -5480,7 +5538,7 @@ async function histDeleteGroup(idx) {
     await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sheet: g.loai, action: 'deleteHistoryRows', thoigian: g.thoigian, token: 'inox2026xK9m' })
+      body: JSON.stringify({ sheet: g.loai, action: 'deleteHistoryRows', thoigian: g.thoigian, matchRows: buildHistoryMatchRows(g.rows), token: 'inox2026xK9m' })
     });
   } catch(e) {}
 
@@ -5642,38 +5700,28 @@ async function _doDraftConfirm(idx, giaodich) {
   const _nowTs = fmtTime(new Date());
   const rows = g.rows.map(r => [r.ma, _nowTs, r.ncc, r.hanghoa, r.kichthuoc, r.mota, r.dvt, r.soluong, r.gia, giaodich || r.giaodich, r.phichanh || '', r.phikhachtra || '', '', r.tenkhach || '', r.ghichu || '' ,currentUserName ]);
 
-  // 1. CẬP NHẬT GIAO DIỆN NGAY LẬP TỨC (Người dùng thấy mượt)
+  // 1. CẬP NHẬT GIAO DIỆN NGAY LẬP TỨC (Không chờ server)
   const t = g.thoigian, k = g.tenkhach;
   _historyData = _historyData.filter(r => !(r.thoigian === t && r.loai === 'Nháp' && r.tenkhach === k));
   rows.forEach(row => _historyData.push(_mapHistRow(row, 'Xuất')));
   _renderHistory();
-  showToast('✅ Đang xử lý Xuất...');
+  showToast('✅ Đã xác nhận Xuất.');
   if (document.getElementById('screen-history-detail').classList.contains('active')) showHistory();
 
-  // 2. CHẠY NGẦM NHƯNG PHẢI TUẦN TỰ (Gửi lệnh lên Server)
-  // Tạo một hàm async tự chạy để không chặn giao diện chính
-  (async () => {
-    try {
-      // BƯỚC A: Ghi vào sheet Xuất trước để đảm bảo an toàn dữ liệu
-      const resXuat = await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
-        method: 'POST', mode: 'no-cors',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({sheet:'Xuất', rows, token:'inox2026xK9m' ,user_name: currentUserName})
-      });
+  // 2. ÂM THẦM XỬ LÝ TRÊN GOOGLE SHEET Ở BACKGROUND (Đã xóa chữ await)
+  // Lệnh xóa Nháp
+  fetch(SCRIPT_URL + '?token=inox2026xK9m', {
+    method: 'POST', mode: 'no-cors',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({sheet:'Nháp', action:'deleteHistoryRows', thoigian:g.thoigian, matchRows: buildHistoryMatchRows(g.rows), token:'inox2026xK9m' ,user_name: currentUserName})
+  }).catch(e => console.log(e));
 
-      // BƯỚC B: Sau khi ghi Xuất thành công (không lỗi), mới ra lệnh Xóa bên Nháp
-      await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
-        method: 'POST', mode: 'no-cors',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({sheet:'Nháp', action:'deleteHistoryRows', thoigian:g.thoigian, token:'inox2026xK9m' ,user_name: currentUserName})
-      });
-
-      showToast('✅ Đã xuất và xóa nháp thành công.');
-    } catch (e) {
-      console.error("Lỗi khi xử lý ngầm:", e);
-      showToast('❌ Lỗi đồng bộ server!');
-    }
-  })();
+  // Lệnh ghi Xuất
+  fetch(SCRIPT_URL + '?token=inox2026xK9m', {
+    method: 'POST', mode: 'no-cors',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({sheet:'Xuất', rows, token:'inox2026xK9m' ,user_name: currentUserName})
+  }).catch(e => console.log(e));
 }
 
 function histDetailConfirmDraft() {
