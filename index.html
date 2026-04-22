@@ -4706,7 +4706,7 @@ function showProfitDetail() {
   const totalProfit = xuatTien - nhapTien;
 
   // ===== BUILD HTML (chỉ hiện cái có dữ liệu) =====
-    const row = (label, val, bold=false) => val ? `<div style="display:flex;justify-content:space-between;padding:2px 0;"><span style="${bold?'font-size:12.5px;font-weight:700;color:#555;':'color:#888;'}">${label}</span><span style="${bold?'font-size:12.5px;font-weight:700;color:#555;':'color:#666;font-weight:600;'}">${fmt(val)} đ</span></div>` : '';
+    const row = (label, val, bold=false) => val ? `<div style="display:flex;justify-content:space-between;padding:2px 0;"><span style="${bold?'font-size:12.5px;font-weight:700;color:#555;':'color:#888;'}">${label}</span><span style="${bold?'font-size:12.5px;font-weight:700;color:#555;':(val<0?'color:#e53935;font-weight:600;':'color:#666;font-weight:600;')}">${fmt(val)} đ</span></div>` : '';
 
     const html = `
     <div style="display:flex;flex-direction:column;gap:14px;text-align:left;">
