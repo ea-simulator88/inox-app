@@ -160,7 +160,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .history-card-meta { display: flex; flex-direction: column; gap: 3px; overflow: hidden; word-break: break-word; overflow-wrap: break-word; }
 .history-card-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 .history-card-tools { display: flex; align-items: center; gap: 4px; }
-.history-invoice-btn { flex-shrink: 0; font-size: 12px; padding: 8px 9px; border-radius: 8px; border: 1px solid #1976d2; background: #e3f2fd; color: #1976d2; cursor: pointer; min-width: 68px; text-align: center; }
+.history-invoice-btn { flex-shrink: 0; font-size: 12px; padding: 8px 9px; border-radius: 8px; border: 1px solid #6C5CE7; background: #fff; color: #6C5CE7; cursor: pointer; min-width: 68px; text-align: center; }
 .history-action-btn { width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 14px; padding: 0; line-height: 1; }
 .history-action-btn.edit { border: 1px solid #ffb74d; background: #fff8e1; color: #e65100; }
 .history-action-btn.delete { border: 1px solid #ef9a9a; background: #ffebee; color: #c62828; }
@@ -3266,8 +3266,8 @@ function renderManageProductList(list, kw) {
         </div>
         <div style="flex-shrink:0;margin-left:8px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
           <div style="display:flex;gap:8px;">
-         <button onclick="openProductForm('edit', products.find(x=>x.ma==='${p.ma}'))" style="padding:8px 14px;border:1.5px solid #1565c0;border-radius:10px;background:#e3f2fd;color:#1565c0;font-size:14px;font-weight:600;cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
-         <button onclick="confirmDeleteProduct(products.find(x=>x.ma==='${p.ma}'))" style="padding:8px 14px;border:1.5px solid #f44336;border-radius:10px;background:#ffebee;color:#f44336;font-size:14px;font-weight:600;cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
+         <button onclick="openProductForm('edit', products.find(x=>x.ma==='${p.ma}'))" class="history-action-btn edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
+         <button onclick="confirmDeleteProduct(products.find(x=>x.ma==='${p.ma}'))" class="history-action-btn delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>
           </div>
           <button onclick="toggleHideProduct('${p.ma}')"title="${hidden ? 'Sản phẩm đang Ẩn' : 'Sản phẩm đang Hiện'}"style="width:100%;padding:6px 10px;border:1.5px solid ${hidden ? '#cfd8dc' : '#c8e6c9'};border-radius:10px;
                 background:${hidden ? '#f5f5f5' : '#e8f5e9'};color:${hidden ? '#607d8b' : '#2e7d32'};font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition: all 0.2s ease;"onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.08)'"
@@ -4213,10 +4213,9 @@ function _updateHistDateLabel() {
     text = labels[_historyTimeFilter] || labels.all;
   }
   if (label) label.textContent = text;
-  const active = _historyTimeFilter !== 'all';
   if (toggle) {
-    toggle.style.background   = active ? '#1976d2' : '#e3f2fd';
-    toggle.style.color        = active ? '#fff'    : '#1976d2';
+    toggle.style.background   = '#e3f2fd';
+    toggle.style.color        = '#1976d2';
     toggle.style.borderColor  = '#1976d2';
   }
 }
@@ -4380,10 +4379,9 @@ function _updateReportDateLabel() {
     text = labels[_reportTimeFilter] || labels.all;
   }
   if (label) label.textContent = text;
-  const active = _reportTimeFilter !== 'all';
   if (toggle) {
-    toggle.style.background  = active ? '#1976d2' : '#e3f2fd';
-    toggle.style.color       = active ? '#fff'    : '#1976d2';
+    toggle.style.background  = '#e3f2fd';
+    toggle.style.color       = '#1976d2';
     toggle.style.borderColor = '#1976d2';
   }
 }
@@ -5095,7 +5093,7 @@ function _renderHistory() {
     const loaiColor = isXuat ? '#e53935' : isDraft ? '#7b1fa2' : '#1976d2';
     const loaiBg    = isXuat ? '#ffebee' : isDraft ? '#f3e5f5' : '#e3f2fd';
     const invoiceBtn = isXuat
-      ? `<button onclick="event.stopPropagation();showInvoice(${i})" class="history-invoice-btn">Hóa Đơn</button>`
+      ? `<button onclick="event.stopPropagation();showInvoice(${i})" class="history-invoice-btn">Hóa đơn</button>`
       : isDraft
       ? `<button onclick="event.stopPropagation();confirmDraftToXuat(${i})" class="history-invoice-btn" style="width: 68.5px;border-color:#4CAF50;color:#2e7d32;background:#e8f5e9;">Xuất</button>`
       : '';
