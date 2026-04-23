@@ -2670,19 +2670,16 @@ function setCartMode(mode) {
 
 function goCart() {
   stopScan();
-  cartMode = 'Xuất';
-  const bx = document.getElementById('cart-btn-xuat');
+
+  // Giữ lại logic ẩn/hiện nút Nhập hàng theo phân quyền (Staff không thấy)
   const bn = document.getElementById('cart-btn-nhap');
-  if (bx) bx.className = 'toggle-btn active-xuat';
   if (bn) {
     bn.style.display = currentRole === 'owner' ? '' : 'none';
-    bn.className = 'toggle-btn';
   }
-  const confirmBtn = document.getElementById('btn-cart-confirm');
-  if (confirmBtn) { confirmBtn.textContent = '✅ Xác nhận Xuất'; confirmBtn.className = 'btn-confirm xuat'; }
-  const cgLbl = document.getElementById('cart-ghichu-label');
-  if (cgLbl) cgLbl.innerHTML = 'Tên khách <span style="color:#f44336;">*</span>';
-  renderCart();
+
+  // Thay vì tự viết lại logic đổi UI, gọi thẳng hàm setCartMode để đồng bộ mọi thứ (hiện Nháp, Phí KT, đổi màu...)
+  setCartMode('Xuất');
+
   showScreen('screen-cart');
 }
 
