@@ -4722,12 +4722,17 @@ function showRptGdDetail(loai) {
   const rows = loai === 'nhap' ? _rptNhapRows : _rptXuatRows;
   const title = loai === 'nhap' ? 'Chi tiết Nhập theo giao dịch' : 'Chi tiết Xuất theo giao dịch';
   const gdMap = {};
+  const total = { qty: 0, count: rows.length, amount: 0 };
   rows.forEach(r => {
+    const qty = Number(r.soluong) || 0;
+    const amount = qty * (Number(r.gia) || 0);
     const gd = (r.giaodich || '').trim() || 'Không rõ';
     if (!gdMap[gd]) gdMap[gd] = { qty: 0, count: 0, amount: 0 };
-    gdMap[gd].qty += Number(r.soluong) || 0;
+    gdMap[gd].qty += qty;
     gdMap[gd].count += 1;
-    gdMap[gd].amount += (Number(r.soluong) || 0) * (Number(r.gia) || 0);
+    gdMap[gd].amount += amount;
+    total.qty += qty;
+    total.amount += amount;
   });
   const color = loai === 'nhap' ? '#2e7d32' : '#e65100';
   const entries = Object.entries(gdMap).sort((a, b) => b[1].amount - a[1].amount);
@@ -4735,9 +4740,13 @@ function showRptGdDetail(loai) {
     entries.map(([gd, v]) =>
       `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 12px;background:#f9f9f9;border-radius:10px;gap:8px;">
         <div><div style="font-size:13px;font-weight:600;color:#333;">${_esc(gd)}</div><div style="font-size:11px;color:#999;margin-top:2px;">${fmt(v.qty)} SL · ${v.count} đơn</div></div>
-        <div style="font-size:14px;font-weight:700;color:${color};white-space:nowrap;">${fmt(v.amount)} đ</div>
+        <div style="font-size:12px;font-weight:600;color:${color};white-space:nowrap;margin-top: 8px;">${fmt(v.amount)} đ</div>
       </div>`
-    ).join('') + '</div>';
+    ).join('') +
+    (entries.length ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#fff;border-top:1px solid #e0e0e0;margin-top:2px;gap:8px;">
+        <div style="font-size:14px;font-weight:700;color:#333;">Tổng ${fmt(total.qty)} SL · ${total.count} đơn</div>
+        <div style="font-size:14px;font-weight:700;color:${color};white-space:nowrap;">${fmt(total.amount)} đ</div>
+      </div>` : '') + '</div>';
   showInfoModal(title, entries.length ? html : '<div style="color:#999;font-size:13px;">Không có dữ liệu.</div>', ['_']);
 }
 
@@ -4792,36 +4801,43 @@ function showProfitDetail() {
   const totalProfit = xuatTien - nhapTien;
 
   // ===== BUILD HTML (chỉ hiện cái có dữ liệu) =====
-    const row = (label, val, bold=false) => val ? `<div style="display:flex;justify-content:space-between;padding:2px 0;"><span style="${bold?'font-size:12.5px;font-weight:700;color:#555;':'color:#888;'}">${label}</span><span style="${bold?'font-size:12.5px;font-weight:700;color:#555;':(val<0?'color:#e53935;font-weight:600;':'color:#666;font-weight:600;')}">${fmt(val)} đ</span></div>` : '';
+    const hasData = (...vals) => vals.some(v => Math.abs(Number(v) || 0) > 0.000001);
+    const row = (label, val, bold=false, ...dataVals) => hasData(val, ...dataVals) ? `<div style="display:flex;justify-content:space-between;padding:2px 0;"><span style="${bold?'font-size:12.5px;font-weight:700;color:#555;':'color:#888;'}">${label}</span><span style="${bold?'font-size:12.5px;font-weight:700;color:#555;':(val<0?'color:#e53935;font-weight:600;':'color:#666;font-weight:600;')}">${fmt(val)} đ</span></div>` : '';
+    const nhapRowsHtml = [
+      row(`Tổng nhập (${fmt(nhapQty)} SL · ${nhapDon} đơn)`, nhapTien, true, nhapQty, nhapDon),
+      row(`Phí vận chuyển`, nhapPhi),
+      row(`Tiền mặt | ${fmt(nhapTMQty)} SL · ${nhapTMDon} đơn`, nhapTM, false, nhapTMQty, nhapTMDon),
+      row(`Chuyển khoản | ${fmt(nhapCKQty)} SL · ${nhapCKDon} đơn`, nhapCK, false, nhapCKQty, nhapCKDon),
+      row(`TM + CK | ${fmt(nhapBothQty)} SL · ${nhapBothDon} đơn`, nhapBoth, false, nhapBothQty, nhapBothDon),
+      row(`Không rõ | ${fmt(nhapKhacQty)} SL · ${nhapKhacDon} đơn`, nhapKhac, false, nhapKhacQty, nhapKhacDon)
+    ].join('');
+    const xuatRowsHtml = [
+      row(`Tổng xuất (${fmt(xuatQty)} SL · ${xuatDon} đơn)`, xuatTien, true, xuatQty, xuatDon),
+      row(`Phí (VC - KT)`, -xuatPhi, false, xuatPhi),
+      row(`Tiền mặt | ${fmt(xuatTMQty)} SL · ${xuatTMDon} đơn`, xuatTM, false, xuatTMQty, xuatTMDon),
+      row(`Chuyển khoản | ${fmt(xuatCKQty)} SL · ${xuatCKDon} đơn`, xuatCK, false, xuatCKQty, xuatCKDon),
+      row(`TM + CK | ${fmt(xuatBothQty)} SL · ${xuatBothDon} đơn`, xuatBoth, false, xuatBothQty, xuatBothDon),
+      row(`Không rõ | ${fmt(xuatKhacQty)} SL · ${xuatKhacDon} đơn`, xuatKhac, false, xuatKhacQty, xuatKhacDon)
+    ].join('');
 
     const html = `
     <div style="display:flex;flex-direction:column;gap:14px;text-align:left;">
 
     <!-- NHẬP -->
-    <div>
+    ${nhapRowsHtml ? `<div>
         <div style="border-top:1px solid #eee;padding-top:8px;margin-top:1px;padding-top:10px;margin-bottom:6px;font-size:15px;font-weight:700;color:#2e7d32;margin-bottom:4px;">NHẬP</div>
         <div style="display:flex;flex-direction:column;gap:4px;">
-        ${row(`Tổng nhập (${fmt(nhapQty)} SL · ${nhapDon} đơn)`, nhapTien,true)}
-        ${row(`Phí vận chuyển`, nhapPhi)}
-        ${row(`Tiền mặt | ${fmt(nhapTMQty)} SL · ${nhapTMDon} đơn`, nhapTM)}
-        ${row(`Chuyển khoản | ${fmt(nhapCKQty)} SL · ${nhapCKDon} đơn`, nhapCK)}
-        ${row(`TM + CK | ${fmt(nhapBothQty)} SL · ${nhapBothDon} đơn`, nhapBoth)}
-        ${row(`Không rõ | ${fmt(nhapKhacQty)} SL · ${nhapKhacDon} đơn`, nhapKhac)}
+        ${nhapRowsHtml}
      </div>
-    </div>
+    </div>` : ''}
 
     <!-- XUẤT -->
-    <div>
+    ${xuatRowsHtml ? `<div>
         <div style="border-top:1px solid #eee;padding-top:8px;margin-top:4px;padding-top:10px;margin-bottom:6px;font-size:15px;font-weight:700;color:#c62828;margin-bottom:4px;">XUẤT</div>
         <div style="display:flex;flex-direction:column;gap:4px;">
-        ${row(`Tổng xuất (${fmt(xuatQty)} SL · ${xuatDon} đơn)`, xuatTien,true)}
-        ${row(`Phí (VC - KT)`, -xuatPhi)}
-        ${row(`Tiền mặt | ${fmt(xuatTMQty)} SL · ${xuatTMDon} đơn`, xuatTM)}
-        ${row(`Chuyển khoản | ${fmt(xuatCKQty)} SL · ${xuatCKDon} đơn`, xuatCK)}
-        ${row(`TM + CK | ${fmt(xuatBothQty)} SL · ${xuatBothDon} đơn`, xuatBoth)}
-        ${row(`Không rõ | ${fmt(xuatKhacQty)} SL · ${xuatKhacDon} đơn`, xuatKhac)}
+        ${xuatRowsHtml}
      </div>
-    </div>
+    </div>` : ''}
 
     <!-- LỢI NHUẬN -->
     <div style="border-top:1px solid #eee;padding-top:8px;margin-top:4px;">
