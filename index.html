@@ -5263,6 +5263,9 @@ function _doShowInvoice() {
 function _buildInvoiceHTML(g, hidePrice) {
   const rows = g.rows;
   const paddedRows = Array.from({ length: 15 }, (_, i) => rows[i] || null);
+  const fmtInvMoney = function(v) {
+    return Math.round(Number(v) || 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 });
+  };
   const d = parseHistoryDateParts(g.thoigian);
   const dateStr = d ? `Ng\u00E0y ${d.day} th\u00E1ng ${String(d.month).padStart(2,'0')} n\u0103m ${d.year}` : '';
   const total = rows.reduce((s, r) => s + r.soluong * r.gia, 0);
@@ -5280,8 +5283,8 @@ function _buildInvoiceHTML(g, hidePrice) {
     const name = r ? (r.hanghoa || '') + (r.kichthuoc ? ' - ' + r.kichthuoc : '') : '';
     const dvt = r ? (r.dvt || '') : '';
     const qty = r ? r.soluong : '';
-    const price = r ? r.gia.toLocaleString('vi-VN') : '';
-    const amount = r ? (r.soluong * r.gia).toLocaleString('vi-VN') : '';
+    const price = r ? fmtInvMoney(r.gia) : '';
+    const amount = r ? fmtInvMoney(r.soluong * r.gia) : '';
     if (hidePrice) {
       return `<tr><td style="${tdBase}padding:0 1mm;text-align:center;font-weight:700;">${i+1}</td><td style="${tdBase}padding:0 2mm;">${name}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${dvt}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${qty}</td></tr>`;
     }
@@ -5292,11 +5295,11 @@ function _buildInvoiceHTML(g, hidePrice) {
   const phiKTRow = phiKT > 0
     ? (hidePrice
         ? '' // Đã ẩn dòng Phí khách trả trên hóa đơn không hiện giá
-        : `<tr><td colspan="5" style="${B}padding:2mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">Phí chành khách trả</td><td style="${B}padding:2mm 1.2mm;text-align:right;font-size:3.2mm;font-weight:700;">+ ${phiKT.toLocaleString('vi-VN')} \u0111</td></tr>`)
+        : `<tr><td colspan="5" style="${B}padding:2mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">Phí chành khách trả</td><td style="${B}padding:2mm 1.2mm;text-align:right;font-size:3.2mm;font-weight:700;">+ ${fmtInvMoney(phiKT)} \u0111</td></tr>`)
     : '';
   const footerHTML = hidePrice
     ? ''
-    : `<tfoot>${phiKTRow}<tr><td colspan="5" style="${B}padding:2mm 1mm;text-align:center;font-size:3.5mm;font-weight:700;">T\u1ed5ng C\u1ed9ng</td><td style="${B}padding:2mm 1.2mm;text-align:right;font-size:3.5mm;font-weight:700;">${grandTotal.toLocaleString('vi-VN')} \u0111</td></tr></tfoot>`;
+    : `<tfoot>${phiKTRow}<tr><td colspan="5" style="${B}padding:2mm 1mm;text-align:center;font-size:3.5mm;font-weight:700;">T\u1ed5ng C\u1ed9ng</td><td style="${B}padding:2mm 1.2mm;text-align:right;font-size:3.5mm;font-weight:700;">${fmtInvMoney(grandTotal)} \u0111</td></tr></tfoot>`;
 
   return `<div style="text-align:center;margin-bottom:2mm;">
     <div style="font-size:5.0mm;font-weight:700;letter-spacing:0.6px;line-height:1;text-transform:uppercase;">H\u1ed8 KINH DOANH H\u00c0NG GIA D\u1ee4NG</div>
