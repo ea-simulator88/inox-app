@@ -1,4 +1,4 @@
-function _maxPriceByMa_(srcSheet, ma) {
+﻿function _maxPriceByMa_(srcSheet, ma) {
   if (!srcSheet || srcSheet.getLastRow() <= 1) return 0;
   return srcSheet.getDataRange().getValues().slice(1).reduce(function(best, r) {
     return (r[0] || '').toString().trim() === ma ? Math.max(best, Number(r[8]) || 0) : best;
@@ -105,8 +105,12 @@ function doPost(e) {
     if (data.action === 'update') {
       const rows = sheet.getDataRange().getValues();
       let found = false;
+      let adjustedGiaVon = 0;
       for (let i = 1; i < rows.length; i++) {
         if (rows[i][0].toString().trim() === data.ma.toString().trim()) {
+          const newGiaVon = Number(data.row && data.row[5]);
+          const oldGiaVon = Number(rows[i][5]);
+          adjustedGiaVon = !isNaN(newGiaVon) ? newGiaVon : (!isNaN(oldGiaVon) ? oldGiaVon : 0);
           data.row.forEach((val, j) => {
             // Bỏ qua cột Tồn kho (I=8) vì dùng công thức SUMIFS
             if (j !== 8) {
@@ -142,12 +146,13 @@ function doPost(e) {
         if (adjSheet) {
           const dir  = delta > 0 ? 'tăng' : 'giảm';
           const note = 'Điều chỉnh tồn kho (' + dir + ' từ ' + data.sl_cu + ' → ' + data.sl_moi + ')';
+          const giaDieuChinh = Number(adjustedGiaVon) || 0;
           const _adjIsX = adjSheet.getName() === 'Xuất';
           // Xuất: A-K=data, L=phiKT(empty), M=formula, N=tenkhach(empty), O=note
           // Nhập: A-K=data, L=formula,       M=note
           const adjRow = _adjIsX
-            ? [data.ma, new Date(), data.row[1], data.row[2], data.row[3], data.row[4], data.row[7], Math.abs(delta), 0, 'Điều chỉnh', '', '', '', '', note]
-            : [data.ma, new Date(), data.row[1], data.row[2], data.row[3], data.row[4], data.row[7], Math.abs(delta), 0, 'Điều chỉnh', '',       note];
+            ? [data.ma, new Date(), data.row[1], data.row[2], data.row[3], data.row[4], data.row[7], Math.abs(delta), giaDieuChinh, '', '', '', '', '', note]
+            : [data.ma, new Date(), data.row[1], data.row[2], data.row[3], data.row[4], data.row[7], Math.abs(delta), giaDieuChinh, '', '', '', note];
           adjSheet.appendRow(adjRow);
           const nr = adjSheet.getLastRow();
           adjSheet.getRange(nr, _adjIsX ? 13 : 12).setFormula('=H' + nr + '*I' + nr + '+K' + nr + (_adjIsX ? '+L' + nr : ''));
