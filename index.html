@@ -4502,6 +4502,7 @@ function toggleReportDatePanel(e) {
   if (!panel) return;
 
   const open = panel.style.display === 'none' || panel.style.display === '';
+  _closeReportTypePanel(); _closeReportSortPanel();
   panel.style.display = open ? 'block' : 'none';
 
   if (arrow) {
@@ -5066,7 +5067,7 @@ function toggleReportSortPanel(e) {
   const p = document.getElementById('report-sort-panel');
   if (!p) return;
   const open = p.style.display === 'none' || p.style.display === '';
-  _closeReportDatePanel();
+  _closeReportTypePanel(); _closeReportDatePanel();
   p.style.display = open ? 'block' : 'none';
 }
 function _closeReportSortPanel() {
