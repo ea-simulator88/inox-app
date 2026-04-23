@@ -198,6 +198,11 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   #hist-filter-panel { border-color: #f57c00 !important; }
   #hist-filter-panel .sort-option.active { background: #fff3e0; color: #e65100; }
   #hist-filter-panel .sort-option:hover { background: #fff8f0; }
+  #report-type-btns { display: none; }
+  #report-type-select-wrap { display: flex; flex: 1; position: relative; }
+  #report-type-panel { border-color: #f57c00 !important; }
+  #report-type-panel .sort-option.active { background: #fff3e0; color: #e65100; }
+  #report-type-panel .sort-option:hover { background: #fff8f0; }
   #report-date-panel {
     width: min(320px, calc(100vw - 32px)) !important;
     padding: 10px !important;
@@ -238,6 +243,8 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   .report-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #hist-filter-btns { display: contents; }
   #hist-filter-select-wrap { display: none; }
+  #report-type-btns { display: contents; }
+  #report-type-select-wrap { display: none; }
 }
 
 /* Desktop item hover */
@@ -884,9 +891,24 @@ const CONFIG = {
     </div>
     <div style="max-width:1000px;margin:0 auto;width:100%;padding:10px 0 12px;">
       <div style="position:relative;display:flex;align-items:center;gap:6px;margin-bottom:10px;" id="report-date-wrap">
-        <button id="report-type-all" onclick="reportTypeFilter('all')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #f57c00;background:#fff3e0;color:#e65100;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg> Tất cả</button>
-        <button id="report-type-nhap" onclick="reportTypeFilter('nhap')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg> Nhập</button>
-        <button id="report-type-xuat" onclick="reportTypeFilter('xuat')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg> Xuất</button>
+        <div id="report-type-btns">
+          <button id="report-type-all" onclick="reportTypeFilter('all')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #f57c00;background:#fff3e0;color:#e65100;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg> Tất cả</button>
+          <button id="report-type-nhap" onclick="reportTypeFilter('nhap')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg> Nhập</button>
+          <button id="report-type-xuat" onclick="reportTypeFilter('xuat')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg> Xuất</button>
+        </div>
+        <div id="report-type-select-wrap">
+          <button id="report-type-dd-btn" onclick="toggleReportTypePanel(event)"
+            style="width:100%;padding:7.5px 9px;border-radius:20px;border:1.5px solid #f57c00;background:#fff3e0;color:#e65100;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <span id="report-type-dd-label" style="display:flex;align-items:center;justify-content:center;gap: 5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg> Tất cả</span>
+            <svg id="report-type-dd-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div id="report-type-panel" onclick="event.stopPropagation()"
+            style="display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:110px;background:#fff;border:1.5px solid #e0e0e0;border-radius:12px;padding:6px;z-index:300;box-shadow:0 4px 16px rgba(0,0,0,0.12);">
+            <button id="rtype-all"  onclick="reportTypeFilter('all');_closeReportTypePanel()"  class="sort-option active" style="display:flex;align-items:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg> Tất cả</button>
+            <button id="rtype-nhap" onclick="reportTypeFilter('nhap');_closeReportTypePanel()" class="sort-option" style="display:flex;align-items:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg> Nhập</button>
+            <button id="rtype-xuat"  onclick="reportTypeFilter('xuat');_closeReportTypePanel()"  class="sort-option" style="display:flex;align-items:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg> Xuất</button>
+          </div>
+        </div>
         <button id="report-date-toggle" onclick="toggleReportDatePanel(event)"
           style="flex:0 0 auto;width:95px;padding:7.9px 6px;border-radius:20px;border:1.5px solid #1976d2;background:#e3f2fd;color:#1976d2;font-size:10px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:2px;overflow:hidden;">
           <span style="flex-shrink:0;font-size:10px;display:flex;align-items:center;justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
@@ -4418,14 +4440,47 @@ function reportTypeFilter(type) {
 }
 
 function _syncReportTypeButtons() {
+  const filterIcons = {
+    'all':  `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>`,
+    'nhap': `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>`,
+    'xuat': `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>`
+  };
+  const filterLabels = { 'all': 'Tất cả', 'nhap': 'Nhập', 'xuat': 'Xuất' };
   ['all', 'nhap', 'xuat'].forEach(k => {
     const btn = document.getElementById('report-type-' + k);
-    if (!btn) return;
-    const active = _reportTypeFilter === k;
-    btn.style.background = active ? '#fff3e0' : '#f5f5f5';
-    btn.style.color = active ? '#e65100' : '#888';
-    btn.style.borderColor = active ? '#f57c00' : '#e0e0e0';
+    if (btn) {
+      const active = _reportTypeFilter === k;
+      btn.style.background = active ? '#fff3e0' : '#f5f5f5';
+      btn.style.color = active ? '#e65100' : '#888';
+      btn.style.borderColor = active ? '#f57c00' : '#e0e0e0';
+    }
+    const panelBtn = document.getElementById('rtype-' + k);
+    if (panelBtn) panelBtn.classList.toggle('active', _reportTypeFilter === k);
   });
+  const lbl = document.getElementById('report-type-dd-label');
+  if (lbl) {
+    const icon = filterIcons[_reportTypeFilter] || filterIcons['all'];
+    const text = filterLabels[_reportTypeFilter] || 'Tất cả';
+    lbl.innerHTML = `<span style="display:inline-flex;align-items:center;gap:5px;"><span style="display:inline-flex;vertical-align:middle;">${icon}</span><span>${text}</span></span>`;
+  }
+}
+
+function toggleReportTypePanel(e) {
+  if (e) e.stopPropagation();
+  const p = document.getElementById('report-type-panel');
+  const arrow = document.getElementById('report-type-dd-arrow');
+  if (!p) return;
+  const open = p.style.display === 'none' || p.style.display === '';
+  _closeReportDatePanel(); _closeReportSortPanel();
+  p.style.display = open ? 'block' : 'none';
+  if (arrow) arrow.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+function _closeReportTypePanel() {
+  const p = document.getElementById('report-type-panel');
+  const arrow = document.getElementById('report-type-dd-arrow');
+  if (p) p.style.display = 'none';
+  if (arrow) arrow.style.transform = '';
 }
 
 let _reportCollapsed = false;
@@ -5067,6 +5122,7 @@ document.addEventListener('click', () => {
   _closeHistFilterPanel();
   _closeReportDatePanel();
   _closeReportSortPanel();
+  _closeReportTypePanel();
 });
 
 function _renderHistory() {
