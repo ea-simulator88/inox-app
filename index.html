@@ -2335,7 +2335,7 @@ function buildHistoryMatchRows(rows) {
       phikhachtra: Number(r.phikhachtra) || 0,
       tenkhach: r.tenkhach || '',
       ghichu: r.ghichu || '',
-      nguoighi: r.nguoighi || ''
+      nguoighi: r.nguoighi || currentUserName || ''
     };
   });
 }

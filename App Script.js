@@ -321,12 +321,20 @@ function _historyMatchSignature_(sheetName, row) {
     Number(getVal(row, 10, 'phichanh')) || 0
   ];
 
-  if (sheetName === 'Xuất' || sheetName === 'Nháp') {
+  if (sheetName === 'Xuất') {
     parts.push(
       Number(getVal(row, 11, 'phikhachtra')) || 0,
       getVal(row, 13, 'tenkhach'),
       getVal(row, 14, 'ghichu'),
       getVal(row, 15, 'nguoighi')
+    );
+  } else if (sheetName === 'Nháp') {
+    // Draft rows can be confirmed right after local save before a full reload.
+    // In that case local history may not carry "nguoighi" yet, so don't use it for matching.
+    parts.push(
+      Number(getVal(row, 11, 'phikhachtra')) || 0,
+      getVal(row, 13, 'tenkhach'),
+      getVal(row, 14, 'ghichu')
     );
   } else {
     parts.push(
