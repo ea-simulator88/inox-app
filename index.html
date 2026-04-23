@@ -730,27 +730,27 @@ const CONFIG = {
     <div style="max-width:1000px;margin:0 auto;width:100%;padding:10px 0;">
       <div style="position:relative;display:flex;align-items:center;gap:6px;margin-bottom:4px;" id="hist-date-wrap">
         <div id="hist-filter-btns">
-          <button id="hist-btn-all"  onclick="histFilter('all')"  style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #4CAF50;background:#4CAF50;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">Tất cả</button>
-          <button id="hist-btn-nhap" onclick="histFilter('nhap')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;">Nhập</button>
-          <button id="hist-btn-xuat"  onclick="histFilter('xuat')"  style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;">Xuất</button>
-          <button id="hist-btn-draft" onclick="histFilter('draft')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;">Nháp</button>
+          <button id="hist-btn-all"  onclick="histFilter('all')"  style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #f57c00;background:#fff3e0;color:#e65100;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg> Tất cả</button>
+          <button id="hist-btn-nhap" onclick="histFilter('nhap')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg> Nhập</button>
+          <button id="hist-btn-xuat"  onclick="histFilter('xuat')"  style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg> Xuất</button>
+          <button id="hist-btn-draft" onclick="histFilter('draft')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Nháp</button>
         </div>
         <div id="hist-filter-select-wrap">
           <button id="hist-filter-dd-btn" onclick="toggleHistFilterPanel(event)"
-            style="width:100%;padding:7.5px 9px;border-radius:20px;border:1.5px solid #f57c00;background:#fff3e0;color:#e65100;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
-            <span id="hist-filter-dd-label">Tất cả</span>
+            style="width:100%;padding:7.5px 9px;border-radius:20px;border:1.5px solid #f57c00;background:#fff3e0;color:#e65100;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <span id="hist-filter-dd-label" style="display:flex;align-items:center;justify-content:center;gap: 5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg> Tất cả</span>
             <svg id="hist-filter-dd-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
           <div id="hist-filter-panel" onclick="event.stopPropagation()"
             style="display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:110px;background:#fff;border:1.5px solid #e0e0e0;border-radius:12px;padding:6px;z-index:300;box-shadow:0 4px 16px rgba(0,0,0,0.12);">
-            <button id="hf-all"  onclick="histFilter('all');_closeHistFilterPanel()"  class="sort-option active">Tất cả</button>
-            <button id="hf-nhap" onclick="histFilter('nhap');_closeHistFilterPanel()" class="sort-option">Nhập</button>
-            <button id="hf-xuat"  onclick="histFilter('xuat');_closeHistFilterPanel()"  class="sort-option">Xuất</button>
-            <button id="hf-draft" onclick="histFilter('draft');_closeHistFilterPanel()" class="sort-option">Nháp</button>
+            <button id="hf-all"  onclick="histFilter('all');_closeHistFilterPanel()"  class="sort-option active" style="display:flex;align-items:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg> Tất cả</button>
+            <button id="hf-nhap" onclick="histFilter('nhap');_closeHistFilterPanel()" class="sort-option" style="display:flex;align-items:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg> Nhập</button>
+            <button id="hf-xuat"  onclick="histFilter('xuat');_closeHistFilterPanel()"  class="sort-option" style="display:flex;align-items:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg> Xuất</button>
+            <button id="hf-draft" onclick="histFilter('draft');_closeHistFilterPanel()" class="sort-option" style="display:flex;align-items:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Nháp</button>
           </div>
         </div>
         <button id="hist-date-toggle" onclick="toggleHistDatePanel(event)"
-          style="flex:0 0 auto;width:100px;padding:8px 9px;border-radius:20px;border:1.5px solid #1976d2;background:#e3f2fd;color:#1976d2;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;overflow:hidden;">
+          style="flex:0 0 auto;width:120px;padding:8px 9px;border-radius:20px;border:1.5px solid #1976d2;background:#e3f2fd;color:#1976d2;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;overflow:hidden;">
           <span style="flex-shrink:0;display:inline-flex;align-items:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
           <span id="hist-date-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65px;">Tất cả</span>
           <span id="hist-date-arrow" style="flex-shrink:0;display:inline-flex;align-items:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
@@ -884,14 +884,14 @@ const CONFIG = {
     </div>
     <div style="max-width:1000px;margin:0 auto;width:100%;padding:10px 0 12px;">
       <div style="position:relative;display:flex;align-items:center;gap:6px;margin-bottom:10px;" id="report-date-wrap">
-        <button id="report-type-all" onclick="reportTypeFilter('all')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #4CAF50;background:#4CAF50;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">Tất cả</button>
-        <button id="report-type-nhap" onclick="reportTypeFilter('nhap')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;">Nhập</button>
-        <button id="report-type-xuat" onclick="reportTypeFilter('xuat')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:14px;font-weight:700;cursor:pointer;">Xuất</button>
+        <button id="report-type-all" onclick="reportTypeFilter('all')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #f57c00;background:#fff3e0;color:#e65100;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg> Tất cả</button>
+        <button id="report-type-nhap" onclick="reportTypeFilter('nhap')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg> Nhập</button>
+        <button id="report-type-xuat" onclick="reportTypeFilter('xuat')" style="flex:1;padding:9px 4px;border-radius:20px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap: 6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg> Xuất</button>
         <button id="report-date-toggle" onclick="toggleReportDatePanel(event)"
-          style="flex:0 0 auto;width:80px;padding:7.9px 6px;border-radius:20px;border:1.5px solid #1976d2;background:#e3f2fd;color:#1976d2;font-size:10px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:2px;overflow:hidden;">
-          <span style="flex-shrink:0;font-size:10px;">&#128197;</span>
+          style="flex:0 0 auto;width:95px;padding:7.9px 6px;border-radius:20px;border:1.5px solid #1976d2;background:#e3f2fd;color:#1976d2;font-size:10px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:2px;overflow:hidden;">
+          <span style="flex-shrink:0;font-size:10px;display:flex;align-items:center;justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
           <span id="report-date-label" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52px;">Tất cả</span>
-          <span id="report-date-arrow" style="flex-shrink:0;font-size:9px;">&#9660;</span>
+          <span id="report-date-arrow" style="flex-shrink:0;font-size:10px;display:flex;align-items:center;justify-content:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
         </button>
         <div style="position:relative;flex:0 0 auto;">
           <button id="report-sort-btn" onclick="toggleReportSortPanel(event)"
@@ -4170,21 +4170,45 @@ function _mapHistRow(r, loai) {
 const _histFilterLabels = { all: 'Tất cả', nhap: 'Nhập', xuat: 'Xuất', draft: 'Nháp' };
 function histFilter(f) {
   _historyFilter = f;
+
+  // 1. Định nghĩa bộ Icon SVG cho từng loại
+  const filterIcons = {
+    'all': `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>`,
+    'nhap': `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>`,
+    'xuat': `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>`,
+    'draft': `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`
+  };
+
+  // 2. Cập nhật màu sắc cho các nút bấm trong Panel (giữ nguyên logic cũ của anh)
   ['all', 'xuat', 'nhap', 'draft'].forEach(k => {
     const btn = document.getElementById('hist-btn-' + k);
     if (btn) {
       const active = f === k;
-      btn.style.background  = active ? '#4CAF50' : '#f5f5f5';
-      btn.style.color       = active ? '#fff'    : '#888';
-      btn.style.borderColor = active ? '#4CAF50' : '#e0e0e0';
+      btn.style.background  = active ? '#fff3e0' : '#f5f5f5';
+      btn.style.color       = active ? '#e65100'    : '#888';
+      btn.style.borderColor = active ? '#f57c00' : '#e0e0e0';
     }
     const hfBtn = document.getElementById('hf-' + k);
     if (hfBtn) hfBtn.classList.toggle('active', f === k);
   });
+
+  // 3. Cập nhật Label hiển thị (Kèm Icon + Chữ)
   const lbl = document.getElementById('hist-filter-dd-label');
-  if (lbl) lbl.textContent = _histFilterLabels[f] || 'Tất cả';
+  if (lbl) {
+    const iconSvg = filterIcons[f] || filterIcons['all'];
+    const textLabel = _histFilterLabels[f] || (f === 'all' ? 'Tất cả' : f);
+
+    lbl.innerHTML = `
+      <span style="display:inline-flex; align-items:center; gap:5px;">
+        <span style="display:inline-flex; vertical-align:middle;">${iconSvg}</span>
+        <span>${textLabel}</span>
+      </span>
+    `;
+  }
+
   _renderHistory();
 }
+
 function toggleHistFilterPanel(e) {
   if (e) e.stopPropagation();
   const p = document.getElementById('hist-filter-panel');
@@ -4207,23 +4231,61 @@ function toggleHistDatePanel(e) {
   const panel = document.getElementById('hist-date-panel');
   const arrow = document.getElementById('hist-date-arrow');
   if (!panel) return;
+
   const open = panel.style.display === 'none' || panel.style.display === '';
   _closeHistFilterPanel(); _closeHistSortPanel();
   panel.style.display = open ? 'block' : 'none';
-  if (arrow) arrow.textContent = open ? '\u25B4' : '\u25BE';
+
+  // Dùng backtick (`) để chèn mã SVG và lật 180 độ khi mở
+  if (arrow) {
+    arrow.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s; ${open ? 'transform: rotate(180deg);' : ''}"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+  }
+
+  // BỔ SUNG LỆNH HIGHLIGHT NÚT KHI MỞ PANEL
+  if (open) {
+    // Khai báo danh sách các ID nút và giá trị tương ứng
+    const btnIds = {
+      'all': 'hist-t-all',
+      'today': 'hist-t-today',
+      'week': 'hist-t-week',
+      'month': 'hist-t-month'
+    };
+
+    // Quét qua từng nút để tô màu
+    Object.keys(btnIds).forEach(key => {
+      const btn = document.getElementById(btnIds[key]);
+      if (btn) {
+        if (_historyTimeFilter === key) {
+          // Nút đang được chọn: Bôi xanh
+          btn.style.background = '#1976d2';
+          btn.style.color = '#fff';
+          btn.style.borderColor = '#1976d2';
+        } else {
+          // Nút không được chọn: Về màu xám
+          btn.style.background = '#f5f5f5';
+          btn.style.color = '#888';
+          btn.style.borderColor = '#e0e0e0';
+        }
+      }
+    });
+  }
 }
 
 function _closeHistDatePanel() {
   const panel = document.getElementById('hist-date-panel');
   const arrow = document.getElementById('hist-date-arrow');
   if (panel) panel.style.display = 'none';
-  if (arrow) arrow.textContent = '\u25BE';
+
+  // Trả mũi tên về trạng thái úp xuống mặc định
+  if (arrow) {
+    arrow.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+  }
 }
 
 function _updateHistDateLabel() {
   const label  = document.getElementById('hist-date-label');
   const toggle = document.getElementById('hist-date-toggle');
-  const labels = { all:'T\u1EA5t c\u1EA3', today:'H\u00F4m nay', week:'Tu\u1EA7n', month:'Th\u00E1ng' };
+  const labels = { all:'Tất cả', today:'Hôm nay', week:'Tuần này', month:'Tháng này' };
   let text;
   if (_historyTimeFilter === 'custom') {
     const fd = d => d ? d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear() : '?';
@@ -4354,9 +4416,9 @@ function _syncReportTypeButtons() {
     const btn = document.getElementById('report-type-' + k);
     if (!btn) return;
     const active = _reportTypeFilter === k;
-    btn.style.background = active ? '#4CAF50' : '#f5f5f5';
-    btn.style.color = active ? '#fff' : '#888';
-    btn.style.borderColor = active ? '#4CAF50' : '#e0e0e0';
+    btn.style.background = active ? '#fff3e0' : '#f5f5f5';
+    btn.style.color = active ? '#e65100' : '#888';
+    btn.style.borderColor = active ? '#f57c00' : '#e0e0e0';
   });
 }
 
@@ -4374,22 +4436,31 @@ function toggleReportDatePanel(e) {
   const panel = document.getElementById('report-date-panel');
   const arrow = document.getElementById('report-date-arrow');
   if (!panel) return;
+
   const open = panel.style.display === 'none' || panel.style.display === '';
   panel.style.display = open ? 'block' : 'none';
-  if (arrow) arrow.textContent = open ? '\u25B4' : '\u25BE';
+
+  if (arrow) {
+    // Dùng innerHTML và điều khiển xoay bằng rotate để có hiệu ứng transition
+    arrow.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s; ${open ? 'transform: rotate(180deg);' : ''}"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+  }
 }
 
 function _closeReportDatePanel() {
   const panel = document.getElementById('report-date-panel');
   const arrow = document.getElementById('report-date-arrow');
   if (panel) panel.style.display = 'none';
-  if (arrow) arrow.textContent = '\u25BE';
+
+  if (arrow) {
+    // Trả mũi tên về trạng thái úp xuống mặc định khi đóng panel
+    arrow.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+  }
 }
 
 function _updateReportDateLabel() {
   const label = document.getElementById('report-date-label');
   const toggle = document.getElementById('report-date-toggle');
-  const labels = { all:'Tất cả', today:'Hôm nay', week:'Tuần', month:'Tháng', year:'Năm' };
+  const labels = { all:'Tất cả', today:'Hôm nay', week:'Tuần này', month:'Tháng này', year:'Năm nay' };
   let text;
   if (_reportTimeFilter === 'custom') {
     const fd = d => d ? d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear() : '?';
