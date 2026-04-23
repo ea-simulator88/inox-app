@@ -5386,17 +5386,29 @@ function _esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;
 
 function _heditDisplayHtml(p, fallbackR) {
   if (p) {
+    // 1. Lấy số lượng gốc của dòng này từ lịch sử (Cố định, không đổi khi anh gõ số mới)
     var origSl = (fallbackR && fallbackR.ma === p.ma) ? (parseFloat(fallbackR.soluong) || 0) : 0;
-    var rawTk = parseFloat(p.tonkho) || 0;
-    var tk = rawTk + origSl;
-    var tkColor = tk <= 0 ? '#f44336' : '#4CAF50';
+
+    // 2. Tồn kho thực tế hiện tại (Số lượng đang có trên kệ, đã trừ đơn này rồi)
+    var realTk = parseFloat(p.tonkho) || 0;
+
+    // 3. Khả dụng (Hạn mức tối đa) = Tồn hiện tại + Số lượng cũ của đơn
+    // Đây là con số được "khóa lại" để anh biết mình không được phép sửa vượt quá mốc này
+    var maxLimit = realTk + origSl;
+
+    var kdColor = maxLimit <= 0 ? '#f44336' : '#2196F3';
+    var tkColor = realTk <= 0 ? '#f44336' : '#4CAF50'; // Dùng màu xanh dương cho tồn kho thực tế để dễ nhìn
     var dvtStr = p.dvt ? ' ' + _esc(p.dvt) : '';
     var name = (p.ncc ? _esc(p.ncc) + ' - ' : '') + _esc(p.ten);
-    var tonHtml = ' | <span style="color:' + tkColor + ';font-size:12px;">Khả dụng: ' + fmt(tk) + '</span>';
+
+    // Hiển thị rõ ràng: Khả dụng (Hạn mức tổng) và Kho còn (Thực tế trên kệ)
+    var tonHtml = ' | <span style="color:' + kdColor + ';font-size:12px;">Khả dụng: ' + fmt(maxLimit) + '</span>';
+
     if (origSl > 0) {
-      var rawColor = rawTk <= 0 ? '#f44336' : '#4CAF50';
-      tonHtml += ' | <span style="color:' + rawColor + ';font-size:12px;font-weight:700;">Tồn: ' + fmt(rawTk) + dvtStr + '</span>';
+      // Hiện thêm số tồn thực tế trong ngoặc để anh đối chiếu
+      tonHtml += ' · <span style="color:' + tkColor + ';font-size:12px;">Tồn: ' + fmt(realTk) + dvtStr + '</span>';
     }
+
     return name + tonHtml;
   }
   var r = fallbackR;
@@ -5588,11 +5600,54 @@ async function histSaveEdit() {
   if (!g) return;
   const isXuat  = g.loai === 'Xuất';
   const isDraft = g.loai === 'Nháp';
+
   const newTenkhach = (isXuat || isDraft) ? (document.getElementById('hedit-tenkhach').value || '').trim() : '';
   const newGiaodich = document.getElementById('hedit-giaodich').value || '';
   const newPhiChanh = parseNum(document.getElementById('hedit-phichanh')?.value) || 0;
   const newPhiKhachTra = (isXuat || isDraft) ? (parseNum(document.getElementById('hedit-phikhachtra')?.value) || 0) : 0;
+
+  // BƯỚC 1: KIỂM TRA LỖI TỒN KHO TRƯỚC (Quét trực tiếp từ giao diện, CHƯA ghi vào bộ nhớ tạm)
+  if (isXuat || isDraft) { // Bổ sung kiểm tra cả phiếu Nháp để tránh giữ hàng lố
+    const overItems = [];
+    const overIndices = [];
+    const overMas = [];
+
+    _histEditRows.forEach(function(r, i) {
+      const ma = ((document.getElementById('hedit-ma-' + i)?.value) ?? r.ma).trim() || r.ma;
+      const p = products.find(function(x) { return x.ma === ma; });
+      const sl = parseFloat(document.getElementById('hedit-sl-' + i)?.value) || r.soluong;
+
+      if (p) {
+        // Ưu tiên kiểm tra với Khả dụng (nếu có), không có mới dùng Tồn kho
+        const baseStock = parseFloat(p.khadung !== undefined ? p.khadung : p.tonkho) || 0;
+        const origSl = (ma === r._origMa) ? (parseFloat(r._origSl) || 0) : 0;
+
+        const effectiveTk = baseStock + origSl;
+
+        if (sl > effectiveTk) {
+          const label = (p.ncc ? p.ncc + ' - ' : '') + p.ten + (p.kichthuoc ? ' - ' + p.kichthuoc : '');
+          overItems.push(label + ' | Cho phép: ' + fmt(effectiveTk) + (p.dvt ? ' ' + p.dvt : '') + ', Đang nhập: ' + fmt(sl));
+          overIndices.push(i);
+          overMas.push(ma);
+        }
+      }
+    });
+
+    if (overItems.length > 0) {
+      overIndices.forEach(function(i) {
+        var rowEl = document.getElementById('hedit-row-' + i);
+        if (rowEl) rowEl.classList.add('cart-warn');
+      });
+      const saveBtn2 = document.getElementById('hedit-save-btn');
+      if (saveBtn2) { saveBtn2.disabled = false; saveBtn2.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Lưu'; }
+      showInfoModal('Vượt số lượng cho phép!', '<div style="border:1.5px solid #f44336;border-radius:8px;padding:8px 12px;text-align:left;font-size:13px;line-height:1.7;word-break:break-word;">' + overItems.join('<br>') + '</div>', overMas);
+      return; // Chặn đứng ngay lập tức, bộ nhớ App vẫn giữ số lượng gốc đúng chuẩn
+    }
+  }
+
+  // BƯỚC 2: VƯỢT QUA HẾT LỖI MỚI CHO PHÉP ĐỒNG BỘ VÀO BỘ NHỚ
   _heditSyncRows();
+
   if (_histEditRows.length === 0) {
     showInfoModal('Thiếu sản phẩm!', 'Vui lòng giữ ít nhất 1 sản phẩm trong giao dịch.');
     return;
@@ -5603,36 +5658,8 @@ async function histSaveEdit() {
     return;
   }
 
+  // BƯỚC 3: KIỂM TRA CẢNH BÁO GIÁ
   if (isXuat) {
-    const overItems = [];
-    const overIndices = [];
-    const overMas = [];
-    _histEditRows.forEach(function(r, i) {
-      const ma = ((document.getElementById('hedit-ma-' + i)?.value) ?? r.ma).trim() || r.ma;
-      const p = products.find(function(x) { return x.ma === ma; });
-      const sl = parseFloat(document.getElementById('hedit-sl-' + i)?.value) || r.soluong;
-      const curTk = p ? (isNaN(parseFloat(p.tonkho)) ? 0 : parseFloat(p.tonkho)) : 0;
-      const origSl = (ma === r._origMa) ? (parseFloat(r._origSl) || 0) : 0;
-      const effectiveTk = curTk + origSl;
-      if (p && sl > effectiveTk) {
-        const label = (p.ncc ? p.ncc + ' - ' : '') + p.ten + (p.kichthuoc ? ' - ' + p.kichthuoc : '');
-        overItems.push(label + ' | Tồn: ' + fmt(effectiveTk) + (p.dvt ? ' ' + p.dvt : '') + ', Xuất: ' + fmt(sl));
-        overIndices.push(i);
-        overMas.push(ma);
-      }
-    });
-    if (overItems.length > 0) {
-      overIndices.forEach(function(i) {
-        var rowEl = document.getElementById('hedit-row-' + i);
-        if (rowEl) rowEl.classList.add('cart-warn');
-      });
-      const saveBtn2 = document.getElementById('hedit-save-btn');
-      if (saveBtn2) { saveBtn2.disabled = false; saveBtn2.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Lưu'; }
-      // Truyền overMas để showModal dùng innerHTML cho sub (không phải textContent)
-      showInfoModal('Vượt tồn kho!', '<div style="border:1.5px solid #f44336;border-radius:8px;padding:8px 12px;text-align:left;font-size:13px;line-height:1.7;word-break:break-word;">' + overItems.join('<br>') + '</div>', overMas);
-      return;
-    }
-
     const lowGiaRows = _histEditRows.filter(function(r, i) {
       const p = products.find(function(x) { return x.ma === r.ma; });
       const giaNhap = parseNum(document.getElementById('hedit-gia-' + i)?.value);
@@ -5652,6 +5679,7 @@ async function histSaveEdit() {
     }
   }
 
+  // BƯỚC 4: LƯU LÊN GOOGLE SHEET
   _doHistSaveEdit();
 }
 
