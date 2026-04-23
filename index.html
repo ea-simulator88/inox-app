@@ -573,9 +573,7 @@ const CONFIG = {
     </div>
   </div>
   <div style="max-width:1000px;margin:0 auto;width:100%;">
-    <button class="btn-scan" onclick="openProductForm('add', null)" style="margin-bottom:8px;margin-top:-12px;">
-      ➕ Thêm sản phẩm mới
-    </button>
+    <button class="btn-scan" onclick="openProductForm('add', null)" style="margin-bottom:8px;margin-top:-12px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 13" width="22" height="22" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="6" x2="10" y2="6"/><line x1="6" y1="2" x2="6" y2="10"/></svg>Thêm sản phẩm mới</button>
     <div class="manage-stats-bar">
       <div class="manage-stats-info">
         <span id="manage-stats-count" style="font-weight:600;color:#1a1a1a;">0</span> SP
@@ -1195,7 +1193,7 @@ const CONFIG = {
 <div id="hist-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:flex-start;justify-content:center;padding:10px;overflow-y:auto;">
   <div style="background:#fff;width:min(500px,100%);border-radius:16px;padding:18px;margin:auto;">
     <div style="font-size:16px;font-weight:700;margin-bottom:3px;">&#9999;&#65039; S&#7917;a giao d&#7883;ch</div>
-    <div id="hedit-info" style="font-size:12px;color:#aaa;margin-bottom:14px;"></div>
+    <div id="hedit-info" style="font-size:13px;color:#555;margin-bottom:14px;"></div>
 
     <div id="hedit-tenkhach-wrap">
       <div style="font-size:13px;color:#888;margin-bottom:5px;">T&#234;n kh&#225;ch h&#224;ng</div>
@@ -1227,7 +1225,10 @@ const CONFIG = {
       </div>
     </div>
 
-    <div style="font-size:13px;font-weight:600;color:#555;margin-bottom:8px;">S&#7843;n ph&#7849;m:</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="font-size:13px;font-weight:600;color:#555;">S&#7843;n ph&#7849;m:</div>
+      <button onclick="heditAddRow()" title="Thêm sản phẩm" style="background:none;border:none;color:#4CAF50;font-size:22px;line-height:1;cursor:pointer;padding:0 4px;font-weight:700;margin-right: 6px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 10" width="14" height="14" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="6" x2="10" y2="6"/><line x1="6" y1="2" x2="6" y2="10"/></svg></button>
+    </div>
     <div id="hedit-rows"></div>
 
     <div style="display:flex;gap:10px;margin-top:14px;">
@@ -2335,7 +2336,7 @@ function buildHistoryMatchRows(rows) {
       phikhachtra: Number(r.phikhachtra) || 0,
       tenkhach: r.tenkhach || '',
       ghichu: r.ghichu || '',
-      nguoighi: r.nguoighi || currentUserName || ''
+      nguoighi: r.nguoighi || ''
     };
   });
 }
@@ -5368,6 +5369,7 @@ function _buildInvoiceHTML(g, hidePrice) {
 
 // ===== HISTORY EDIT / DELETE =====
 let _histEditIdx = -1;
+let _histEditRows = [];
 function _esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function _heditDisplayHtml(p, fallbackR) {
@@ -5394,13 +5396,125 @@ function heditMaChange(el, idx) {
   var p = products.find(function(x) { return x.ma === ma; });
   var hnEl = document.getElementById('hedit-hn-' + idx);
   if (!hnEl) return;
+
   if (p) {
     el.style.borderColor = '#4CAF50';
     hnEl.innerHTML = _heditDisplayHtml(p, null);
+
+    var g = _historyGroups[_histEditIdx] || {};
+    var isXuat = (g.loai === 'Xuất' || g.loai === 'Nháp');
+    var defaultGia = isXuat ? parseNum(p.giasi) : parseNum(p.giavon);
+    var giaEl = document.getElementById('hedit-gia-' + idx);
+
+    if (giaEl) {
+      giaEl.dataset.defaultGia = defaultGia > 0 ? String(defaultGia) : '';
+
+      // TỰ ĐỘNG HIỆN CHỮ MỜ KHI GÕ XONG MÃ SP
+      var labelGoiY = isXuat ? "Giá sỉ" : "Giá vốn";
+      giaEl.placeholder = defaultGia > 0 ? (labelGoiY + ": " + defaultGia.toLocaleString('vi-VN') + "đ") : "Nhập đơn giá";
+
+      if (!_histEditRows[idx] || ma !== _histEditRows[idx].ma) {
+        giaEl.dataset.kd = '';
+        giaEl.value = '';
+        ixShow(giaEl);
+      }
+    }
   } else {
+    var giaEl2 = document.getElementById('hedit-gia-' + idx);
+    if (giaEl2) {
+      giaEl2.dataset.defaultGia = '';
+      giaEl2.placeholder = "Nhập đơn giá"; // Trả về mặc định nếu sai mã
+    }
     el.style.borderColor = ma ? '#f44336' : '#e0e0e0';
     if (!ma) hnEl.innerHTML = '';
   }
+}
+
+function _heditBlankRow() {
+  const g = _historyGroups[_histEditIdx] || {};
+  return {
+    ma: '', thoigian: g.thoigian || '', ncc: '', hanghoa: '', kichthuoc: '', mota: '', dvt: '',
+    soluong: 1, gia: 0, giaodich: g.giaodich || '', phichanh: 0, phikhachtra: 0,
+    ghichu: '', tenkhach: g.tenkhach || '', nguoighi: '',
+    _origMa: '', _origSl: 0, _origGia: 0
+  };
+}
+
+function _heditSyncRows() {
+  _histEditRows = _histEditRows.map(function(r, i) {
+    return {
+      ...r,
+      ma: ((document.getElementById('hedit-ma-' + i)?.value) ?? r.ma).trim(),
+      soluong: parseFloat(document.getElementById('hedit-sl-' + i)?.value) || r.soluong,
+      gia: parseNum(document.getElementById('hedit-gia-' + i)?.value) || 0
+    };
+  });
+}
+
+function _renderHistEditRows() {
+  const group = _historyGroups[_histEditIdx] || {};
+  const isXuat = group.loai === 'Xuất' || group.loai === 'Nháp';
+  const labelGoiY = isXuat ? "Giá sỉ" : "Giá vốn";
+
+  document.getElementById('hedit-rows').innerHTML = _histEditRows.map((r, i) => {
+    const p = products.find(x => x.ma === r.ma) || null;
+
+    // Dùng parseNum để ép kiểu số tuyệt đối an toàn
+    let giaGoiYVal = 0;
+    if (p) {
+        giaGoiYVal = isXuat ? parseNum(p.giasi) : parseNum(p.giavon);
+    }
+
+    const displayGoiY = giaGoiYVal > 0 ? `${labelGoiY}: ${giaGoiYVal.toLocaleString('vi-VN')}đ` : `Nhập đơn giá`;
+
+    return `
+    <div id="hedit-row-${i}" style="border:1px solid #e8e8e8;border-radius:10px;padding:10px;margin-bottom:8px;background:#fafafa;position:relative;">
+      <button onclick="heditRemoveRow(${i})" title="Xóa sản phẩm" style="position:absolute;right:8px;top:8px;background:none;border:none;color:#bbb;font-size:18px;line-height:1;cursor:pointer;padding:0 4px;">×</button>
+      <div style="font-size:11px;color:#aaa;margin-bottom:6px;font-weight:600;">SP #${i+1}</div>
+
+      <div style="margin-bottom:6px;">
+        <div style="font-size:11px;color:#888;margin-bottom:3px;">Mã SP</div>
+        <input type="text" id="hedit-ma-${i}" value="${_esc(r.ma)}" placeholder="Mã SP" oninput="heditMaChange(this,${i})"
+          style="width:100%;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
+      </div>
+
+      <div id="hedit-hn-${i}" style="padding:7px 10px;border:1px solid #e8e8e8;border-radius:8px;font-size:13px;background:#f5f5f5;color:#555;margin-bottom:6px;min-height:32px;">
+        ${_heditDisplayHtml(p, r)}
+      </div>
+
+      <div style="display:flex;gap:6px;align-items:center;">
+        <div style="display:flex;flex-direction:column;">
+             <div style="font-size:10px;color:#888;margin-bottom:2px;padding-left:2px;">SL</div>
+             <input type="number" id="hedit-sl-${i}" value="${r.soluong}" placeholder="SL"
+              style="width:64px;padding:7px 6px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;text-align:center;" min="0">
+        </div>
+
+        <div style="position:relative;flex:1;">
+          <div style="font-size:10px;color:#888;margin-bottom:2px;padding-left:2px;">Đơn giá</div>
+          <input type="text" inputmode="numeric" id="hedit-gia-${i}"
+            value="${r.gia > 0 ? Number(r.gia).toLocaleString('en-US') : ''}"
+            placeholder="${displayGoiY}"
+            data-kd="${r.gia > 0 ? Math.floor(r.gia/1000) : ''}"
+            style="width:100%;padding:7px 22px 7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"
+            oninput="fmtInputK(this);ixShow(this)">
+          <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)"
+            style="display:${r.gia > 0 ? 'inline-block' : 'none'};position:absolute;right:4px;bottom:8px;background:none;border:none;padding:2px 3px;cursor:pointer;color:#bbb;font-size:11px;line-height:1;">✕</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function heditAddRow() {
+  _heditSyncRows();
+  _histEditRows.push(_heditBlankRow());
+  _renderHistEditRows();
+}
+
+function heditRemoveRow(idx) {
+  _heditSyncRows();
+  _histEditRows.splice(idx, 1);
+  _renderHistEditRows();
 }
 
 function histEditGroup(idx) {
@@ -5441,27 +5555,13 @@ function histEditGroup(idx) {
     }
   }
 
-  document.getElementById('hedit-rows').innerHTML = g.rows.map((r, i) => `
-    <div id="hedit-row-${i}" style="border:1px solid #e8e8e8;border-radius:10px;padding:10px;margin-bottom:8px;background:#fafafa;">
-      <div style="font-size:11px;color:#aaa;margin-bottom:6px;font-weight:600;">SP #${i+1}</div>
-      <div style="margin-bottom:6px;">
-        <div style="font-size:11px;color:#888;margin-bottom:3px;">Mã SP</div>
-        <input type="text" id="hedit-ma-${i}" value="${_esc(r.ma)}" placeholder="Mã SP" oninput="heditMaChange(this,${i})"
-          style="width:100%;padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;">
-      </div>
-      <div id="hedit-hn-${i}" style="padding:7px 10px;border:1px solid #e8e8e8;border-radius:8px;font-size:13px;background:#f5f5f5;color:#555;margin-bottom:6px;min-height:32px;">${_heditDisplayHtml(products.find(x=>x.ma===r.ma)||null, r)}</div>
-      <div style="display:flex;gap:6px;">
-        <input type="number" id="hedit-sl-${i}" value="${r.soluong}" placeholder="SL"
-          style="width:64px;padding:7px 6px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;text-align:center;" min="0">
-        <div style="position:relative;flex:1;">
-          <input type="text" inputmode="numeric" id="hedit-gia-${i}" value="${r.gia > 0 ? Number(r.gia).toLocaleString('en-US') : ''}" placeholder="\u0110\u01A1n gi\u00E1"
-            data-kd="${r.gia > 0 ? Math.floor(r.gia/1000) : ''}"
-            style="width:100%;padding:7px 22px 7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"
-            oninput="fmtInputK(this);ixShow(this)">
-          <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:${r.gia > 0 ? 'inline-block' : 'none'};position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px 3px;cursor:pointer;color:#bbb;font-size:11px;line-height:1;">✕</button>
-        </div>
-      </div>
-    </div>`).join('');
+  _histEditRows = g.rows.map(r => ({
+    ...r,
+    _origMa: r.ma || '',
+    _origSl: Number(r.soluong) || 0,
+    _origGia: Number(r.gia) || 0
+  }));
+  _renderHistEditRows();
 
   const saveBtn = document.getElementById('hedit-save-btn');
   if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '\uD83D\uDCBE L\u01B0u'; }
@@ -5480,17 +5580,27 @@ async function histSaveEdit() {
   const newGiaodich = document.getElementById('hedit-giaodich').value || '';
   const newPhiChanh = parseNum(document.getElementById('hedit-phichanh')?.value) || 0;
   const newPhiKhachTra = (isXuat || isDraft) ? (parseNum(document.getElementById('hedit-phikhachtra')?.value) || 0) : 0;
+  _heditSyncRows();
+  if (_histEditRows.length === 0) {
+    showInfoModal('Thiếu sản phẩm!', 'Vui lòng giữ ít nhất 1 sản phẩm trong giao dịch.');
+    return;
+  }
+  const emptyMaIdx = _histEditRows.findIndex(r => !r.ma);
+  if (emptyMaIdx >= 0) {
+    showInfoModal('Thiếu mã SP!', 'Vui lòng nhập mã sản phẩm cho SP #' + (emptyMaIdx + 1) + '.');
+    return;
+  }
 
   if (isXuat) {
     const overItems = [];
     const overIndices = [];
     const overMas = [];
-    g.rows.forEach(function(r, i) {
+    _histEditRows.forEach(function(r, i) {
       const ma = ((document.getElementById('hedit-ma-' + i)?.value) ?? r.ma).trim() || r.ma;
       const p = products.find(function(x) { return x.ma === ma; });
       const sl = parseFloat(document.getElementById('hedit-sl-' + i)?.value) || r.soluong;
       const curTk = p ? (isNaN(parseFloat(p.tonkho)) ? 0 : parseFloat(p.tonkho)) : 0;
-      const origSl = (ma === r.ma) ? (parseFloat(r.soluong) || 0) : 0;
+      const origSl = (ma === r._origMa) ? (parseFloat(r._origSl) || 0) : 0;
       const effectiveTk = curTk + origSl;
       if (p && sl > effectiveTk) {
         const label = (p.ncc ? p.ncc + ' - ' : '') + p.ten + (p.kichthuoc ? ' - ' + p.kichthuoc : '');
@@ -5510,14 +5620,45 @@ async function histSaveEdit() {
       showInfoModal('Vượt tồn kho!', '<div style="border:1.5px solid #f44336;border-radius:8px;padding:8px 12px;text-align:left;font-size:13px;line-height:1.7;word-break:break-word;">' + overItems.join('<br>') + '</div>', overMas);
       return;
     }
+
+    const lowGiaRows = _histEditRows.filter(function(r, i) {
+      const p = products.find(function(x) { return x.ma === r.ma; });
+      const giaNhap = parseNum(document.getElementById('hedit-gia-' + i)?.value);
+      const giaSi = p ? parseNum(p.giasi) : 0;
+      return giaNhap > 0 && giaNhap !== (Number(r._origGia) || 0) && giaSi > 0 && giaNhap < giaSi;
+    });
+    if (lowGiaRows.length > 0) {
+      const warnLines = lowGiaRows.map(function(r) {
+        const p = products.find(function(x) { return x.ma === r.ma; }) || r;
+        const extra = [p.kichthuoc, p.motaSP || p.mota].filter(Boolean).join(' · ');
+        return [p.ncc, p.ma, p.ten || p.hanghoa].filter(Boolean).join('-') + (extra ? ' - ' + extra : '');
+      });
+      const subHtml = '<div style="border:1.5px solid #f44336;border-radius:8px;padding:8px 12px;text-align:left;font-size:13px;line-height:1.7;word-break:break-word;">' + warnLines.join('<br>') + '</div>';
+      const warnMas = lowGiaRows.map(function(r) { return r.ma; });
+      showModal('Giá bán thấp hơn giá sỉ!', subHtml, _doHistSaveEdit, warnMas);
+      return;
+    }
   }
+
+  _doHistSaveEdit();
+}
+
+async function _doHistSaveEdit() {
+  const g = _historyGroups[_histEditIdx];
+  if (!g) return;
+  const isXuat  = g.loai === 'Xuất';
+  const isDraft = g.loai === 'Nháp';
+  const newTenkhach = (isXuat || isDraft) ? (document.getElementById('hedit-tenkhach').value || '').trim() : '';
+  const newGiaodich = document.getElementById('hedit-giaodich').value || '';
+  const newPhiChanh = parseNum(document.getElementById('hedit-phichanh')?.value) || 0;
+  const newPhiKhachTra = (isXuat || isDraft) ? (parseNum(document.getElementById('hedit-phikhachtra')?.value) || 0) : 0;
 
   const updatedRows = [];
   const notes = [];
   const today = new Date();
   const dateStr = today.getDate().toString().padStart(2,'0') + '/' + (today.getMonth()+1).toString().padStart(2,'0') + '/' + today.getFullYear();
 
-  g.rows.forEach((r, i) => {
+  _histEditRows.forEach((r, i) => {
     const newMa   = ((document.getElementById('hedit-ma-' + i)?.value) ?? r.ma).trim() || r.ma;
     const foundP  = products.find(function(x) { return x.ma === newMa; });
     const hanghoa = foundP ? foundP.ten : r.hanghoa;
@@ -5526,12 +5667,15 @@ async function histSaveEdit() {
     const kichthuoc = foundP ? (foundP.kichthuoc || '') : r.kichthuoc;
     const mota    = foundP ? (foundP.motaSP || '') : r.mota;
     const soluong = parseFloat(document.getElementById('hedit-sl-' + i)?.value) || r.soluong;
-    const gia     = parseNum(document.getElementById('hedit-gia-' + i)?.value) || r.gia;
+    const giaEl   = document.getElementById('hedit-gia-' + i);
+    const giaNhap = parseNum(giaEl?.value);
+    const giaMacDinh = parseNum(giaEl?.dataset.defaultGia) || (foundP ? ((isXuat || isDraft) ? parseNum(foundP.giasi) : parseNum(foundP.giavon)) : 0);
+    const gia     = giaNhap > 0 ? giaNhap : (giaMacDinh || r.gia);
 
     const changes = [];
-    if (newMa !== r.ma)                  changes.push('Mã: ' + r.ma + '→' + newMa);
-    if (soluong !== r.soluong)           changes.push('SL: ' + r.soluong + '→' + soluong);
-    if (gia !== r.gia)                   changes.push('Giá: ' + r.gia + '→' + gia);
+    if (newMa !== r._origMa)             changes.push('Mã: ' + (r._origMa || '') + '→' + newMa);
+    if (soluong !== r._origSl)           changes.push('SL: ' + (r._origSl || 0) + '→' + soluong);
+    if (gia !== r._origGia)              changes.push('Giá: ' + (r._origGia || 0) + '→' + gia);
     if (newGiaodich !== r.giaodich)      changes.push('GD: ' + r.giaodich + '→' + newGiaodich);
     if (isXuat && newTenkhach !== (r.tenkhach || '')) changes.push('Khách: ' + (r.tenkhach||'') + '→' + newTenkhach);
     if (i === 0) {

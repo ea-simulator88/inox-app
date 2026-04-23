@@ -349,8 +349,7 @@ function _historyMatchSignature_(sheetName, row) {
     );
   } else {
     parts.push(
-      getVal(row, 12, 'ghichu'),
-      getVal(row, 15, 'nguoighi')
+      getVal(row, 12, 'ghichu')
     );
   }
 
