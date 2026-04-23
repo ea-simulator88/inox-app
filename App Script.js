@@ -255,7 +255,17 @@ function doPost(e) {
           for (let i = 1; i < spData.length; i++) {
             if ((spData[i][0] || '').toString().trim() !== ma) continue;
             const maxNhap = _maxPriceByMa_(sheet, ma);
-            if (maxNhap > (Number(spData[i][5]) || 0)) { spSheet.getRange(i + 1, 6).setValue(maxNhap); spData[i][5] = maxNhap; }
+            const oldGiaVon = Number(spData[i][5]) || 0;
+            if (maxNhap > oldGiaVon) {
+              spSheet.getRange(i + 1, 6).setValue(maxNhap);
+              spData[i][5] = maxNhap;
+
+              const dateStr = Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'dd/MM/yyyy');
+              const note = 'Giá vốn: ' + oldGiaVon + '→' + maxNhap + ' (' + dateStr + ')';
+              const noteCell = spSheet.getRange(i + 1, 12); // Cột L
+              const existing = (noteCell.getValue() || '').toString().trim();
+              noteCell.setValue(existing ? (existing + ' | ' + note) : note);
+            }
             break;
           }
         });
