@@ -214,6 +214,9 @@ function doPost(e) {
         const noteCol = data.sheet === 'Nhập' ? 13 : 15;
         const _isXuatUpd = data.sheet === 'Xuất' || data.sheet === 'Nháp';
         data.rows.forEach(function(row, i) {
+          if (data.sheet === 'Nhập') {
+            row = row.slice(0, 13); // Cắt bỏ các cột thừa, chỉ giữ đúng 13 cột (A -> M) của sheet Nhập
+          }
           sheet.appendRow(row);
           const nr = sheet.getLastRow();
           sheet.getRange(nr, _isXuatUpd ? 13 : 12).setFormula('=H' + nr + '*I' + nr + '+K' + nr + (_isXuatUpd ? '+L' + nr : ''));
