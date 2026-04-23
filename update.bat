@@ -1,41 +1,49 @@
 @echo off
+:: Chuyen ma sang UTF-8 de CMD doc duoc duong dan tieng Viet
+chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 :: ==========================================
-:: PHẦN 1: TỰ ĐỘNG BACKUP VÀO THƯ MỤC LOCAL
+:: PHAN 1: TU DONG BACKUP VAO THU MUC LOCAL
 :: ==========================================
 set "SRC_DIR=D:\Excel\Work\Python\App xuất nhập hàng inox\Xuất nhập hàng"
 set "BAK_DIR=D:\Excel\Work\Python\App xuất nhập hàng inox\Backup"
 
-:: Tạo thư mục Backup nếu chưa có
+:: Tao thu muc Backup neu chua co
 if not exist "%BAK_DIR%" mkdir "%BAK_DIR%"
 
 echo [1/2] Dang tien hanh backup file vao o D...
 
-:: Tim so thu tu tiep theo cho App Script.js
-set n=1
-:loopJS
-if exist "%BAK_DIR%\App Script !n!.js" (
-    set /a n+=1
-    goto loopJS
+:: --- Tim so lon nhat cho App Script.js ---
+set "maxJS=0"
+for %%F in ("%BAK_DIR%\App Script *.js") do (
+    for /f "tokens=3 delims=. " %%N in ("%%~nxF") do (
+        set /a num=%%N 2>nul
+        if !num! gtr !maxJS! set maxJS=!num!
+    )
 )
-copy "%SRC_DIR%\App Script.js" "%BAK_DIR%\App Script !n!.js" >nul
-echo   - Da copy thanh cong: App Script !n!.js
+set /a nextJS=maxJS + 1
 
-:: Tim so thu tu tiep theo cho index.html
-set m=1
-:loopHTML
-if exist "%BAK_DIR%\index !m!.html" (
-    set /a m+=1
-    goto loopHTML
+copy "%SRC_DIR%\App Script.js" "%BAK_DIR%\App Script !nextJS!.js"
+echo   - Da backup thanh cong: App Script !nextJS!.js
+
+:: --- Tim so lon nhat cho index.html ---
+set "maxHTML=0"
+for %%F in ("%BAK_DIR%\index *.html") do (
+    for /f "tokens=2 delims=. " %%N in ("%%~nxF") do (
+        set /a num=%%N 2>nul
+        if !num! gtr !maxHTML! set maxHTML=!num!
+    )
 )
-copy "%SRC_DIR%\index.html" "%BAK_DIR%\index !m!.html" >nul
-echo   - Da copy thanh cong: index !m!.html
+set /a nextHTML=maxHTML + 1
+
+copy "%SRC_DIR%\index.html" "%BAK_DIR%\index !nextHTML!.html"
+echo   - Da backup thanh cong: index !nextHTML!.html
 
 echo.
 
 :: ==========================================
-:: PHẦN 2: ĐẨY LÊN GITHUB (Giữ nguyên của anh)
+:: PHAN 2: DAY LEN GITHUB
 :: ==========================================
 echo [2/2] Dang cap nhat len Github...
 cd /d "%SRC_DIR%"
