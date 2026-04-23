@@ -147,12 +147,13 @@ function doPost(e) {
           const dir  = delta > 0 ? 'tăng' : 'giảm';
           const note = 'Điều chỉnh tồn kho (' + dir + ' từ ' + data.sl_cu + ' → ' + data.sl_moi + ')';
           const giaDieuChinh = Number(adjustedGiaVon) || 0;
+          const ts = Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
           const _adjIsX = adjSheet.getName() === 'Xuất';
           // Xuất: A-K=data, L=phiKT(empty), M=formula, N=tenkhach(empty), O=note
           // Nhập: A-K=data, L=formula,       M=note
           const adjRow = _adjIsX
-            ? [data.ma, new Date(), data.row[1], data.row[2], data.row[3], data.row[4], data.row[7], Math.abs(delta), giaDieuChinh, '', '', '', '', '', note]
-            : [data.ma, new Date(), data.row[1], data.row[2], data.row[3], data.row[4], data.row[7], Math.abs(delta), giaDieuChinh, '', '', '', note];
+            ? [data.ma, ts, data.row[1], data.row[2], data.row[3], data.row[4], data.row[7], Math.abs(delta), giaDieuChinh, '', '', '', '', '', note]
+            : [data.ma, ts, data.row[1], data.row[2], data.row[3], data.row[4], data.row[7], Math.abs(delta), giaDieuChinh, '', '', '', note];
           adjSheet.appendRow(adjRow);
           const nr = adjSheet.getLastRow();
           adjSheet.getRange(nr, _adjIsX ? 13 : 12).setFormula('=H' + nr + '*I' + nr + '+K' + nr + (_adjIsX ? '+L' + nr : ''));

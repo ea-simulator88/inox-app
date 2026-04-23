@@ -3358,7 +3358,13 @@ async function submitProductForm() {
     const newTonkho = parseInt((document.getElementById('pf_tonkho')?.value  || '').replace(/,/g, '')) || 0;
     // Xây chuỗi ghichu_gia
     const _d = new Date();
-    const dateStr = _d.getDate() + '/' + (_d.getMonth() + 1) + '/' + _d.getFullYear();
+    const dateStr =
+      _d.getFullYear() + '-' +
+      String(_d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(_d.getDate()).padStart(2, '0') + ' ' +
+      String(_d.getHours()).padStart(2, '0') + ':' +
+      String(_d.getMinutes()).padStart(2, '0') + ':' +
+      String(_d.getSeconds()).padStart(2, '0');
     const _parts = [];
     if (newGiavon !== oldGiavon) _parts.push('Giá vốn: ' + fmt(oldGiavon) + '\u2192' + fmt(newGiavon));
     if (newGiasi  !== oldGiasi)  _parts.push('Giá sỉ: '  + fmt(oldGiasi)  + '\u2192' + fmt(newGiasi));
