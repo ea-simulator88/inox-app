@@ -2227,7 +2227,15 @@ function showInfoModal(msg, sub, highlightMas) {
 
 function parseNum(val) {
   if (typeof val === 'number') return val;
-  return parseInt((val || '').toString().replace(/[^0-9]/g, '')) || 0;
+  if (!val) return 0;
+  // Loại bỏ dấu phẩy (,), giữ lại số, dấu chấm (.) và dấu trừ (-)
+  const cleaned = val.toString().replace(/,/g, '').replace(/[^0-9.-]/g, '');
+  return parseFloat(cleaned) || 0;
+}
+
+function getInputNum(id) {
+  const val = document.getElementById(id).value || '';
+  return parseNum(val);
 }
 
 function ixShow(el) {
@@ -2343,7 +2351,8 @@ function buildHistoryMatchRows(rows) {
 
 function fmtMoney(val) {
   if (typeof val === 'string') {
-    const num = parseFloat(val.replace(/[^\d]/g, ''));
+    // Giữ lại dấu chấm thập phân khi hiển thị
+    const num = parseFloat(val.replace(/,/g, '').replace(/[^\d.-]/g, ''));
     return isNaN(num) ? val : num.toLocaleString('en-US') + ' đ';
   }
   return Number(val || 0).toLocaleString('en-US') + ' đ';
@@ -2761,7 +2770,7 @@ function cartStepSl(idx, delta) {
 }
 
 function updateCartSl(idx, val) {
-  const n = parseInt(val.replace(/[^0-9]/g, '')) || 0;
+  const n = parseNum(val); // Dùng parseNum thay vì regex cũ
   cart[idx].sl = n < 1 ? 1 : n;
   refreshSubTotal(idx);
   updateCartTotal();
@@ -2778,7 +2787,7 @@ function updateCartSl(idx, val) {
 }
 
 function updateCartGia(idx, val) {
-  cart[idx].gia = parseInt(val.replace(/[^0-9]/g, '')) || 0;
+  cart[idx].gia = parseNum(val); // Dùng parseNum thay vì regex cũ
   refreshSubTotal(idx);
   updateCartTotal();
   saveCartDebounced();
@@ -5691,7 +5700,9 @@ async function _doHistSaveEdit() {
     // col: [ma, thoigian, ncc, hanghoa, kichthuoc, mota, dvt, soluong, gia, giaodich, phichanh, phikhachtra, '', tenkhach/ghichu]
     const storedPhi = i === 0 ? (newPhiChanh ? ((isXuat || isDraft) ? -newPhiChanh : newPhiChanh) : '') : '';
     const storedPkt = i === 0 && (isXuat || isDraft) ? (newPhiKhachTra || '') : '';
-    updatedRows.push([newMa, r.thoigian, ncc, hanghoa, kichthuoc, mota, dvt, soluong, gia, newGiaodich, storedPhi, storedPkt, '', (isXuat || isDraft) ? newTenkhach : '']);
+    const ghichuStr = r.ghichu || '';
+    const nguoiGhiStr = r.nguoighi || currentUserName;
+    updatedRows.push([newMa, r.thoigian, ncc, hanghoa, kichthuoc, mota, dvt, soluong, gia, newGiaodich, storedPhi, storedPkt, '', (isXuat || isDraft) ? newTenkhach : '' , ghichuStr, nguoiGhiStr]);
   });
 
   const saveBtn = document.getElementById('hedit-save-btn');
