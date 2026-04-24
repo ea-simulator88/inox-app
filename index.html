@@ -66,7 +66,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 /* Success */
 .success-wrap { text-align: center; padding: 2.5rem 0 1.5rem; }
 .success-circle { width: 72px; height: 72px; border-radius: 50%; background: #e8f5e9; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
-.success-title { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+.success-title { font-size: 20px; font-weight: 600; margin-bottom: 6px; display:flex; align-items:center; justify-content:center; gap:6px; }
 .success-sub { font-size: 13px; color: #888; }
 
 /* Error */
@@ -701,7 +701,7 @@ const CONFIG = {
       </div>
 
       <button class="btn-confirm xuat" id="btn-cart-confirm" onclick="submitCart(cartMode)" style="width:100%;margin-top: -7px;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path d="M20 6L9 17l-5-5"/></svg> Xác nhận Xuất</button>
-      <button id="btn-cart-draft" onclick="saveDraft()" style="width:100%;padding:14px;background:#fff8e1;color:#e65100;border:1.5px solid #ffb74d;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px;margin-top: 5px;display:flex;align-items:center;justify-content:center;"><svg width="16" height="15" viewBox="0 0 24 22" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/></svg> Lưu Nháp</button>
+      <button id="btn-cart-draft" onclick="saveDraft()" style="width:100%;padding:14px;background:#fff8e1;color:#e65100;border:1.5px solid #ffb74d;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px;margin-top: 5px;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/></svg> Lưu Nháp</button>
       <div style="text-align:center;font-size:13px;color:#4CAF50;font-weight:600;padding:6px 0 4px;">
         Tổng tiền <span id="cart-total-val">0</span> đ
       </div>
@@ -1148,7 +1148,7 @@ const CONFIG = {
 
 
         <button id="dt-btn-confirm" class="btn-confirm xuat" onclick="dtSubmit()" style="width:100%;;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path d="M20 6L9 17l-5-5"/></svg> Xác nhận Xuất — 0 SP</button>
-        <button id="dt-btn-draft" onclick="dtSaveDraft()" style="width:100%;padding:14px;background:#fff8e1;color:#e65100;border:1.5px solid #ffb74d;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px;margin-top: 7px"><svg width="16" height="15" viewBox="0 0 24 22" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/></svg> Lưu Nháp</button>
+        <button id="dt-btn-draft" onclick="dtSaveDraft()" style="width:100%;padding:14px;background:#fff8e1;color:#e65100;border:1.5px solid #ffb74d;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px;margin-top: 7px;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/></svg> Lưu Nháp</button>
         <div id="dt-confirm-hint" style="font-size:12px;color:#aaa;text-align:center;margin-top:8px;">
           Mỗi SP ghi 1 dòng vào sheet Xuất
         </div>
@@ -1751,6 +1751,10 @@ async function doLogin() {
 
   loginBtn.innerHTML = _BTN_LOGIN_LOADING;
   loginBtn.disabled = true;
+  const _preMatch = (_realtimeUsers || []).find(u => u.matkhau === pass);
+  if (_preMatch) {
+    document.getElementById(_preMatch.vaitro === 'owner' ? 'ln-role-owner' : 'ln-role-staff').classList.add('active');
+  }
   try {
     const res = await fetch(`${SCRIPT_URL}?action=getUsers&token=inox2026xK9m`);
     const data = await res.json();
@@ -2952,7 +2956,7 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra) {
   }).catch(() => {});
 
   const isXuat = mode === 'Xuất';
-  document.getElementById('success-title').textContent = isXuat ? '📤 Xuất hàng thành công!' : '📥 Nhập hàng thành công!';
+  document.getElementById('success-title').innerHTML = isXuat ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Xuất hàng thành công!' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4"/><polyline points="17 14 12 9 7 14"/><line x1="12" y1="9" x2="12" y2="21"/></svg> Nhập hàng thành công!';
   document.getElementById('success-sub').textContent = thoiGian;
   document.getElementById('success-detail').innerHTML = `
     <div class="info-row"><span class="info-label">Số loại sản phẩm</span><span class="info-value">${totalItems}</span></div>
@@ -3047,7 +3051,7 @@ function setMode(mode) {
     bx.className = 'toggle-btn active-xuat';
     bn.className = 'toggle-btn';
     lbl.innerHTML = 'Giá bán (đồng) <span style="color:#f44336;">*</span>';
-    bc.textContent = '✅ Xác nhận Xuất hàng';
+    bc.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path d="M20 6L9 17l-5-5"/></svg> Xác nhận Xuất hàng';
     bc.className = 'btn-confirm xuat';
     document.getElementById('row-giavon').style.display = 'none';
     document.getElementById('row-giasi').style.display = 'flex';
@@ -3056,7 +3060,7 @@ function setMode(mode) {
     bn.className = 'toggle-btn active-nhap';
     bx.className = 'toggle-btn';
     lbl.innerHTML = 'Giá nhập (đồng) <span style="color:#f44336;">*</span>';
-    bc.textContent = '✅ Xác nhận Nhập hàng';
+    bc.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path d="M20 6L9 17l-5-5"/></svg> Xác nhận Nhập hàng';
     bc.className = 'btn-confirm';
     document.getElementById('form-phichanh').value = '';
     document.getElementById('row-giavon').style.display = isOwner ? 'flex' : 'none';
@@ -3199,7 +3203,7 @@ async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
 
   btn.disabled = false;
   const isXuat = currentMode === 'Xuất';
-  document.getElementById('success-title').textContent = isXuat ? '📤 Xuất hàng thành công!' : '📥 Nhập hàng thành công!';
+  document.getElementById('success-title').innerHTML = isXuat ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Xuất hàng thành công!' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4"/><polyline points="17 14 12 9 7 14"/><line x1="12" y1="9" x2="12" y2="21"/></svg> Nhập hàng thành công!';
   document.getElementById('success-sub').textContent = thoiGian;
   document.getElementById('success-detail').innerHTML = `
     <div class="info-row"><span class="info-label">Sản phẩm</span><span class="info-value">${currentProduct.ten}</span></div>
@@ -4072,7 +4076,7 @@ async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra) {
   fetchProductsFromServer().then(() => dtFilterProducts());
 
   // Hiện success overlay
-  document.getElementById('dt-success-title').textContent = isXuat ? '📤 Xuất hàng thành công!' : '📥 Nhập hàng thành công!';
+  document.getElementById('dt-success-title').innerHTML = isXuat ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Xuất hàng thành công!' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4"/><polyline points="17 14 12 9 7 14"/><line x1="12" y1="9" x2="12" y2="21"/></svg> Nhập hàng thành công!';
   document.getElementById('dt-success-sub').textContent = thoiGian;
   document.getElementById('dt-success-detail').innerHTML = `
     <div class="info-row"><span class="info-label">Số loại sản phẩm</span><span class="info-value">${count}</span></div>
@@ -5927,7 +5931,7 @@ async function dtSaveDraft() {
   }
   if (!(document.getElementById('dt-ghichu')?.value || '').trim()) { showInfoModal('Thiếu tên khách!', 'Vui lòng nhập tên khách trước khi lưu nháp.'); return; }
   const draftBtn = document.getElementById('dt-btn-draft');
-  if (draftBtn) { draftBtn.disabled = true; draftBtn.textContent = '⏳ Đang lưu...'; }
+  if (draftBtn) { draftBtn.disabled = true; draftBtn.innerHTML = '⏳ Đang lưu...'; }
   const now = new Date();
   const thoiGian = fmtTime(now);
   const giaodich = document.getElementById('dt-giaodich')?.value || '';
@@ -5961,11 +5965,11 @@ async function dtSaveDraft() {
   document.getElementById('dt-phikhachtra').value = '';
   document.getElementById('dt-ghichu').value = '';
   saveCart();
-  if (draftBtn) { draftBtn.disabled = false; draftBtn.textContent = '📝 Lưu nháp'; }
+  if (draftBtn) { draftBtn.disabled = false; draftBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/></svg> Lưu nháp'; }
   dtSetMode(dtMode);
   dtRenderCart();
   dtFilterProducts();
-  document.getElementById('dt-success-title').textContent = '📝 Lưu nháp thành công!';
+  document.getElementById('dt-success-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" "><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/></svg>Lưu nháp thành công!';
   document.getElementById('dt-success-sub').textContent = thoiGian;
   document.getElementById('dt-success-detail').innerHTML = `
     <div class="info-row"><span class="info-label">Số loại sản phẩm</span><span class="info-value">${totalItems}</span></div>
@@ -5987,7 +5991,7 @@ async function saveDraft() {
   }
   if (!(document.getElementById('cart-ghichu')?.value || '').trim()) { showInfoModal('Thiếu tên khách!', 'Vui lòng nhập tên khách trước khi lưu nháp.'); return; }
   const draftBtn = document.getElementById('btn-cart-draft');
-  if (draftBtn) { draftBtn.disabled = true; draftBtn.textContent = '⏳ Đang lưu...'; }
+  if (draftBtn) { draftBtn.disabled = true; draftBtn.innerHTML = '⏳ Đang lưu...'; }
   const now = new Date();
   const thoiGian = fmtTime(now);
   const giaodich = document.getElementById('cart-giaodich')?.value || '';
@@ -6023,8 +6027,8 @@ async function saveDraft() {
   if (_gdt) _gdt.value = '';
   updateCartBadge(); saveCart();
   filterProductList();
-  if (draftBtn) { draftBtn.disabled = false; draftBtn.textContent = '📝 Lưu nháp'; }
-  document.getElementById('success-title').textContent = '📝 Lưu nháp thành công!';
+  if (draftBtn) { draftBtn.disabled = false; draftBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/></svg> Lưu nháp'; }
+  document.getElementById('success-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" "><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/></svg>Lưu nháp thành công!';
   document.getElementById('success-sub').textContent = thoiGian;
   document.getElementById('success-detail').innerHTML = `
     <div class="info-row"><span class="info-label">Số loại sản phẩm</span><span class="info-value">${totalItems}</span></div>
