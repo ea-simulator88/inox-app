@@ -195,19 +195,31 @@ function doPost(e) {
         }
         const vals = sheet.getDataRange().getValues();
         const dvals = sheet.getDataRange().getDisplayValues();
+
+        // Thu thập các dòng cần xóa (vòng lặp ngược → mảng đã theo thứ tự giảm dần)
+        const rowsToDelete = [];
         for (let i = vals.length - 1; i >= 1; i--) {
           const cv = dvals[i][1] || vals[i][1];
           if (!cv) continue;
           if (_historyTimeKey(cv) !== targetTimeKey) continue;
           if (!Array.isArray(data.matchRows) || data.matchRows.length === 0) {
-            sheet.deleteRow(i + 1);
+            rowsToDelete.push(i + 1);
             continue;
           }
           const sig = _historyMatchSignature_(data.sheet, vals[i]);
           if (matchCounts[sig] > 0) {
-            sheet.deleteRow(i + 1);
+            rowsToDelete.push(i + 1);
             matchCounts[sig]--;
           }
+        }
+
+        // Gom các dòng liên tiếp → xóa 1 lần thay vì từng dòng
+        let j = 0;
+        while (j < rowsToDelete.length) {
+          let count = 1;
+          while (j + count < rowsToDelete.length && rowsToDelete[j + count] === rowsToDelete[j] - count) count++;
+          sheet.deleteRows(rowsToDelete[j + count - 1], count);
+          j += count;
         }
       }
       if (data.action === 'updateHistoryRows' && Array.isArray(data.rows)) {
