@@ -2288,8 +2288,12 @@ function ixClear(el) {
 }
 function fmtInputK(el) {
   const inputDigits = el.value.replace(/[^0-9]/g, '');
-  if (!inputDigits) { el.value = ''; el.dataset.kd = ''; return; }
-  const prevKd = el.dataset.kd || '';
+  if (!inputDigits) { el.value = ''; el.dataset.kd = ''; el.dataset.kprev = ''; return; }
+  let prevKd = el.dataset.kd || '';
+  // Nếu field bị reset ngoài (el.value='') mà dataset.kd chưa xóa → phát hiện qua
+  // độ lệch chiều dài giữa giá trị hiện tại và giá trị formatted lần trước (kprev)
+  const kprev = el.dataset.kprev || '';
+  if (prevKd && kprev && Math.abs(el.value.length - kprev.length) > 2) prevKd = '';
   const prevFull = prevKd ? (parseInt(prevKd) * 1000).toString() : '';
   let newKd;
   if (!prevKd) {
@@ -2303,8 +2307,9 @@ function fmtInputK(el) {
     newKd = inputDigits.endsWith('000') && inputDigits.length > 3 ? inputDigits.slice(0, -3) : inputDigits;
   }
   el.dataset.kd = newKd;
-  if (!newKd) { el.value = ''; return; }
+  if (!newKd) { el.value = ''; el.dataset.kprev = ''; return; }
   el.value = (parseInt(newKd) * 1000).toLocaleString('en-US');
+  el.dataset.kprev = el.value;
   el.setSelectionRange(el.value.length, el.value.length);
 }
 
