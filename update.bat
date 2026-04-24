@@ -12,7 +12,11 @@ set "BAK_DIR=%~dp0..\Backup"
 if not exist "%BAK_DIR%" mkdir "%BAK_DIR%"
 
 echo Dang tu dong Save All trong VS Code...
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0_save_vscode.ps1"
+set "PS1=%TEMP%\vsc_save_%RANDOM%.ps1"
+echo $p = Get-Process -Name 'Code' -EA 0 ^| Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero } ^| Select-Object -First 1 > "!PS1!"
+echo if ($p) { $w = New-Object -ComObject WScript.Shell; $null = $w.AppActivate($p.Id); Start-Sleep -Milliseconds 500; $w.SendKeys('^^+p'); Start-Sleep -Milliseconds 800; $w.SendKeys('save all{ENTER}'); Start-Sleep -Milliseconds 700; Write-Host '  - Da Save All thanh cong' } else { Write-Host '  - VS Code khong chay, bo qua buoc save' } >> "!PS1!"
+powershell -NoProfile -ExecutionPolicy Bypass -File "!PS1!"
+del "!PS1!" 2>nul
 echo.
 echo [1/2] Dang tien hanh backup file vao o D...
 
