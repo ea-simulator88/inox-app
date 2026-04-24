@@ -235,18 +235,29 @@ function doPost(e) {
     const rowsToWrite = data.rows || [data.row];
     const _isXuatOrDraft = data.sheet === 'Xuất' || data.sheet === 'Nháp';
 
-    rowsToWrite.forEach(function(row) {
+    // Chuẩn bị tất cả rows (padding + user_name)
+    const preparedRows = rowsToWrite.map(function(row) {
+      const r = row.slice();
       if (_isXuatOrDraft) {
-        // Cột P là cột số 16 (index 15)
-        // Nếu data.user_name không có mới để trống, không để chữ "Hệ thống"
-        while(row.length < 15) row.push("");
-        row[15] = data.user_name || "";
+        while (r.length < 15) r.push('');
+        r[15] = data.user_name || '';
       }
-
-      sheet.appendRow(row);
-      const newRow = sheet.getLastRow();
-      sheet.getRange(newRow, _isXuatOrDraft ? 13 : 12).setFormula('=H' + newRow + '*I' + newRow + '+K' + newRow + (_isXuatOrDraft ? '+L' + newRow : ''));
+      return r;
     });
+
+    // Chuẩn hóa độ rộng (setValues yêu cầu hình chữ nhật)
+    const maxCols = preparedRows.reduce(function(m, r) { return Math.max(m, r.length); }, 0);
+    preparedRows.forEach(function(r) { while (r.length < maxCols) r.push(''); });
+
+    // Ghi tất cả dòng 1 lần + set công thức 1 lần
+    const formulaCol = _isXuatOrDraft ? 13 : 12;
+    const startRow = sheet.getLastRow() + 1;
+    sheet.getRange(startRow, 1, preparedRows.length, maxCols).setValues(preparedRows);
+    const formulas = preparedRows.map(function(_, i) {
+      const nr = startRow + i;
+      return ['=H' + nr + '*I' + nr + '+K' + nr + (_isXuatOrDraft ? '+L' + nr : '')];
+    });
+    sheet.getRange(startRow, formulaCol, formulas.length, 1).setFormulas(formulas);
 
     // Cập nhật Giá vốn (col F=6) từ max Nhập
     if (data.sheet === 'Nhập') {
