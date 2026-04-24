@@ -2960,7 +2960,7 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra) {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sheet: mode, rows, token: 'inox2026xK9m' ,user_name: currentUserName })
-  }).catch(() => {});
+  }).catch(() => { showToast('⚠️ Lỗi kết nối, vui lòng kiểm tra mạng.'); });
 
   const isXuat = mode === 'Xuất';
   document.getElementById('success-title').innerHTML = isXuat ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Xuất hàng thành công!' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4"/><polyline points="17 14 12 9 7 14"/><line x1="12" y1="9" x2="12" y2="21"/></svg> Nhập hàng thành công!';
@@ -4062,7 +4062,7 @@ async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra) {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sheet: dtMode, rows, token: 'inox2026xK9m' ,user_name: currentUserName })
-  }).catch(() => {});
+  }).catch(() => { showToast('⚠️ Lỗi kết nối, vui lòng kiểm tra mạng.'); });
 
   const count = dtCart.length;
   const totalQty = dtCart.reduce((s, i) => s + (i.sl || 0), 0);
@@ -5893,7 +5893,7 @@ async function _doHistSaveEdit() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sheet: g.loai, action: 'updateHistoryRows', thoigian: g.thoigian, rows: updatedRows, matchRows: buildHistoryMatchRows(g.rows), notes, token: 'inox2026xK9m' })
     });
-  } catch(e) {}
+  } catch(e) { showToast('⚠️ Lỗi kết nối, dữ liệu có thể chưa được lưu.'); return; }
 
   // Cập nhật _historyData local
   const t = g.thoigian, l = g.loai, k = g.tenkhach;
@@ -5921,7 +5921,7 @@ async function histDeleteGroup(idx) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sheet: g.loai, action: 'deleteHistoryRows', thoigian: g.thoigian, matchRows: buildHistoryMatchRows(g.rows), token: 'inox2026xK9m' })
     });
-  } catch(e) {}
+  } catch(e) { showToast('⚠️ Lỗi kết nối, dữ liệu có thể chưa được lưu.'); return; }
 
   const t = g.thoigian, l = g.loai, k = g.tenkhach;
   _historyData = _historyData.filter(r => !(r.thoigian === t && r.loai === l && r.tenkhach === k));
@@ -5961,7 +5961,7 @@ async function dtSaveDraft() {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sheet: 'Nháp', rows, token: 'inox2026xK9m' ,user_name: currentUserName })
-  }).catch(() => {});
+  }).catch(() => { showToast('⚠️ Lỗi kết nối, vui lòng kiểm tra mạng.'); });
   const totalItems = dtCart.length;
   const totalQty = dtCart.reduce((s, x) => s + (Number(x.sl) || 0), 0);
   const totalAmount = dtCart.reduce((s, x) => s + (Number(x.sl) || 0) * (Number(x.gia) || 0), 0);
@@ -6021,7 +6021,7 @@ async function saveDraft() {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sheet: 'Nháp', rows, token: 'inox2026xK9m' ,user_name: currentUserName })
-  }).catch(() => {});
+  }).catch(() => { showToast('⚠️ Lỗi kết nối, vui lòng kiểm tra mạng.'); });
   const totalItems = cart.length;
   const totalQty = cart.reduce((s, x) => s + (Number(x.sl) || 0), 0);
   const totalAmount = cart.reduce((s, x) => s + (Number(x.sl) || 0) * (Number(x.gia) || 0), 0);
