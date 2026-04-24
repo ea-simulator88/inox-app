@@ -326,15 +326,15 @@ function fmtDateTime(d) {
 function _historyTimeKey(v) {
   if (!v) return '';
   if (v instanceof Date) {
-    return Utilities.formatDate(v, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm');
+    return Utilities.formatDate(v, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
   }
 
   const s = String(v).trim();
-  const m = s.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2})/);
+  const m = s.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/);
   if (m) return m[1];
 
   const d = new Date(s);
-  return isNaN(d.getTime()) ? '' : Utilities.formatDate(d, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm');
+  return isNaN(d.getTime()) ? '' : Utilities.formatDate(d, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
 }
 
 function _historyMatchSignature_(sheetName, row) {

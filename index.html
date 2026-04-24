@@ -2581,6 +2581,7 @@ function liveQtyInput(el) {
     cart.push({ product: product, sl: val, gia: 0 });
   }
   updateCartBadge();
+  _patchProductCardMobile(ma);
   saveCartDebounced();
 }
 
@@ -2599,7 +2600,18 @@ function liveQtyInputDt(el) {
   }
   dtRenderCart();
   updateCartBadge();
+  _patchProductCardDt(ma);
   saveCartDebounced();
+}
+
+function _patchProductCardMobile(ma) {
+  const qid = 'q_' + ma.replace(/[^a-zA-Z0-9]/g, '_');
+  const input = document.getElementById(qid);
+  if (!input) return;
+  const cartItem = cart.find(i => i.product.ma === ma);
+  input.value = cartItem ? cartItem.sl : '';
+  const subBtn = input.parentElement && input.parentElement.querySelector('.btn-sub-cart');
+  if (subBtn) subBtn.disabled = (!cartItem || cartItem.sl <= 1);
 }
 
 function addToCartQty(product) {
@@ -2613,14 +2625,12 @@ function addToCartQty(product) {
     showToast('🛒 Đã thêm: ' + product.ten);
   }
   updateCartBadge();
-  filterProductList();
+  _patchProductCardMobile(product.ma);
   saveCart();
 }
 
 function addPlusMobile(product) {
   if (!product) return;
-  const filterEl = document.getElementById('manual-code');
-  const savedFilter = filterEl ? filterEl.value : '';
   const existing = cart.find(i => i.product.ma === product.ma);
   if (existing) {
     existing.sl += 1;
@@ -2631,21 +2641,17 @@ function addPlusMobile(product) {
     cart.push({ product: product, sl: inputVal, gia: 0 });
   }
   updateCartBadge();
-  if (filterEl && savedFilter) filterEl.value = savedFilter;
-  filterProductList();
+  _patchProductCardMobile(product.ma);
   saveCart();
 }
 
 function subFromCartMobile(product) {
   if (!product) return;
-  const filterEl = document.getElementById('manual-code');
-  const savedFilter = filterEl ? filterEl.value : '';
   const existing = cart.find(i => i.product.ma === product.ma);
   if (!existing || existing.sl <= 1) return;
   existing.sl -= 1;
   updateCartBadge();
-  if (filterEl && savedFilter) filterEl.value = savedFilter;
-  filterProductList();
+  _patchProductCardMobile(product.ma);
   saveCart();
 }
 
@@ -3789,11 +3795,25 @@ function dtAddToCart(ma, sl) {
   saveCart();
 }
 
+function _patchProductCardDt(ma) {
+  const input = document.getElementById('dt-sl-' + ma);
+  if (!input) return;
+  const cartItem = dtCart.find(i => i.product.ma === ma);
+  input.value = cartItem ? cartItem.sl : '';
+  const card = input.closest('.dt-product-item');
+  if (card) {
+    const inCart = !!cartItem;
+    card.classList.toggle('in-cart', inCart);
+    card.style.border = '1px solid ' + (inCart ? '#a5d6a7' : 'transparent');
+    card.style.background = inCart ? '#e8f5e9' : '#fff';
+    const subBtn = card.querySelector('.dt-btn-sub-cart');
+    if (subBtn) subBtn.disabled = (!cartItem || cartItem.sl <= 1);
+  }
+}
+
 function dtAddPlus(ma) {
   const product = products.find(p => p.ma === ma);
   if (!product) return;
-  const dtSearchEl = document.getElementById('dt-search');
-  const savedFilter = dtSearchEl ? dtSearchEl.value : '';
   const exists = dtCart.findIndex(i => i.product.ma === ma);
   if (exists !== -1) {
     dtCart[exists].sl += 1;
@@ -3803,27 +3823,23 @@ function dtAddPlus(ma) {
     dtCart.push({ product: product, sl: inputVal, gia: 0 });
   }
   dtRenderCart();
-  if (dtSearchEl && savedFilter) dtSearchEl.value = savedFilter;
-  dtFilterProducts();
+  _patchProductCardDt(ma);
   saveCart();
 }
 
 function dtSubFromCart(ma) {
   const item = dtCart.find(i => i.product.ma === ma);
   if (!item || item.sl <= 1) return;
-  const dtSearchEl = document.getElementById('dt-search');
-  const savedFilter = dtSearchEl ? dtSearchEl.value : '';
   item.sl -= 1;
   dtRenderCart();
-  if (dtSearchEl && savedFilter) dtSearchEl.value = savedFilter;
-  dtFilterProducts();
+  _patchProductCardDt(ma);
   saveCart();
 }
 
 function dtRemoveFromCart(ma) {
   dtCart = dtCart.filter(i => i.product.ma !== ma);
   dtRenderCart();
-  dtFilterProducts();
+  _patchProductCardDt(ma);
   saveCart();
 }
 
