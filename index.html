@@ -27,9 +27,13 @@ html.app-booting #app { visibility: hidden; }
 label { font-size: 13px; color: #888; display: block; margin-bottom: 6px; margin-top: 12px; }
 label:first-child { margin-top: 0; }
 input, select { width: 100%; padding: 11px 14px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 15px; color: #1a1a1a; background: #fafafa; outline: none; }
-select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 12px center; background-size: 14px; padding-right: 34px; }
+select { appearance: none; -webkit-appearance: none; padding-right: 34px; }
 input:focus, select:focus { border-color: #4CAF50; background: #fff; }
-select:focus { background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 12px center; background-size: 14px; }
+.select-wrap { position: relative; display: block; width: 100%; }
+.select-wrap::after { content: ''; position: absolute; right: 12px; top: 50%; transform: translateY(-50%) rotate(0deg); width: 14px; height: 14px; background: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e") no-repeat center / 14px; pointer-events: none; transition: transform 0.2s ease; }
+.select-wrap.s-open::after { transform: translateY(-50%) rotate(180deg); }
+#btn-filter-history svg, #dt-btn-filter-history svg, #mng-btn-filter-history svg, #hist-btn-filter-history svg, #report-btn-filter-history svg { transition: transform 0.2s ease; }
+#btn-filter-history.sh-open svg, #dt-btn-filter-history.sh-open svg, #mng-btn-filter-history.sh-open svg, #hist-btn-filter-history.sh-open svg, #report-btn-filter-history.sh-open svg { transform: rotate(180deg); }
 
 /* Buttons */
 .btn-primary { width: 100%; padding: 14px; background: #4CAF50; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 12px; }
@@ -6108,6 +6112,50 @@ function histDetailConfirmDraft() {
   if (_histDetailIdx < 0) return;
   confirmDraftToXuat(_histDetailIdx);
 }
+
+(function _syncSearchArrows() {
+  const map = {
+    'search-history-dropdown'       : 'btn-filter-history',
+    'dt-search-history-dropdown'    : 'dt-btn-filter-history',
+    'mng-search-history-dropdown'   : 'mng-btn-filter-history',
+    'hist-search-history-dropdown'  : 'hist-btn-filter-history',
+    'report-search-history-dropdown': 'report-btn-filter-history',
+  };
+  Object.entries(map).forEach(([ddId, btnId]) => {
+    const dd  = document.getElementById(ddId);
+    const btn = document.getElementById(btnId);
+    if (!dd || !btn) return;
+    new MutationObserver(() => {
+      btn.classList.toggle('sh-open', dd.style.display !== 'none');
+    }).observe(dd, { attributes: true, attributeFilter: ['style'] });
+  });
+})();
+
+(function _wrapAllSelects() {
+  document.querySelectorAll('select').forEach(sel => {
+    if (sel.closest('.select-wrap')) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'select-wrap';
+    // Chuyển margin-bottom từ select sang wrapper để ::after căn đúng
+    if (sel.style.marginBottom) {
+      wrap.style.marginBottom = sel.style.marginBottom;
+      sel.style.marginBottom = '0';
+    }
+    sel.parentNode.insertBefore(wrap, sel);
+    wrap.appendChild(sel);
+    // Toggle arrow bằng JS (CSS :focus không detect được click đóng dropdown)
+    let _open = false;
+    sel.addEventListener('mousedown', function() {
+      if (document.activeElement === this) {
+        _open = !_open;
+        wrap.classList.toggle('s-open', _open);
+      }
+    });
+    sel.addEventListener('focus', function() { _open = true; wrap.classList.add('s-open'); });
+    sel.addEventListener('blur',  function() { _open = false; wrap.classList.remove('s-open'); });
+    sel.addEventListener('change',function() { _open = false; wrap.classList.remove('s-open'); });
+  });
+})();
 </script>
 </body>
 </html>

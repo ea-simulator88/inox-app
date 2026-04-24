@@ -11,6 +11,13 @@ set "BAK_DIR=%~dp0..\Backup"
 
 if not exist "%BAK_DIR%" mkdir "%BAK_DIR%"
 
+echo ================================================================
+echo  QUAN TRONG: Hay SAVE het file truoc khi chay!
+echo  (Ctrl+S trong VS Code / editor dang mo)
+echo ================================================================
+echo.
+pause
+echo.
 echo [1/2] Dang tien hanh backup file vao o D...
 
 :: Tim so thu tu tiep theo cho App Script.js
