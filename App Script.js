@@ -354,27 +354,27 @@ function _historyMatchSignature_(sheetName, row) {
     getVal(row, 6, 'dvt'),
     Number(getVal(row, 7, 'soluong')) || 0,
     Number(getVal(row, 8, 'gia')) || 0,
-    getVal(row, 9, 'giaodich'),
-    Number(getVal(row, 10, 'phichanh')) || 0
+    getVal(row, 9, 'giaodich')
   ];
 
   if (sheetName === 'Xuất') {
     parts.push(
+      Number(getVal(row, 10, 'phichanh')) || 0,
       Number(getVal(row, 11, 'phikhachtra')) || 0,
       getVal(row, 13, 'tenkhach'),
       getVal(row, 14, 'ghichu'),
       getVal(row, 15, 'nguoighi')
     );
   } else if (sheetName === 'Nháp') {
-    // Draft rows can be confirmed right after local save before a full reload.
-    // In that case local history may not carry "nguoighi" yet, so don't use it for matching.
+    // ghichu excluded: updateHistoryRows appends edit notes into that cell → mismatch after edit.
+    // phichanh/phikhachtra excluded: sign/format differences cause mismatches in some flows.
+    // tenkhach + 9 base fields + second-precision timestamp are unique enough.
     parts.push(
-      Number(getVal(row, 11, 'phikhachtra')) || 0,
-      getVal(row, 13, 'tenkhach'),
-      getVal(row, 14, 'ghichu')
+      getVal(row, 13, 'tenkhach')
     );
   } else {
     parts.push(
+      Number(getVal(row, 10, 'phichanh')) || 0,
       getVal(row, 12, 'ghichu')
     );
   }
