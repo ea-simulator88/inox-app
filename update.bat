@@ -13,8 +13,20 @@ if not exist "%BAK_DIR%" mkdir "%BAK_DIR%"
 
 echo Dang tu dong Save All trong VS Code...
 set "PS1=%TEMP%\vsc_save_%RANDOM%.ps1"
-echo $p = Get-Process -Name 'Code' -EA 0 ^| Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero } ^| Select-Object -First 1 > "!PS1!"
-echo if ($p) { $w = New-Object -ComObject WScript.Shell; $null = $w.AppActivate($p.Id); Start-Sleep -Milliseconds 500; $w.SendKeys('^^+p'); Start-Sleep -Milliseconds 800; $w.SendKeys('save all{ENTER}'); Start-Sleep -Milliseconds 700; Write-Host '  - Da Save All thanh cong' } else { Write-Host '  - VS Code khong chay, bo qua buoc save' } >> "!PS1!"
+(
+echo Add-Type -AssemblyName System.Windows.Forms
+echo $p = Get-Process -Name 'Code' -EA 0 ^| Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero } ^| Select-Object -First 1
+echo if ($p^) {
+echo     $w = New-Object -ComObject WScript.Shell
+echo     $null = $w.AppActivate($p.Id^)
+echo     Start-Sleep -Milliseconds 800
+echo     [System.Windows.Forms.SendKeys]::SendWait('^%%s'^)
+echo     Start-Sleep -Milliseconds 500
+echo     Write-Host '  - Da Save All thanh cong'
+echo } else {
+echo     Write-Host '  - VS Code khong chay, bo qua buoc save'
+echo }
+) > "!PS1!"
 powershell -NoProfile -ExecutionPolicy Bypass -File "!PS1!"
 del "!PS1!" 2>nul
 echo.
