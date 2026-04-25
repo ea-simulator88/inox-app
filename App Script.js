@@ -368,7 +368,7 @@ function _historyMatchSignature_(sheetName, row) {
   } else if (sheetName === 'Nháp') {
     // ghichu excluded: updateHistoryRows appends edit notes into that cell → mismatch after edit.
     // phichanh/phikhachtra excluded: sign/format differences cause mismatches in some flows.
-    // tenkhach + 9 base fields + second-precision timestamp are unique enough.
+    // tenkhach + 9 base fields + second-precision timestamp are unique enough
     parts.push(
       getVal(row, 13, 'tenkhach')
     );
