@@ -358,11 +358,11 @@ function _historyMatchSignature_(sheetName, row) {
   ];
 
   if (sheetName === 'Xuất') {
+    // ghichu (col 14) excluded: updateHistoryRows appends edit notes into that cell → mismatch after edit.
     parts.push(
       Number(getVal(row, 10, 'phichanh')) || 0,
       Number(getVal(row, 11, 'phikhachtra')) || 0,
       getVal(row, 13, 'tenkhach'),
-      getVal(row, 14, 'ghichu'),
       getVal(row, 15, 'nguoighi')
     );
   } else if (sheetName === 'Nháp') {
@@ -373,9 +373,9 @@ function _historyMatchSignature_(sheetName, row) {
       getVal(row, 13, 'tenkhach')
     );
   } else {
+    // Nhập: ghichu (col 12) excluded for same reason — notes appended there after edit.
     parts.push(
-      Number(getVal(row, 10, 'phichanh')) || 0,
-      getVal(row, 12, 'ghichu')
+      Number(getVal(row, 10, 'phichanh')) || 0
     );
   }
 
