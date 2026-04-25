@@ -10,26 +10,6 @@ set "SRC_DIR=%~dp0"
 set "BAK_DIR=%~dp0..\Backup"
 
 if not exist "%BAK_DIR%" mkdir "%BAK_DIR%"
-
-echo Dang tu dong Save All trong VS Code...
-set "PS1=%TEMP%\vsc_save_%RANDOM%.ps1"
-(
-echo Add-Type -AssemblyName System.Windows.Forms
-echo $p = Get-Process -Name 'Code' -EA 0 ^| Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero } ^| Select-Object -First 1
-echo if ($p^) {
-echo     $w = New-Object -ComObject WScript.Shell
-echo     $null = $w.AppActivate($p.Id^)
-echo     Start-Sleep -Milliseconds 800
-echo     [System.Windows.Forms.SendKeys]::SendWait('^%%s'^)
-echo     Start-Sleep -Milliseconds 500
-echo     Write-Host '  - Da Save All thanh cong'
-echo } else {
-echo     Write-Host '  - VS Code khong chay, bo qua buoc save'
-echo }
-) > "!PS1!"
-powershell -NoProfile -ExecutionPolicy Bypass -File "!PS1!"
-del "!PS1!" 2>nul
-echo.
 echo [1/2] Dang tien hanh backup file vao o D...
 
 :: Tim so thu tu tiep theo cho App Script.js
