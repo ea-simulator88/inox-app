@@ -265,7 +265,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body > *:not(#inv-print-root) { display: none !important; }
   #inv-print-root { display: block !important; }
-  .inv-print-page { width: 148mm; margin-left: -4mm; padding: 7mm 9mm; font-family: 'Times New Roman', serif; font-size: 11.5px; line-height: 1.2; color: #d32f2f; break-inside: avoid; box-sizing: border-box;}
+  .inv-print-page { width: 148mm; margin-left: 0mm; padding: 7mm 9mm; font-family: 'Times New Roman', serif; font-size: 11.5px; line-height: 1.2; color: #d32f2f; break-inside: avoid; box-sizing: border-box;}
   .inv-print-page + .inv-print-page {  break-before: page; }
   @page { size: A5 portrait; margin: 0; }
 }
@@ -5540,9 +5540,9 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
       <img src="qr-zalo.png" width="95mm" height="95mm" style="display:block;margin:0 auto 1mm;" />
       <div style="font-size:2.5mm;font-weight:700;line-height:1;">GIA DỤNG LÊ QUANG SUNG</div>
     </div>
-    <div style="width:24mm;height:28mm;text-align:center;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;">
+    <div style="width:24mm;height:28mm;text-align:center;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;margin-top: 6px;">
+      <img src="lucky-cat.png" width="82mm" height="82mm" style="background:#fff;display:block; margin:0 auto 1mm; background:transparent;" />
       <div style="font-size:3.5mm;font-style:italic;font-weight:700;line-height:1;margin-bottom:1.4mm;">Thank You !</div>
-      <div style="font-size:15mm;line-height:1;">&#128049;</div>
     </div>
     <div style="flex:1;">
       <div style="text-align:right;font-size:3.2mm;font-style:italic;margin-bottom:2mm;">${dateStr}${pageLabel}</div>
