@@ -281,7 +281,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   #manage-refresh-btn { margin-left:5px; order:1; }
 }
 /* ===== LOGIN REDESIGN ===== */
-#screen-login { min-height:100vh; align-items:center; justify-content:center; background:linear-gradient(135deg,#f0f7f0 0%,#e8f5e9 40%,#f5f5f5 100%); padding:16px; }
+#screen-login { height:100dvh; max-height:100dvh; overflow:hidden; align-items:center; justify-content:center; background:linear-gradient(135deg,#f0f7f0 0%,#e8f5e9 40%,#f5f5f5 100%); padding:16px; }
 #screen-login.active { display:flex; }
 .ln-shell { width:100%; max-width:400px; display:flex; flex-direction:column; gap:12px; }
 .ln-topbar { display:flex; align-items:center; justify-content:space-between; padding:0 4px; }
@@ -291,12 +291,12 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .ln-pulse { width:7px; height:7px; background:#4CAF50; border-radius:50%; animation:lnPulse 2s ease-in-out infinite; }
 @keyframes lnPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.75)} }
 @keyframes spin { to { transform:rotate(360deg); } }
-.ln-card { background:#fff; border-radius:20px; box-shadow:0 8px 32px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06); padding:28px 24px 24px; display:flex; flex-direction:column; gap:18px; }
+.ln-card { background:linear-gradient(135deg,#f0f7f0 0%,#e8f5e9 40%,#f5f5f5 100%); border-radius:20px; box-shadow:0 8px 32px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06); padding:70px 30px 24px; display:flex; flex-direction:column; gap:18px; }
 .ln-logo { display:flex; flex-direction:column; align-items:center; gap:10px; padding-bottom:4px; }
-.ln-logo-mark { width:60px; height:60px; background:linear-gradient(135deg,#4CAF50,#2e7d32); border-radius:16px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(76,175,80,.35); }
-.ln-logo-title { font-size:15px; font-weight:700; color:#1a1a1a; text-align:center; }
-.ln-logo-sub { font-size:12px; color:#888; text-align:center; }
-.ln-card-head { text-align:center; }
+.ln-logo-mark { width:65px; height:65px; background:linear-gradient(135deg,#4CAF50,#2e7d32); border-radius:16px; display:flex; align-items:center; justify-content:center; margin-top: -35px; box-shadow:0 4px 16px rgba(76,175,80,.35); }
+.ln-logo-title { font-size:17px; font-weight:700; color:#1a1a1a; text-align:center; }
+.ln-logo-sub { font-size:14px; color:#888; text-align:center; }
+.ln-card-head { text-align:center;margin-top: 3px; }
 .ln-card-head h2 { font-size:20px; font-weight:700; color:#1a1a1a; margin-bottom:4px; }
 .ln-card-head p { font-size:13px; color:#888; line-height:1.4; }
 .ln-role-row { display:flex; gap:8px; }
@@ -393,7 +393,7 @@ const CONFIG = {
         <span class="ln-mark">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         </span>
-        NHỰA · INOX
+        INOX · NHỰA
       </div>
       <div class="ln-clock">
         <span class="ln-pulse"></span>
@@ -404,19 +404,18 @@ const CONFIG = {
     <div class="ln-card">
       <div class="ln-logo">
         <div class="ln-logo-mark">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 9l9-6 9 6v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>
             <path d="M3 9h18"/>
             <path d="M9 22V13h6v9"/>
           </svg>
         </div>
         <div class="ln-logo-title">Hộ Kinh Doanh Hàng Gia Dụng</div>
-        <div class="ln-logo-sub">Quản lý xuất nhập kho</div>
+        <div class="ln-logo-sub">App Quản lý xuất nhập kho</div>
       </div>
 
       <div class="ln-card-head">
         <h2>Đăng nhập</h2>
-        <p>Chọn tài khoản và nhập mật khẩu để tiếp tục.</p>
       </div>
 
       <!-- Role selector -->
@@ -1021,8 +1020,8 @@ const CONFIG = {
   <!-- Header -->
     <div style="display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:12px 12px 0 0;padding:10px 20px;border:1px solid #e0e0e0;border-bottom:2.5px solid #4CAF50;flex-shrink:0;">
     <div>
-      <div style="font-size:16px;font-weight:600;color:#1a1a1a;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Hộ Kinh Doanh Hàng Gia Dụng Inox - Nhựa</div>
-      <div style="font-size:11px;color:#aaa;margin-top:2px;">Quản lý xuất nhập kho</div>
+      <div style="font-size:16px;font-weight:600;color:#1a1a1a;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Hộ Kinh Doanh Hàng Gia Dụng Inox · Nhựa</div>
+      <div style="font-size:11px;color:#aaa;margin-top:2px;">App Quản lý xuất nhập kho</div>
     </div>
     <div style="display:flex;align-items:center;justify-content:center;gap:13px;">
       <button id="dt-btn-report" onclick="showReport()" style="font-size:13px;padding:5px 13px;border-radius:30px;border:none;background:#f3e5f5;color:#6a1b9a;font-weight:500;cursor:pointer;"><span class="nav-icon-wrap"><svg width="16" height="16" class="nav-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 16V9"/><path d="M12 16V5"/><path d="M17 16v-3"/></svg><span>Báo cáo</span></span></button>
@@ -1845,27 +1844,9 @@ function _lnOnPassInput() {
 
   const btnAdmin = document.getElementById('ln-role-owner');
   const btnStaff = document.getElementById('ln-role-staff');
-  const pass = document.getElementById('login-pass').value.trim();
-
-  // Mặc định đưa cả 2 nút về màu xám khi đang nhập dang dở
   if (btnAdmin && btnStaff) {
     btnAdmin.classList.remove('active');
     btnStaff.classList.remove('active');
-  }
-
-  // Nếu chưa nhập gì hoặc danh sách rỗng thì dừng
-  if (!pass || !_realtimeUsers.length) return;
-
-  // Dò xem mật khẩu vừa nhập có khớp với ai không
-  const match = _realtimeUsers.find(u => u.matkhau === pass);
-
-  // Khớp chức vụ nào thì highlight xanh lá chức vụ đó lập tức
-  if (match) {
-    if (match.vaitro === 'owner') {
-      btnAdmin.classList.add('active');
-    } else {
-      btnStaff.classList.add('active');
-    }
   }
 }
 
