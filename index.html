@@ -53,7 +53,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 /* Badge role */
 .badge { font-size: 10px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
 .badge-owner { background: #fff3e0; color: #e65100; }
-.badge-staff { background: #fff3e0; color: #e65100; }
+.badge-staff { background: #dbeafe; color: #3b82f6; }
 
 /* Info rows */
 .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
@@ -291,7 +291,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .ln-pulse { width:7px; height:7px; background:#4CAF50; border-radius:50%; animation:lnPulse 2s ease-in-out infinite; }
 @keyframes lnPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.75)} }
 @keyframes spin { to { transform:rotate(360deg); } }
-.ln-card { background:linear-gradient(135deg,#f0f7f0 0%,#e8f5e9 40%,#f5f5f5 100%); border-radius:20px; box-shadow:0 8px 32px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06); padding:70px 30px 24px; display:flex; flex-direction:column; gap:18px; }
+.ln-card { background:#fff; border-radius:20px; box-shadow:0 8px 32px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06); padding:70px 30px 24px; display:flex; flex-direction:column; gap:18px; }
 .ln-logo { display:flex; flex-direction:column; align-items:center; gap:10px; padding-bottom:4px; }
 .ln-logo-mark { width:65px; height:65px; background:linear-gradient(135deg,#4CAF50,#2e7d32); border-radius:16px; display:flex; align-items:center; justify-content:center; margin-top: -35px; box-shadow:0 4px 16px rgba(76,175,80,.35); }
 .ln-logo-title { font-size:17px; font-weight:700; color:#1a1a1a; text-align:center; }
@@ -300,8 +300,9 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .ln-card-head h2 { font-size:20px; font-weight:700; color:#1a1a1a; margin-bottom:4px; }
 .ln-card-head p { font-size:13px; color:#888; line-height:1.4; }
 .ln-role-row { display:flex; gap:8px; }
-.ln-role-btn { flex:1; padding:10px 8px; border:1.5px solid #e0e0e0; border-radius:10px; background:#fafafa; color:#888; font-size:13px; font-weight:600; cursor:pointer; transition:all .18s; }
-.ln-role-btn.active { border-color:#4CAF50; background:#e8f5e9; color:#2e7d32; }
+.ln-role-btn { flex:1; padding:10px 8px; border:1.5px solid #e0e0e0; border-radius:10px; background:#fafafa; color:#888; font-size:13px; font-weight:600; cursor:pointer; }
+#ln-role-owner.active { border-color:#e65100; background:#fff3e0; color:#e65100; }
+#ln-role-staff.active { border-color:#3b82f6; background:#dbeafe; color:#3b82f6; }
 .ln-field { display:flex; flex-direction:column; gap:6px; }
 .ln-field-label { font-size:12px; font-weight:600; color:#555; margin:0; }
 .ln-input-wrap { position:relative; display:flex; align-items:center; }
@@ -325,7 +326,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .st-user-table tr:last-child td { border-bottom:none; }
 .st-role-pill { display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; }
 .st-role-owner { background:#fff3e0; color:#e65100; }
-.st-role-staff { background:#e8f5e9; color:#2e7d32; }
+.st-role-staff { background:#dbeafe; color:#3b82f6; }
 .st-btn { padding:4px 10px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; border:none; }
 .st-edit { background:#e3f2fd; color:#0d47a1; }
 .st-del { background:#ffebee; color:#c62828; margin-left:3px; }
@@ -421,12 +422,12 @@ const CONFIG = {
       <!-- Role selector -->
       <div class="ln-role-row">
         <button type="button" id="ln-role-owner" class="ln-role-btn" style="pointer-events:none; display:inline-flex;align-items:center;justify-content:center;gap:6px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block;"><path d="M3 7l5 5 4-8 4 8 5-5v10H3z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e65100" stroke-width="2" style="display:block;"><path d="M3 7l5 5 4-8 4 8 5-5v10H3z"/></svg>
             <span style="line-height:1;">Admin</span>
         </button>
 
         <button type="button" id="ln-role-staff" class="ln-role-btn" style="pointer-events:none; display:inline-flex;align-items:center;justify-content:center;gap:6px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block;"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" style="display:block;"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
             <span style="line-height:1;">Staff</span>
         </button>
       </div>
@@ -1832,7 +1833,6 @@ fetch(`${SCRIPT_URL}?action=getUsers&token=inox2026xK9m`)
     if (data.ok) {
       _realtimeUsers = data.users;
       localStorage.setItem('realtime_users_cache', JSON.stringify(data.users));
-      _lnOnPassInput(); // Tự quét lại nhỡ anh đã nhập xong mật khẩu trong lúc chờ tải
     }
   })
   .catch(() => {});
