@@ -525,7 +525,7 @@ const CONFIG = {
         style="display:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
     </div>
     <button id="mob-ton-sort-btn" onclick="cycleMobTonSort()" tabindex="-1" title="Sắp xếp tồn kho"
-      style="flex:0 0 32px;height:38.5px;background:#fafafa;border:1px solid #e0e0e0;border-radius:10px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#bbb;font-weight:700;padding:0;">↕</button>
+      style="flex:0 0 32px;height:38.5px;background:#fafafa;border:1px solid #e0e0e0;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#bbb;padding:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/></svg></button>
   </div>
   <div id="product-list" style="overflow-y:auto;max-height:calc(100vh - 200px);"></div>
 </div>
@@ -1079,7 +1079,7 @@ const CONFIG = {
               style="display:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
           </div>
           <button id="dt-ton-sort-btn" onclick="cycleDtTonSort()" tabindex="-1" title="Sắp xếp tồn kho"
-            style="flex:0 0 30px;height:31px;background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#bbb;font-weight:700;padding:0;">↕</button>
+            style="flex:0 0 30px;height:31px;background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#bbb;padding:0;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/></svg></button>
         </div>
       </div>
       <div id="dt-product-list" style="flex:1;overflow-y:auto;padding:8px;min-height:0;"></div>
@@ -2417,9 +2417,12 @@ function genMaSP(ten) {
 function _applyTonSortStyle(btnId, state) {
   const btn = document.getElementById(btnId);
   if (!btn) return;
-  if (state === 'desc') { btn.textContent = '↓'; btn.style.color = '#4CAF50'; btn.style.borderColor = '#4CAF50'; btn.style.background = '#e8f5e9'; }
-  else if (state === 'asc') { btn.textContent = '↑'; btn.style.color = '#e65100'; btn.style.borderColor = '#ffb74d'; btn.style.background = '#fff3e0'; }
-  else { btn.textContent = '↕'; btn.style.color = '#bbb'; btn.style.borderColor = '#e0e0e0'; btn.style.background = '#fafafa'; }
+  const _svgNone = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/></svg>';
+  const _svgDesc = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M12 19l-5-5M12 19l5-5"/></svg>';
+  const _svgAsc  = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M12 5L7 10M12 5l5 5"/></svg>';
+  if (state === 'desc') { btn.innerHTML = _svgDesc; btn.style.color = '#4CAF50'; btn.style.borderColor = '#4CAF50'; btn.style.background = '#e8f5e9'; }
+  else if (state === 'asc') { btn.innerHTML = _svgAsc; btn.style.color = '#e65100'; btn.style.borderColor = '#ffb74d'; btn.style.background = '#fff3e0'; }
+  else { btn.innerHTML = _svgNone; btn.style.color = '#bbb'; btn.style.borderColor = '#e0e0e0'; btn.style.background = '#fafafa'; }
 }
 
 function _cycleTonSort(current) {
