@@ -524,6 +524,8 @@ const CONFIG = {
       <button id="mob-tonkho-clear" onclick="tonkhoClear('mob-tonkho-filter','mob-tonkho-clear',onMobTonkhoInput)" tabindex="-1"
         style="display:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
     </div>
+    <button id="mob-ton-sort-btn" onclick="cycleMobTonSort()" tabindex="-1" title="Sắp xếp tồn kho"
+      style="flex:0 0 32px;height:38.5px;background:#fafafa;border:1px solid #e0e0e0;border-radius:10px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#bbb;font-weight:700;padding:0;">↕</button>
   </div>
   <div id="product-list" style="overflow-y:auto;max-height:calc(100vh - 200px);"></div>
 </div>
@@ -1076,6 +1078,8 @@ const CONFIG = {
             <button id="dt-tonkho-clear" onclick="tonkhoClear('dt-tonkho-filter','dt-tonkho-clear',onDtTonkhoInput)" tabindex="-1"
               style="display:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
           </div>
+          <button id="dt-ton-sort-btn" onclick="cycleDtTonSort()" tabindex="-1" title="Sắp xếp tồn kho"
+            style="flex:0 0 30px;height:31px;background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#bbb;font-weight:700;padding:0;">↕</button>
         </div>
       </div>
       <div id="dt-product-list" style="flex:1;overflow-y:auto;padding:8px;min-height:0;"></div>
@@ -1377,6 +1381,8 @@ let usingFallbackProducts = false;
 let html5QrCode = null;
 
 let mobileFilterLow = false;
+let mobTonSort = 'none'; // 'none' | 'desc' | 'asc'
+let dtTonSort = 'none';  // 'none' | 'desc' | 'asc'
 let mobileFilterHidden = false;
 let dtFilterLow = false;
 let dtFilterHidden = false;
@@ -1632,6 +1638,8 @@ function doRefreshProducts() {
   const clearIds = ['manual-code','mob-tonkho-filter','dt-search','dt-tonkho-filter','manage-search','manage-tonkho-filter'];
   clearIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   mobileFilterLow = false; mobileFilterHidden = false; _applyFilterStyle('mob', 'all');
+  mobTonSort = 'none'; _applyTonSortStyle('mob-ton-sort-btn', 'none');
+  dtTonSort = 'none'; _applyTonSortStyle('dt-ton-sort-btn', 'none');
   dtFilterLow = false; dtFilterHidden = false; _applyFilterStyle('dt', 'all');
   manageFilterLow = false; manageFilterHidden = false; manageFilterVisible = false; _applyFilterStyle('manage', 'all');
 
@@ -2425,6 +2433,31 @@ function genMaSP(ten) {
   return prefix + String(max + 1).padStart(3, '0');
 }
 
+function _applyTonSortStyle(btnId, state) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  if (state === 'desc') { btn.textContent = '↓'; btn.style.color = '#4CAF50'; btn.style.borderColor = '#4CAF50'; btn.style.background = '#e8f5e9'; }
+  else if (state === 'asc') { btn.textContent = '↑'; btn.style.color = '#e65100'; btn.style.borderColor = '#ffb74d'; btn.style.background = '#fff3e0'; }
+  else { btn.textContent = '↕'; btn.style.color = '#bbb'; btn.style.borderColor = '#e0e0e0'; btn.style.background = '#fafafa'; }
+}
+
+function _cycleTonSort(current) {
+  const order = ['none', 'desc', 'asc'];
+  return order[(order.indexOf(current) + 1) % 3];
+}
+
+function cycleMobTonSort() {
+  mobTonSort = _cycleTonSort(mobTonSort);
+  _applyTonSortStyle('mob-ton-sort-btn', mobTonSort);
+  filterProductList();
+}
+
+function cycleDtTonSort() {
+  dtTonSort = _cycleTonSort(dtTonSort);
+  _applyTonSortStyle('dt-ton-sort-btn', dtTonSort);
+  dtFilterProducts();
+}
+
 function filterProductList() {
   const rawQ = document.getElementById('manual-code').value || '';
   const q = removeDiacritics(rawQ).trim();
@@ -2445,6 +2478,8 @@ function filterProductList() {
 
   const mobTonEl = document.getElementById('mob-tonkho-filter');
   if (mobTonEl && mobTonEl.value !== '') list = list.filter(p => (Number(p.tonkho) || 0) <= Number(mobTonEl.value));
+  if (mobTonSort === 'desc') list = [...list].sort((a,b) => (Number(b.tonkho)||0) - (Number(a.tonkho)||0));
+  else if (mobTonSort === 'asc') list = [...list].sort((a,b) => (Number(a.tonkho)||0) - (Number(b.tonkho)||0));
   renderProductList(list, rawQ.trim());
 }
 
@@ -3581,6 +3616,8 @@ function dtFilterProducts() {
   }
   const dtTonEl = document.getElementById('dt-tonkho-filter');
   if (dtTonEl && dtTonEl.value !== '') list = list.filter(p => (Number(p.tonkho) || 0) <= Number(dtTonEl.value));
+  if (dtTonSort === 'desc') list = [...list].sort((a,b) => (Number(b.tonkho)||0) - (Number(a.tonkho)||0));
+  else if (dtTonSort === 'asc') list = [...list].sort((a,b) => (Number(a.tonkho)||0) - (Number(b.tonkho)||0));
   dtRenderProducts(list, rawQ.trim());
 }
 
