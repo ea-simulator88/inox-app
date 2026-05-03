@@ -212,6 +212,36 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   #report-date-toggle { width: 120px !important; padding: 8px 9px !important; font-size: 11px !important; gap: 5px !important; }
   #report-date-label { max-width: 65px !important; }
   #report-sort-btn { width: 70px !important; padding: 8px 9px !important; font-size: 11px !important; gap: 5px !important; }
+  #hist-date-panel {
+    width: min(320px, calc(100vw - 32px)) !important;
+    padding: 10px !important;
+  }
+  #hist-date-panel > div:first-child,
+  #hist-date-panel > div:nth-child(3) {
+    font-size: 10px !important;
+    margin-bottom: 5px !important;
+  }
+  #hist-date-panel > div:nth-child(2) {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+    margin-bottom: 10px !important;
+  }
+  #hist-date-panel > div:nth-child(2) button {
+    font-size: 11px !important;
+    padding: 5px 2px !important;
+    border-radius: 10px !important;
+  }
+  #hist-date-panel > div:nth-child(4) {
+    gap: 5px !important;
+  }
+  #hist-date-panel > div:nth-child(4) input {
+    padding: 6px 7px !important;
+    font-size: 12px !important;
+  }
+  #hist-date-panel > div:nth-child(4) button {
+    padding: 6px 10px !important;
+    border-radius: 9px !important;
+  }
   #report-date-panel {
     width: min(320px, calc(100vw - 32px)) !important;
     padding: 10px !important;
@@ -792,14 +822,15 @@ const CONFIG = {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
         </button>
         <div id="hist-date-panel" onclick="event.stopPropagation()"
-          style="display:none;position:absolute;top:calc(100% + 6px);right:0;width:min(380px,calc(100vw - 32px));background:#fff;border:1.5px solid #e0e0e0;border-radius:14px;padding:14px 12px;z-index:200;box-shadow:0 6px 24px rgba(0,0,0,0.13);">
+          style="display:none;position:absolute;top:calc(100% + 6px);right:0;width:min(420px,calc(100vw - 32px));background:#fff;border:1.5px solid #e0e0e0;border-radius:14px;padding:14px 12px;z-index:200;box-shadow:0 6px 24px rgba(0,0,0,0.13);">
           <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;">CHỌN NHANH</div>
-          <div style="display:flex;gap:6px;margin-bottom:12px;">
-            <button id="hist-t-all"   onclick="histTimeFilter('all')"   style="flex:1;padding:6px 2px;border-radius:12px;border:1.5px solid #1976d2;background:#1976d2;color:#fff;font-size:11px;font-weight:600;cursor:pointer;">Tất cả</button>
-            <button id="hist-t-yesterday" onclick="histTimeFilter('yesterday')" style="flex:1;padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:11px;font-weight:600;cursor:pointer;">Hôm qua</button>
-            <button id="hist-t-today" onclick="histTimeFilter('today')" style="flex:1;padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:11px;font-weight:600;cursor:pointer;">Hôm nay</button>
-            <button id="hist-t-week"  onclick="histTimeFilter('week')"  style="flex:1;padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:11px;font-weight:600;cursor:pointer;">Tuần này</button>
-            <button id="hist-t-month" onclick="histTimeFilter('month')" style="flex:1;padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:11px;font-weight:600;cursor:pointer;">Tháng này</button>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:12px;">
+            <button id="hist-t-all"   onclick="histTimeFilter('all')"   style="padding:6px 2px;border-radius:12px;border:1.5px solid #1976d2;background:#1976d2;color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Tất cả</button>
+            <button id="hist-t-yesterday" onclick="histTimeFilter('yesterday')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Hôm qua</button>
+            <button id="hist-t-today" onclick="histTimeFilter('today')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Hôm nay</button>
+            <button id="hist-t-week"  onclick="histTimeFilter('week')"  style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Tuần này</button>
+            <button id="hist-t-month" onclick="histTimeFilter('month')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Tháng này</button>
+            <button id="hist-t-year" onclick="histTimeFilter('year')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Năm nay</button>
           </div>
           <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;">KHOẢNG NGÀY TÙY CHỌN</div>
           <div style="display:flex;align-items:center;gap:6px;">
@@ -949,12 +980,12 @@ const CONFIG = {
           style="display:none;position:absolute;top:calc(100% + 6px);right:0;width:min(420px,calc(100vw - 32px));background:#fff;border:1.5px solid #e0e0e0;border-radius:14px;padding:14px 12px;z-index:200;box-shadow:0 6px 24px rgba(0,0,0,0.13);">
           <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;">CHỌN NHANH</div>
           <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:12px;">
-            <button id="report-t-all" onclick="reportTimeFilter('all')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #1976d2;background:#1976d2;color:#fff;font-size:11px;font-weight:600;cursor:pointer;">Tất cả</button>
-            <button id="report-t-yesterday" onclick="reportTimeFilter('yesterday')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:11px;font-weight:600;cursor:pointer;">Hôm qua</button>
-            <button id="report-t-today" onclick="reportTimeFilter('today')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:11px;font-weight:600;cursor:pointer;">Hôm nay</button>
-            <button id="report-t-week" onclick="reportTimeFilter('week')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:11px;font-weight:600;cursor:pointer;">Tuần này</button>
-            <button id="report-t-month" onclick="reportTimeFilter('month')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:11px;font-weight:600;cursor:pointer;">Tháng này</button>
-            <button id="report-t-year" onclick="reportTimeFilter('year')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:11px;font-weight:600;cursor:pointer;">Năm nay</button>
+            <button id="report-t-all" onclick="reportTimeFilter('all')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #1976d2;background:#1976d2;color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Tất cả</button>
+            <button id="report-t-yesterday" onclick="reportTimeFilter('yesterday')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Hôm qua</button>
+            <button id="report-t-today" onclick="reportTimeFilter('today')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Hôm nay</button>
+            <button id="report-t-week" onclick="reportTimeFilter('week')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Tuần này</button>
+            <button id="report-t-month" onclick="reportTimeFilter('month')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Tháng này</button>
+            <button id="report-t-year" onclick="reportTimeFilter('year')" style="padding:6px 2px;border-radius:12px;border:1.5px solid #e0e0e0;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;">Năm nay</button>
           </div>
           <div style="font-size:11px;color:#aaa;font-weight:600;margin-bottom:6px;">KHOẢNG NGÀY TÙY CHỌN</div>
           <div style="display:flex;align-items:center;gap:6px;">
@@ -4163,14 +4194,14 @@ function stopScan() {
 // ===== HISTORY =====
 let _historyData = [];
 let _historyFilter = 'all';
-let _historyTimeFilter = 'all';
+let _historyTimeFilter = 'today';
 let _histDateFrom = null;
 let _histDateTo   = null;
 let _historyGroups = [];
 let _histSortMode = 'newest';
 let _reportTypeFilter = 'all';
 let _rptDetailData = [];
-let _reportTimeFilter = 'all';
+let _reportTimeFilter = 'today';
 let _reportDateFrom = null;
 let _reportDateTo   = null;
 let _reportSortMode = 'newest';
@@ -4194,8 +4225,6 @@ async function showHistory() {
   const list = document.getElementById('history-list');
   list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
   _historyFilter = 'all';
-  _historyTimeFilter = 'today';
-  _histDateFrom = null; _histDateTo = null;
   _updateHistDateLabel();
   try {
     await _fetchHistoryData();
@@ -4333,9 +4362,11 @@ function toggleHistDatePanel(e) {
     // Khai báo danh sách các ID nút và giá trị tương ứng
     const btnIds = {
       'all': 'hist-t-all',
+      'yesterday': 'hist-t-yesterday',
       'today': 'hist-t-today',
       'week': 'hist-t-week',
-      'month': 'hist-t-month'
+      'month': 'hist-t-month',
+      'year': 'hist-t-year'
     };
 
     // Quét qua từng nút để tô màu
@@ -4372,7 +4403,7 @@ function _closeHistDatePanel() {
 function _updateHistDateLabel() {
   const label  = document.getElementById('hist-date-label');
   const toggle = document.getElementById('hist-date-toggle');
-  const labels = { all:'Tất cả', yesterday:'Hôm qua', today:'Hôm nay', week:'Tuần này', month:'Tháng này' };
+  const labels = { all:'Tất cả', yesterday:'Hôm qua', today:'Hôm nay', week:'Tuần này', month:'Tháng này', year:'Năm nay' };
   let text;
   if (_historyTimeFilter === 'custom') {
     const fd = d => d ? d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear() : '?';
@@ -4392,7 +4423,7 @@ function histTimeFilter(f) {
   _historyTimeFilter = f;
   _histDateFrom = null;
   _histDateTo   = null;
-  ['all','yesterday','today','week','month'].forEach(k => {
+  ['all','yesterday','today','week','month','year'].forEach(k => {
     const btn = document.getElementById('hist-t-' + k);
     if (!btn) return;
     const active = f === k;
@@ -4412,7 +4443,7 @@ function histApplyDateRange() {
   _histDateFrom = fromVal ? new Date(fromVal) : null;
   _histDateTo   = toVal   ? new Date(toVal)   : null;
   _historyTimeFilter = 'custom';
-  ['all','yesterday','today','week','month'].forEach(k => {
+  ['all','yesterday','today','week','month','year'].forEach(k => {
     const btn = document.getElementById('hist-t-' + k);
     if (!btn) return;
     btn.style.background  = '#f5f5f5';
@@ -4459,11 +4490,8 @@ function showReport() {
   if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
   if (summary) summary.innerHTML = '';
   _reportTypeFilter = 'all';
-  _reportTimeFilter = 'today';
-  _reportDateFrom = null;
-  _reportDateTo = null;
   _reportSortMode = 'newest';
-  ['report-search', 'report-from-date', 'report-to-date'].forEach(id => {
+  ['report-search'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -5222,6 +5250,9 @@ function _renderHistory() {
     } else if (_historyTimeFilter === 'month') {
       startTs = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
       endTs   = new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
+    } else if (_historyTimeFilter === 'year') {
+      startTs = new Date(now.getFullYear(), 0, 1).getTime();
+      endTs   = new Date(now.getFullYear() + 1, 0, 1).getTime();
     } else if (_historyTimeFilter === 'custom') {
       if (_histDateFrom) startTs = new Date(_histDateFrom.getFullYear(), _histDateFrom.getMonth(), _histDateFrom.getDate()).getTime();
       if (_histDateTo)   endTs   = new Date(_histDateTo.getFullYear(),   _histDateTo.getMonth(),   _histDateTo.getDate() + 1).getTime();
