@@ -176,6 +176,8 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .sort-option.active { background: #e8f5e9; color: #2e7d32; font-weight: 600; }
 .report-summary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .report-summary-card { border-radius: 12px; padding: 12px; }
+.report-fee-mobile-break { display: none; }
+.report-fee-sep { display: inline; }
 .report-detail-section { background: #fff; border: 1px solid #e8e8e8; border-radius: 14px; padding: 12px; margin-bottom: 10px; }
 .report-detail-list { display: flex; flex-direction: column; gap: 8px; }
 .report-detail-item { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f1f1f1; }
@@ -194,6 +196,8 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 }
 
 @media (max-width: 767px) {
+  .report-fee-mobile-break { display: block; height: 0; }
+  .report-fee-sep { display: none; }
   #report-collapse-btn-wrap { display: block !important; }
   .history-card-row { align-items: flex-start; }
   .history-card-actions { flex-direction: column; align-items: flex-end; gap: 6px; }
@@ -4962,26 +4966,41 @@ function showRptGdDetail(loai) {
   rows.forEach(r => {
     const qty = Number(r.soluong) || 0;
     const amount = qty * (Number(r.gia) || 0);
+    const phiVC = Math.abs(Number(r.phichanh) || 0);
+    const phiKT = Math.abs(Number(r.phikhachtra) || 0);
+    const amountWithFee = loai === 'nhap' ? (amount + phiVC) : (amount - (phiVC - phiKT));
     const gd = (r.giaodich || '').trim() || 'Không rõ';
-    if (!gdMap[gd]) gdMap[gd] = { qty: 0, count: 0, amount: 0 };
+    if (!gdMap[gd]) gdMap[gd] = { qty: 0, count: 0, amount: 0, phiVC: 0, phiKT: 0, phiVCDon: 0, phiKTDon: 0 };
     gdMap[gd].qty += qty;
     gdMap[gd].count += 1;
-    gdMap[gd].amount += amount;
+    gdMap[gd].amount += amountWithFee;
+    gdMap[gd].phiVC += phiVC;
+    gdMap[gd].phiKT += phiKT;
+    if (phiVC > 0) gdMap[gd].phiVCDon += 1;
+    if (phiKT > 0) gdMap[gd].phiKTDon += 1;
     total.qty += qty;
-    total.amount += amount;
+    total.amount += amountWithFee;
   });
   const color = loai === 'nhap' ? '#2e7d32' : '#e65100';
   const entries = Object.entries(gdMap).sort((a, b) => b[1].amount - a[1].amount);
   const html = '<div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;text-align:left;">' +
     entries.map(([gd, v]) =>
       `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 12px;background:#f9f9f9;border-radius:10px;gap:8px;">
-        <div><div style="font-size:13px;font-weight:600;color:#333;">${_esc(gd)}</div><div style="font-size:11px;color:#999;margin-top:2px;">${fmt(v.qty)} SL · ${v.count} đơn</div></div>
-        <div style="font-size:12px;font-weight:600;color:${color};white-space:nowrap;margin-top: 8px;">${fmt(v.amount)} đ</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#333;">${_esc(gd)} (${fmt(v.qty)} SL · ${v.count} đơn)</div>
+          ${v.phiVC > 0 ? `<div style="font-size:12px;color:#666;line-height:1.35;margin-top:2px;">Phí vận chuyển | ${v.phiVCDon} đơn</div>` : ''}
+          ${v.phiKT > 0 ? `<div style="font-size:12px;color:#666;line-height:1.35;">Phí KT | ${v.phiKTDon} đơn</div>` : ''}
+        </div>
+        <div style="min-width:120px;text-align:right;">
+          <div style="font-size:12px;font-weight:600;color:${color};white-space:nowrap;">${fmt(v.amount)} đ</div>
+          ${v.phiVC > 0 ? `<div style="font-size:12px;color:${color};line-height:1.35;margin-top:2px;white-space:nowrap;">${loai === 'xuat' ? '-' : '+'}${fmt(v.phiVC)} đ</div>` : ''}
+          ${v.phiKT > 0 ? `<div style="font-size:12px;color:${color};line-height:1.35;white-space:nowrap;">+${fmt(v.phiKT)} đ</div>` : ''}
+        </div>
       </div>`
     ).join('') +
     (entries.length ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#fff;border-top:1px solid #e0e0e0;margin-top:2px;gap:8px;">
-        <div style="font-size:14px;font-weight:700;color:#333;">Tổng ${fmt(total.qty)} SL · ${total.count} đơn</div>
-        <div style="font-size:14px;font-weight:700;color:${color};white-space:nowrap;">${fmt(total.amount)} đ</div>
+        <div style="font-size:14px;font-weight:700;color:#333;flex:1;min-width:0;">Tổng (${fmt(total.qty)} SL · ${total.count} đơn)</div>
+        <div style="font-size:14px;font-weight:700;color:${color};white-space:nowrap;min-width:120px;text-align:right;">${fmt(total.amount)} đ</div>
       </div>` : '') + '</div>';
   showInfoModal(title, entries.length ? html : '<div style="color:#999;font-size:13px;">Không có dữ liệu.</div>', ['_']);
 }
@@ -4996,6 +5015,7 @@ function showProfitDetail() {
   const nhapQty = sum(nhap, r => Number(r.soluong) || 0);
   const nhapDon = nhap.length;
   const nhapPhi = sum(nhap, r => Math.abs(Number(r.phichanh)||0));
+  const nhapPhiDon = nhap.filter(r => Math.abs(Number(r.phichanh) || 0) > 0).length;
   const nhapTien = sum(nhap, r => (Number(r.soluong)||0)*(Number(r.gia)||0)) + nhapPhi;
   const nhapTienHang = sum(nhap, r => (Number(r.soluong)||0)*(Number(r.gia)||0));
   const nhapTM = sum(nhap, r => r.giaodich === 'Tiền mặt' ? (Number(r.soluong)||0)*(Number(r.gia)||0) : 0);
@@ -5018,6 +5038,8 @@ function showProfitDetail() {
   const xuatTienHang = sum(xuat, r => (Number(r.soluong)||0)*(Number(r.gia)||0));
   const xuatPhiVC = sum(xuat, r => Math.abs(Number(r.phichanh)||0));
   const xuatPhiKT = sum(xuat, r => Number(r.phikhachtra)||0);
+  const xuatPhiVCDon = xuat.filter(r => Math.abs(Number(r.phichanh) || 0) > 0).length;
+  const xuatPhiKTDon = xuat.filter(r => Math.abs(Number(r.phikhachtra) || 0) > 0).length;
   const xuatPhi = xuatPhiVC - xuatPhiKT;
   const xuatTien = sum(xuat, r => (Number(r.soluong)||0)*(Number(r.gia)||0)) - xuatPhi;
   const xuatTM = sum(xuat, r => r.giaodich === 'Tiền mặt' ? (Number(r.soluong)||0)*(Number(r.gia)||0) : 0);
@@ -5041,7 +5063,7 @@ function showProfitDetail() {
     const row = (label, val, bold=false, ...dataVals) => hasData(val, ...dataVals) ? `<div style="display:flex;justify-content:space-between;padding:2px 0;"><span style="${bold?'font-size:12.5px;font-weight:700;color:#555;':'color:#888;'}">${label}</span><span style="${bold?'font-size:12.5px;font-weight:700;color:#555;':(val<0?'color:#e53935;font-weight:600;':'color:#666;font-weight:600;')}">${fmt(val)} đ</span></div>` : '';
     const nhapRowsHtml = [
       row(`Tổng nhập (${fmt(nhapQty)} SL · ${nhapDon} đơn)`, nhapTien, true, nhapQty, nhapDon),
-      row(`Phí vận chuyển`, nhapPhi),
+      row(`Phí vận chuyển | ${nhapPhiDon} đơn`, nhapPhi, false, nhapPhiDon),
       row(`Tiền mặt | ${fmt(nhapTMQty)} SL · ${nhapTMDon} đơn`, nhapTM, false, nhapTMQty, nhapTMDon),
       row(`Chuyển khoản | ${fmt(nhapCKQty)} SL · ${nhapCKDon} đơn`, nhapCK, false, nhapCKQty, nhapCKDon),
       row(`TM + CK | ${fmt(nhapBothQty)} SL · ${nhapBothDon} đơn`, nhapBoth, false, nhapBothQty, nhapBothDon),
@@ -5049,7 +5071,8 @@ function showProfitDetail() {
     ].join('');
     const xuatRowsHtml = [
       row(`Tổng xuất (${fmt(xuatQty)} SL · ${xuatDon} đơn)`, xuatTien, true, xuatQty, xuatDon),
-      row(`Phí (VC - KT)`, -xuatPhi, false, xuatPhi),
+      row(`Phí vận chuyển | ${xuatPhiVCDon} đơn`, -xuatPhiVC, false, xuatPhiVC, xuatPhiVCDon),
+      row(`Phí KT | ${xuatPhiKTDon} đơn`, xuatPhiKT, false, xuatPhiKT, xuatPhiKTDon),
       row(`Tiền mặt | ${fmt(xuatTMQty)} SL · ${xuatTMDon} đơn`, xuatTM, false, xuatTMQty, xuatTMDon),
       row(`Chuyển khoản | ${fmt(xuatCKQty)} SL · ${xuatCKDon} đơn`, xuatCK, false, xuatCKQty, xuatCKDon),
       row(`TM + CK | ${fmt(xuatBothQty)} SL · ${xuatBothDon} đơn`, xuatBoth, false, xuatBothQty, xuatBothDon),
@@ -5115,14 +5138,14 @@ function renderReport() {
     <div class="report-summary-card" onclick="showRptGdDetail('nhap')" style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);cursor:pointer;position:relative;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
       <div style="font-size:10px;color:#2e7d32;font-weight:700;margin-bottom:5px;">Tổng Nhập &nbsp;<span style="font-weight:400;color:#388e3c;">${fmt(totalNhapQty)} SL · ${nhapRows.length} đơn</span></div>
       <div style="font-size:15px;font-weight:700;color:#388e3c;">${fmt(totalNhapAmount)} đ</div>
-      ${nhapPhiChanh > 0 ? `<div style="font-size:10px;color:#388e3c;margin-top:3px;">+ Phí: ${fmt(nhapPhiChanh)} đ</div>` : ''}
+      ${nhapPhiChanh > 0 ? `<div style="font-size:10px;color:#388e3c;margin-top:3px;">Phí vận chuyển: +${fmt(nhapPhiChanh)} đ</div>` : ''}
       <div style="position:absolute;bottom:8px;right:10px;font-size:10px;color:#388e3c;">chi tiết ›</div>
     </div>
 
     <div class="report-summary-card" onclick="showRptGdDetail('xuat')" style="background:#fff5f5;cursor:pointer;position:relative;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
       <div style="font-size:10px;color:#c62828;font-weight:700;margin-bottom:5px;">Tổng Xuất &nbsp;<span style="font-weight:400;color:#c62828;">${fmt(totalXuatQty)} SL · ${xuatRows.length} đơn</span></div>
       <div style="font-size:15px;font-weight:700;color:#c62828;">${fmt(totalXuatAmount)} đ</div>
-      ${xuatPhiChanh > 0 ? `<div style="font-size:10px;color:#e53935;margin-top:3px;">- Phí: ${fmt(xuatPhiChanh)} đ</div>` : ''}
+      ${(xuatPhiVC > 0 || xuatPhiKT > 0) ? `<div style="font-size:10px;color:#e53935;margin-top:3px;">Phí vận chuyển: -${fmt(xuatPhiVC)} đ<span class="report-fee-mobile-break"></span><span class="report-fee-sep"> | </span>Phí KT: +${fmt(xuatPhiKT)} đ</div>` : ''}
       <div style="position:absolute;bottom:8px;right:10px;font-size:10px;color:#e53935;">chi tiết ›</div>
     </div>
 
