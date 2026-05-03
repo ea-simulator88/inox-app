@@ -910,7 +910,7 @@ const CONFIG = {
 <div id="screen-report-detail" class="screen">
   <div class="header" style="flex-shrink:0;margin-bottom:0;padding-bottom:0;">
     <div style="max-width:1000px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;position:relative;min-height:52px;">
-      <button class="btn-back" onclick="showReport()" style="flex-shrink:0;position:relative;z-index:1;">← Quay lại</button>
+      <button class="btn-back" onclick="reportDetailBack()" style="flex-shrink:0;position:relative;z-index:1;">← Quay lại</button>
       <div id="rpt-detail-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;padding:0 80px;line-height:1.35;">Chi tiết</div>
       <button onclick="goMain()" title="Trang chính" style="background:none;border:none;cursor:pointer;padding:4px 2px;line-height:1;flex-shrink:0;position:relative;z-index:1;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
@@ -1932,6 +1932,7 @@ function _finishAppBoot() {
       _doneBoot();
       return;
     }
+    localStorage.setItem('last_activity', Date.now());
     currentRole = cached.role;
     await loadProducts();
     // Restore cart
@@ -1967,7 +1968,7 @@ function _finishAppBoot() {
     if (_targetScreen === 'screen-product-form') {
       openProductForm('add', null, true); // render form ngay, không chờ server
     } else if (_targetScreen === 'screen-history-detail') {
-      showHistory().then(function() {
+      await showHistory().then(function() {
         const t = sessionStorage.getItem('histDetailThoigian');
         const l = sessionStorage.getItem('histDetailLoai');
         if (t && l) {
@@ -1976,12 +1977,17 @@ function _finishAppBoot() {
         }
       }).catch(function() {});
     } else if (_targetScreen === 'screen-history') {
-      showHistory();
+      await showHistory();
     } else if (_targetScreen === 'screen-report-detail') {
       const savedItem = sessionStorage.getItem('rptDetailItem');
       if (savedItem) {
-        _fetchHistoryData().then(function() {
-          try { _rptDetailData = [JSON.parse(savedItem)]; showReportDetail(0); } catch(ex) { showReport(); }
+        showScreen('screen-report-detail');
+        const titleEl = document.getElementById('rpt-detail-title');
+        const listEl = document.getElementById('rpt-detail-list');
+        if (titleEl) titleEl.textContent = 'Chi tiết';
+        if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+        await _fetchHistoryData().then(function() {
+          try { _restoreReportDetailAfterReload(JSON.parse(savedItem)); } catch(ex) { showReport(); }
         }).catch(function() { showReport(); });
       } else { showReport(); }
     } else if (_targetScreen === 'screen-report') {
@@ -4205,6 +4211,9 @@ let _historyGroups = [];
 let _histSortMode = 'newest';
 let _reportTypeFilter = 'all';
 let _rptDetailData = [];
+let _rptDetailOrderData = [];
+let _rptCurrentDetailIdx = -1;
+let _rptDetailView = '';
 let _reportTimeFilter = 'today';
 let _reportDateFrom = null;
 let _reportDateTo   = null;
@@ -4872,9 +4881,120 @@ function _renderProductReportSection(rows, kw) {
   </div>`;
 }
 
+function _buildReportOrderGroups(rows) {
+  const map = new Map();
+  rows.forEach(r => {
+    const key = _orderKey(r);
+    if (!map.has(key)) {
+      map.set(key, {
+        key,
+        rows: [],
+        thoigian: r.thoigian,
+        thoigian_raw: r.thoigian_raw,
+        loai: r.loai,
+        ncc: r.ncc || '',
+        tenkhach: r.tenkhach || '',
+        giaodich: r.giaodich || ''
+      });
+    }
+    const g = map.get(key);
+    g.rows.push(r);
+    if (!g.ncc && r.ncc) g.ncc = r.ncc;
+    if (!g.tenkhach && r.tenkhach) g.tenkhach = r.tenkhach;
+    if (!g.giaodich && r.giaodich) g.giaodich = r.giaodich;
+  });
+  return [...map.values()].sort((a, b) => {
+    if (_reportSortMode === 'oldest') return a.thoigian_raw - b.thoigian_raw;
+    return b.thoigian_raw - a.thoigian_raw;
+  });
+}
+
+function _calcReportOrderTotals(g) {
+  const rows = g.rows || [];
+  const hang = rows.reduce((s, r) => s + (Number(r.soluong) || 0) * (Number(r.gia) || 0), 0);
+  const qty = rows.reduce((s, r) => s + (Number(r.soluong) || 0), 0);
+  const phiVC = Math.abs(Number(rows[0]?.phichanh) || 0);
+  const phiKT = Number(rows[0]?.phikhachtra) || 0;
+  const total = g.loai === 'Nhập' ? (hang + phiVC) : (hang - (phiVC - phiKT));
+  return { hang, qty, phiVC, phiKT, total };
+}
+
+function _renderReportOrderDetail(g) {
+  const list = document.getElementById('rpt-detail-list');
+  if (!list || !g) return;
+
+  const isNhap = g.loai === 'Nhập';
+  const color = isNhap ? '#1976d2' : '#c62828';
+  const totals = _calcReportOrderTotals(g);
+  const partyLines = [
+    isNhap && g.ncc ? `<div class="info-row"><span class="info-label">Nhà cung cấp</span><span class="info-value">${g.ncc}</span></div>` : '',
+    g.tenkhach ? `<div class="info-row"><span class="info-label">Khách hàng</span><span class="info-value">${g.tenkhach}</span></div>` : ''
+  ].join('');
+
+  list.innerHTML = `<div class="report-detail-section">
+    <div style="background:#fafafa;border:1px solid #eee;border-radius:12px;padding:10px;margin-bottom:10px;">
+      <div class="info-row"><span class="info-label">Thời gian</span><span class="info-value">${formatHistoryTimeText(g)}</span></div>
+      <div class="info-row"><span class="info-label">Loại</span><span class="info-value" style="color:${color};font-weight:700;">${g.loai}</span></div>
+      ${partyLines}
+      ${g.giaodich ? `<div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${g.giaodich}</span></div>` : ''}
+      <div class="info-row"><span class="info-label">Tổng tiền</span><span class="info-value" style="font-weight:700;color:#333;">${fmt(totals.total)} đ</span></div>
+      ${totals.phiVC > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value" style="font-weight:600;color:#d32f2f;">${isNhap ? '+' : '-'} ${fmt(totals.phiVC)} đ</span></div>` : ''}
+      ${totals.phiKT > 0 ? `<div class="info-row"><span class="info-label">Phí KT</span><span class="info-value" style="font-weight:600;color:#2e7d32;">+ ${fmt(totals.phiKT)} đ</span></div>` : ''}
+    </div>
+    <div class="report-detail-list">
+      ${g.rows.map(function(r, i) {
+        const sub = (Number(r.soluong) || 0) * (Number(r.gia) || 0);
+        const meta = [r.ncc, r.ma, r.kichthuoc].filter(Boolean).join(' · ');
+        return `<div class="report-detail-item" style="cursor:default;">
+          <div style="min-width:0;flex:1;">
+            <div style="font-size:11px;color:#999;font-weight:600;margin-bottom:3px;">SP #${i + 1}</div>
+            <div class="report-detail-name">${r.hanghoa || '—'}</div>
+            ${meta ? `<div class="report-detail-meta">${meta}</div>` : ''}
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:11px;color:#666;">${fmt(r.soluong)} × ${fmt(r.gia)}đ</div>
+            <div style="font-size:13px;font-weight:600;color:${isNhap ? '#0d47a1' : '#e65100'};">${fmt(sub)}đ</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function showReportOrderDetail(idx) {
+  const g = _rptDetailOrderData[idx];
+  if (!g) return;
+  _rptDetailView = 'order';
+  sessionStorage.setItem('rptDetailView', 'order');
+  sessionStorage.setItem('rptDetailOrderKey', g.key || '');
+  _renderReportOrderDetail(g);
+}
+
+function reportDetailBack() {
+  if (_rptDetailView === 'order' && _rptCurrentDetailIdx >= 0 && _rptDetailOrderData.length > 1) {
+    showReportDetail(_rptCurrentDetailIdx);
+    return;
+  }
+  _rptDetailView = '';
+  _rptCurrentDetailIdx = -1;
+  showReport();
+}
+
+function _restoreReportDetailAfterReload(item) {
+  const savedView = sessionStorage.getItem('rptDetailView') || '';
+  const savedOrderKey = sessionStorage.getItem('rptDetailOrderKey') || '';
+  _rptDetailData = [item];
+  showReportDetail(0);
+  if (savedView === 'order' && savedOrderKey) {
+    const idx = _rptDetailOrderData.findIndex(g => g.key === savedOrderKey);
+    if (idx >= 0) showReportOrderDetail(idx);
+  }
+}
+
 function showReportDetail(idx) {
   const item = _rptDetailData[idx];
   if (!item) return;
+  _rptCurrentDetailIdx = idx;
 
   const titleEl = document.getElementById('rpt-detail-title');
   if (titleEl) {
@@ -4903,8 +5023,55 @@ function showReportDetail(idx) {
   if (!list) return;
 
   if (!rows.length) {
+    _rptDetailView = 'empty';
+    sessionStorage.setItem('rptDetailView', 'empty');
+    sessionStorage.removeItem('rptDetailOrderKey');
     list.innerHTML = '<div style="text-align:center;padding:40px;color:#999;">Không có dữ liệu.</div>';
+  } else if (item.type === 'ncc' || item.type === 'khach') {
+    const groups = _buildReportOrderGroups(rows);
+    _rptDetailOrderData = groups;
+    if (groups.length === 1) {
+      _rptDetailView = 'order';
+      sessionStorage.setItem('rptDetailView', 'order');
+      sessionStorage.setItem('rptDetailOrderKey', groups[0].key || '');
+      _renderReportOrderDetail(groups[0]);
+    } else {
+      _rptDetailView = 'orders';
+      sessionStorage.setItem('rptDetailView', 'orders');
+      sessionStorage.removeItem('rptDetailOrderKey');
+      const typeColor = item.type === 'ncc' ? '#1976d2' : '#8e24aa';
+      let html = '<div class="report-detail-section"><div class="report-detail-list">';
+      html += groups.map(function(g, i) {
+        const totals = _calcReportOrderTotals(g);
+        const partyMeta = item.type === 'khach'
+          ? (g.tenkhach || '')
+          : (g.ncc || '');
+        const feeLine = [
+          totals.phiVC > 0 ? `Phí vận chuyển: ${g.loai === 'Nhập' ? '+' : '-'}${fmt(totals.phiVC)} đ` : '',
+          totals.phiKT > 0 ? `Phí KT: +${fmt(totals.phiKT)} đ` : ''
+        ].filter(Boolean).join(' · ');
+        return `<div class="report-detail-item" onclick="showReportOrderDetail(${i})" style="cursor:pointer;">
+          <div style="min-width:0;flex:1;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+              <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:${g.loai === 'Nhập' ? '#e8f5e9' : '#ffebee'};color:${g.loai === 'Nhập' ? '#2e7d32' : '#c62828'};">${g.loai}</span>
+              <span style="font-size:11px;color:#999;">${formatHistoryTimeText(g)}</span>
+            </div>
+            ${partyMeta ? `<div class="report-detail-name">${partyMeta}</div>` : ''}
+          </div>
+          <div class="report-detail-value">
+            <div class="report-detail-qty">${fmt(totals.qty)} SL</div>
+            <div class="report-detail-amount" style="font-weight:700;color:${typeColor};">${fmt(totals.total)} đ</div>
+            ${feeLine ? `<div class="report-detail-meta" style="font-size:11px;color:#e53935;text-align:right;margin-top:3px;">${feeLine}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+      html += '</div></div>';
+      list.innerHTML = html;
+    }
   } else {
+    _rptDetailView = 'product';
+    sessionStorage.setItem('rptDetailView', 'product');
+    sessionStorage.removeItem('rptDetailOrderKey');
     // VẪN TÍNH TOÁN TỔNG CHI TIẾT ĐỂ HIỆN Ở DƯỚI
     let sumQty = 0, sumHang = 0, sumPhiVC = 0, sumPhiKT = 0;
     rows.forEach(r => {
@@ -5133,6 +5300,9 @@ function showProfitDetail() {
 
 function renderReport() {
   _rptDetailData = [];
+  _rptDetailOrderData = [];
+  _rptCurrentDetailIdx = -1;
+  _rptDetailView = '';
   const list = document.getElementById('report-list');
   const summary = document.getElementById('report-summary');
   if (!list || !summary) return;
