@@ -3552,21 +3552,20 @@ async function submitProductForm() {
   console.log('submitProductForm body:', JSON.stringify(body));
 
   try {
-    await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
+    // Fire-and-forget lên server, không await để UI không bị block
+    fetch(SCRIPT_URL + '?token=inox2026xK9m', {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...body, token: 'inox2026xK9m' })
-    });
-    await new Promise(r => setTimeout(r, 300));
+    }).catch(() => showToast('⚠️ Lỗi kết nối khi lưu sản phẩm!'));
 
-    // Nếu là thêm mới và tonkho >= 1 → tự ghi thêm vào sheet Nhập
+    // Nếu là thêm mới và tonkho >= 1 → tự ghi thêm vào sheet Nhập (cũng fire-and-forget)
     let successMsg = productFormMode === 'add' ? '✅ Đã thêm sản phẩm mới!' : '✅ Đã cập nhật sản phẩm!';
     if (productFormMode === 'add') {
       const tonkhoEl = document.getElementById('pf_tonkho');
       const giavonEl = document.getElementById('pf_giavon');
       const tonkho = parseInt((tonkhoEl ? tonkhoEl.value.replace(/,/g, '') : '') || '0') || 0;
       if (tonkho >= 1) {
-        // Build product object từ form để map import_columns
         const formProduct = {};
         CONFIG.product_columns.filter(c => c.input_type !== 'formula').forEach(c => {
           const el = document.getElementById('pf_' + c.field);
@@ -3585,21 +3584,35 @@ async function submitProductForm() {
           if (col.value.startsWith('product.')) return formProduct[col.value.replace('product.','')] || '';
           return '';
         });
-        await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
+        fetch(SCRIPT_URL + '?token=inox2026xK9m', {
           method: 'POST', mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sheet: 'Nhập', row: importRow, token: 'inox2026xK9m' })
-        });
-        await new Promise(r => setTimeout(r, 200));
+        }).catch(() => {});
         successMsg = `✅ Đã thêm SP và ghi nhập kho ${tonkho} ${formProduct.dvt || 'cái'}!`;
       } else {
         successMsg = '✅ Đã thêm SP (chưa có hàng trong kho)';
       }
     }
 
-    await fetchProductsFromServer();
+    // Optimistic update local — không chờ server phản hồi
+    const newProductObj = {};
+    CONFIG.product_columns.filter(c => c.input_type !== 'formula').forEach((col, idx) => {
+      newProductObj[col.field] = row[idx] !== undefined ? row[idx] : '';
+    });
+    if (productFormMode === 'add') {
+      products.push(newProductObj);
+    } else {
+      const pidx = products.findIndex(p => p.ma === editingProduct.ma);
+      if (pidx >= 0) products[pidx] = { ...products[pidx], ...newProductObj };
+    }
+    _rebuildProductMap();
+    localStorage.setItem('products_cache', JSON.stringify(products));
+
     showScreen('screen-products');
-    alert(successMsg);
+    showToast(successMsg);
+    // Sync lại từ server ngầm sau 2s để đảm bảo tồn kho / công thức đúng
+    setTimeout(() => fetchProductsFromServer().catch(() => {}), 2000);
   } catch(e) {
     alert('❌ Lỗi: ' + e.message);
   } finally {
@@ -3622,17 +3635,19 @@ function confirmDeleteProduct(product) {
 
     const body = { sheet: 'Sản phẩm', action: 'delete', ma: product.ma };
     try {
-      await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
-        method: 'POST', mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...body, token: 'inox2026xK9m' })
-      });
-      await new Promise(r => setTimeout(r, 300));
-      await fetchProductsFromServer();
+      // Optimistic update: xóa local ngay, gửi server nền
+      products = products.filter(p => p.ma !== product.ma);
+      _rebuildProductMap();
+      localStorage.setItem('products_cache', JSON.stringify(products));
       overlay.style.display = 'none';
       document.getElementById('modal-no').style.display = '';
       showScreen('screen-products');
       showToast('✅ Đã xóa sản phẩm!');
+      fetch(SCRIPT_URL + '?token=inox2026xK9m', {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...body, token: 'inox2026xK9m' })
+      }).catch(() => showToast('⚠️ Lỗi kết nối khi xóa sản phẩm!'));
     } catch(e) {
       overlay.style.display = 'none';
       document.getElementById('modal-no').style.display = '';
@@ -6273,7 +6288,7 @@ async function _doHistSaveEdit() {
   // Cập nhật _historyData local
   const targetOrderKey = _orderKey((g.rows && g.rows[0]) ? g.rows[0] : g);
   _historyData = _historyData.filter(r => _orderKey(r) !== targetOrderKey);
-  updatedRows.forEach(row => _historyData.push(_mapHistRow(row, l)));
+  updatedRows.forEach(row => _historyData.push(_mapHistRow(row, g.loai)));
 
   document.getElementById('hist-edit-modal').style.display = 'none';
   _renderHistory();
