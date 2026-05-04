@@ -11,11 +11,22 @@ function _json(obj) {
 }
 
 function _getCfgUsers(ss) {
+  const cache = CacheService.getScriptCache();
+  const cached = cache.get('cfg_users');
+  if (cached) return JSON.parse(cached);
   const cfg = ss.getSheetByName('Config');
   if (!cfg) return [];
-  return cfg.getDataRange().getValues().slice(1)
+  const lastRow = cfg.getLastRow();
+  if (lastRow <= 1) return [];
+  const users = cfg.getRange(2, 1, lastRow - 1, 3).getValues()
     .filter(r => r[0] || r[1] || r[2])
     .map(r => ({ ten: String(r[0]).trim(), matkhau: String(r[1]).trim(), vaitro: String(r[2]).trim() }));
+  cache.put('cfg_users', JSON.stringify(users), 60);
+  return users;
+}
+
+function _clearCfgUsersCache_() {
+  CacheService.getScriptCache().remove('cfg_users');
 }
 
 function doPost(e) {
@@ -30,6 +41,7 @@ function doPost(e) {
       const cfg = ss.getSheetByName('Config');
       if (!cfg) return _json({ ok: false, error: 'Sheet Config không tồn tại' });
       cfg.appendRow([data.ten, data.matkhau, data.vaitro]);
+      _clearCfgUsersCache_();
       return _json({ ok: true });
     }
 
@@ -41,6 +53,7 @@ function doPost(e) {
       for (let i = 1; i < vals.length; i++) {
         if (String(vals[i][0]).trim() === String(data.oldTen).trim()) {
           cfg.getRange(i + 1, 1, 1, 3).setValues([[data.ten, data.matkhau, data.vaitro]]);
+          _clearCfgUsersCache_();
           return _json({ ok: true });
         }
       }
@@ -55,6 +68,7 @@ function doPost(e) {
       for (let i = 1; i < vals.length; i++) {
         if (String(vals[i][0]).trim() === String(data.ten).trim()) {
           cfg.deleteRow(i + 1);
+          _clearCfgUsersCache_();
           return _json({ ok: true });
         }
       }
@@ -225,19 +239,33 @@ function doPost(e) {
       if (data.action === 'updateHistoryRows' && Array.isArray(data.rows)) {
         const noteCol = data.sheet === 'Nhập' ? 13 : 15;
         const _isXuatUpd = data.sheet === 'Xuất' || data.sheet === 'Nháp';
-        data.rows.forEach(function(row, i) {
+        const preparedRows = data.rows.map(function(row, i) {
+          const r = row.slice();
           if (data.sheet === 'Nhập') {
-            row = row.slice(0, 13); // Cắt bỏ các cột thừa, chỉ giữ đúng 13 cột (A -> M) của sheet Nhập
+            r.length = 13; // Cắt bỏ các cột thừa, chỉ giữ đúng 13 cột (A -> M) của sheet Nhập
           }
-          sheet.appendRow(row);
-          const nr = sheet.getLastRow();
-          sheet.getRange(nr, _isXuatUpd ? 13 : 12).setFormula('=H' + nr + '*I' + nr + '+K' + nr + (_isXuatUpd ? '+L' + nr : ''));
           if (data.notes && data.notes[i]) {
-            const noteCell = sheet.getRange(nr, noteCol);
-            const existing = noteCell.getValue() || '';
-            noteCell.setValue(existing ? existing + ' | ' + data.notes[i] : data.notes[i]);
+            while (r.length < noteCol) r.push('');
+            const existing = r[noteCol - 1] || '';
+            r[noteCol - 1] = existing ? existing + ' | ' + data.notes[i] : data.notes[i];
           }
+          return r;
         });
+
+        if (preparedRows.length > 0) {
+          const maxCols = preparedRows.reduce(function(m, r) { return Math.max(m, r.length); }, 0);
+          preparedRows.forEach(function(r) { while (r.length < maxCols) r.push(''); });
+
+          const startRow = sheet.getLastRow() + 1;
+          sheet.getRange(startRow, 1, preparedRows.length, maxCols).setValues(preparedRows);
+
+          const formulaCol = _isXuatUpd ? 13 : 12;
+          const formulas = preparedRows.map(function(_, i) {
+            const nr = startRow + i;
+            return ['=H' + nr + '*I' + nr + '+K' + nr + (_isXuatUpd ? '+L' + nr : '')];
+          });
+          sheet.getRange(startRow, formulaCol, formulas.length, 1).setFormulas(formulas);
+        }
       }
       return ContentService.createTextOutput(JSON.stringify({ success: true }))
         .setMimeType(ContentService.MimeType.JSON);

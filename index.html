@@ -1789,8 +1789,7 @@ async function doLogin() {
       _applyLogin(cached.role, cachedName);
       loginBtn.innerHTML = _BTN_LOGIN_NORMAL;
       loginBtn.disabled = false;
-      fetch(`${SCRIPT_URL}?action=getUsers&token=inox2026xK9m`)
-        .then(r => r.json())
+      _fetchRealtimeUsers()
         .then(data => {
           if (data.ok) {
             const ok = data.users.find(u => u.matkhau === pass);
@@ -1805,11 +1804,27 @@ async function doLogin() {
   loginBtn.disabled = true;
   const _preMatch = (_realtimeUsers || []).find(u => u.matkhau === pass);
   if (_preMatch) {
-    document.getElementById(_preMatch.vaitro === 'owner' ? 'ln-role-owner' : 'ln-role-staff').classList.add('active');
+    const role = _preMatch.vaitro;
+    document.getElementById(role === 'owner' ? 'ln-role-owner' : 'ln-role-staff').classList.add('active');
+    localStorage.setItem('login_cache', JSON.stringify({ role: role, pass: pass, name: _preMatch.ten }));
+    await loadProducts();
+    startAutoRefresh();
+    startInactivityWatch();
+    filterProductList();
+    _applyLogin(role, _preMatch.ten);
+    loginBtn.innerHTML = _BTN_LOGIN_NORMAL;
+    loginBtn.disabled = false;
+    _fetchRealtimeUsers()
+      .then(data => {
+        if (data.ok) {
+          const ok = data.users.find(u => u.matkhau === pass);
+          if (!ok) { localStorage.removeItem('login_cache'); doLogout(); }
+        }
+      }).catch(() => {});
+    return;
   }
   try {
-    const res = await fetch(`${SCRIPT_URL}?action=getUsers&token=inox2026xK9m`);
-    const data = await res.json();
+    const data = await _fetchRealtimeUsers();
     if (data.ok) {
       // TÌM USER CHỈ DỰA VÀO MẬT KHẨU
       const match = data.users.find(u => u.matkhau === pass);
@@ -1862,16 +1877,27 @@ function togglePassVis() {
 // ===== LOGIN HELPERS =====
 // 1. Khởi tạo danh sách từ bộ nhớ tạm (giúp realtime mượt mà không có độ trễ)
 let _realtimeUsers = JSON.parse(localStorage.getItem('realtime_users_cache') || '[]');
+let _usersFetchPromise = null;
+
+function _cacheRealtimeUsers(users) {
+  _realtimeUsers = Array.isArray(users) ? users : [];
+  localStorage.setItem('realtime_users_cache', JSON.stringify(_realtimeUsers));
+}
+
+function _fetchRealtimeUsers() {
+  if (_usersFetchPromise) return _usersFetchPromise;
+  _usersFetchPromise = fetch(`${SCRIPT_URL}?action=getUsers&token=inox2026xK9m`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) _cacheRealtimeUsers(data.users);
+      return data;
+    })
+    .finally(() => { _usersFetchPromise = null; });
+  return _usersFetchPromise;
+}
 
 // 2. Tải ngầm danh sách mới từ Sheet để luôn có mật khẩu mới nhất
-fetch(`${SCRIPT_URL}?action=getUsers&token=inox2026xK9m`)
-  .then(r => r.json())
-  .then(data => {
-    if (data.ok) {
-      _realtimeUsers = data.users;
-      localStorage.setItem('realtime_users_cache', JSON.stringify(data.users));
-    }
-  })
+_fetchRealtimeUsers()
   .catch(() => {});
 
 // 3. Hàm quét realtime khi anh gõ từng ký tự vào ô mật khẩu
@@ -2000,8 +2026,7 @@ function _finishAppBoot() {
     }
     _doneBoot();
     // Verify ngầm
-    fetch(`${SCRIPT_URL}?action=getUsers&token=inox2026xK9m`)
-      .then(r => r.json())
+    _fetchRealtimeUsers()
       .then(data => {
         if (data.ok) {
           const ok = data.users.find(u => u.matkhau === cached.pass);
@@ -6237,13 +6262,13 @@ async function _doHistSaveEdit() {
   const saveBtn = document.getElementById('hedit-save-btn');
   if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '\u0110ang l\u01B0u...'; }
 
-  try {
-    await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sheet: g.loai, action: 'updateHistoryRows', thoigian: g.thoigian, rows: updatedRows, matchRows: buildHistoryMatchRows(g.rows), notes, token: 'inox2026xK9m' })
-    });
-  } catch(e) { showToast('⚠️ Lỗi kết nối, dữ liệu có thể chưa được lưu.'); return; }
+  fetch(SCRIPT_URL + '?token=inox2026xK9m', {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sheet: g.loai, action: 'updateHistoryRows', thoigian: g.thoigian, rows: updatedRows, matchRows: buildHistoryMatchRows(g.rows), notes, token: 'inox2026xK9m' })
+  }).catch(function() {
+    showToast('⚠️ Lỗi kết nối, dữ liệu có thể chưa được lưu.');
+  });
 
   // Cập nhật _historyData local
   const targetOrderKey = _orderKey((g.rows && g.rows[0]) ? g.rows[0] : g);
