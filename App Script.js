@@ -386,7 +386,7 @@ function _historyMatchSignature_(sheetName, row) {
   ];
 
   if (sheetName === 'Xuất') {
-    // ghichu (col 14) excluded: updateHistoryRows appends edit notes into that cell → mismatch after edit.
+    // ghichu (col 14) excluded: updateHistoryRows appends edit notes into that cell → mismatch after edit. //
     parts.push(
       Number(getVal(row, 10, 'phichanh')) || 0,
       Number(getVal(row, 11, 'phikhachtra')) || 0,
