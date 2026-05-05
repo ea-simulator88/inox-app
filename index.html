@@ -5817,14 +5817,14 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
   const phiKT = Number((allRows[0] && allRows[0].phikhachtra) || 0);
   const tenkhach = g.tenkhach || '';
   const B = 'border:1px solid #d73c3c;';
-  const thS = B + 'padding:1.6mm 1mm;text-align:center;font-size:3.0mm;font-weight:700;'; // chỉnh kích thước hóa đơn các dòng đầu tiên
-  const tdBase = 'border-left:1px solid #d73c3c;border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;height:6mm;font-size:3.0mm;'; // chỉnh kích thước hóa đơn các dòng
+  const thS = B + 'padding:1.6mm 1mm;text-align:center;font-size:3.9mm;font-weight:600;'; // chỉnh kích thước hóa đơn các dòng đầu tiên
+  const tdBase = 'border-left:1px solid #d73c3c;border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;height:6mm;font-size:3.9mm;'; // chỉnh kích thước hóa đơn các dòng
   const paddedRows = Array.from({ length: 15 }, (_, i) => pageRows[i] || null);
   const rowOffset = pageIndex * 15;
 
   const headerHTML = hidePrice
     ? `<th style="${thS}width:6%;">TT</th><th style="${thS}width:60%;">Tên Hàng</th><th style="${thS}width:17%;">ĐVT</th><th style="${thS}width:17%;">SL</th>`
-    : `<th style="${thS}width:6%;">TT</th><th style="${thS}width:50%;">Tên Hàng</th><th style="${thS}width:8.5%;">ĐVT</th><th style="${thS}width:8.5%;">SL</th><th style="${thS}width:16%;">Đơn Giá</th><th style="${thS}width:19.5%;">Thành Tiền</th>`;
+    : `<th style="${thS}width:6%;">TT</th><th style="${thS}width:50%;">Tên Hàng</th><th style="${thS}width:9.5%;">ĐVT</th><th style="${thS}width:6.5%;">SL</th><th style="${thS}width:16%;">Đơn Giá</th><th style="${thS}width:21%;">Thành Tiền</th>`;
 
   const bodyHTML = paddedRows.map((r, i) => {
     const name = r ? (r.hanghoa || '') + (r.kichthuoc ? ' - ' + r.kichthuoc : '') : '';
@@ -5834,9 +5834,9 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
     const amount = r ? fmtInvMoney(r.soluong * r.gia) : '';
     const rowNum = r ? (rowOffset + i + 1) : '';
     if (hidePrice) {
-      return `<tr><td style="${tdBase}padding:0 1mm;text-align:center;font-weight:700;">${rowNum}</td><td style="${tdBase}padding:0 2mm;">${name}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${dvt}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${qty}</td></tr>`;
+      return `<tr><td style="${tdBase}padding:0 1mm;text-align:center;font-weight:600;">${rowNum}</td><td style="${tdBase}padding:0 2mm;">${name}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${dvt}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${qty}</td></tr>`;
     }
-    return `<tr><td style="${tdBase}padding:0 1mm;text-align:center;font-weight:700;">${rowNum}</td><td style="${tdBase}padding:0 2mm;">${name}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${dvt}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${qty}</td><td style="${tdBase}padding:0 1.5mm;text-align:right;">${price}</td><td style="${tdBase}padding:0 1.5mm;text-align:right;">${amount}</td></tr>`;
+    return `<tr><td style="${tdBase}padding:0 1mm;text-align:center;font-weight:600;">${rowNum}</td><td style="${tdBase}padding:0 2mm;">${name}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${dvt}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${qty}</td><td style="${tdBase}padding:0 1.5mm;text-align:right;">${price}</td><td style="${tdBase}padding:0 1.5mm;text-align:right;">${amount}</td></tr>`;
   }).join('');
 
   let footerHTML;
@@ -5845,7 +5845,7 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
     const phiKTRow = phiKT > 0 && !hidePrice
       ? `<tr><td colspan="5" style="${B}padding:1.6mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">Phí chành khách trả</td><td style="${B}padding:1.6mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">+ ${fmtInvMoney(phiKT)} đ</td></tr>`
       : '';
-    footerHTML = hidePrice ? '' : `<tfoot>${phiKTRow}<tr><td colspan="5" style="${B}padding:1.6mm 1mm;text-align:center;font-size:3.5mm;font-weight:700;">Tổng Cộng</td><td style="${B}padding:1.6mm 1mm;text-align:right;font-size:3.5mm;font-weight:700;">${fmtInvMoney(grandTotal)} đ</td></tr></tfoot>`;
+    footerHTML = hidePrice ? '' : `<tfoot>${phiKTRow}<tr><td colspan="5" style="${B}padding:1.6mm 1mm;text-align:center;font-size:3.9mm;font-weight:700;">Tổng Cộng</td><td style="${B}padding:1.6mm 1mm;text-align:right;font-size:3.9mm;font-weight:700;">${fmtInvMoney(grandTotal)} đ</td></tr></tfoot>`;
   } else {
     const cs = hidePrice ? 4 : 6;
     footerHTML = `<tfoot><tr><td colspan="${cs}" style="border-top:1px solid #d73c3c;padding:1.6mm 1.2mm;font-style:italic;font-size:3.2mm;font-weight:600;text-align:right ;color:#d32f2f;">Xem tiếp trang sau -&gt;</td></tr></tfoot>`;
@@ -5863,13 +5863,13 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
     <div style="font-size:2.8mm;font-weight:700;line-height:1.18;margin-top:1.2mm;">Chuyên Sỉ Lẻ Hàng Inox Đồ Gia Dụng, Thiết Bị Nhà Bếp, Phòng Tắm, Bàn Ghế, Kệ, Sườn Võng, Giường Xếp, Thang Inox Vv...</div>
     <div style="font-size:4.5mm;font-weight:700;line-height:1;margin-top:1.6mm;text-transform:uppercase;">HÓA ĐƠN BÁN HÀNG</div>
   </div>
-  <div style="font-size:3.5mm;margin-bottom:1mm;display:flex;align-items:flex-end;margin-top:-2mm;">
+  <div style="font-size:3.6mm;margin-bottom:1mm;display:flex;align-items:flex-end;margin-top:-2mm;">
     <span style="white-space:nowrap;">Khách Hàng:</span>
     <span style="flex:1;border-bottom:1px dotted #d32f2f;height:6mm;padding-left:2mm;display:flex;align-items:flex-end;font-weight:700;">${tenkhach}</span>
     <span style="white-space:nowrap;margin-left:2mm;">ĐT:</span>
     <span style="width:36mm;border-bottom:1px dotted #d32f2f;height:6mm;"></span>
   </div>
-  <div style="font-size:3.5mm;margin-bottom:1.8mm;display:flex;align-items:flex-end;">
+  <div style="font-size:3.6mm;margin-bottom:1.8mm;display:flex;align-items:flex-end;">
     <span style="white-space:nowrap;">Địa chỉ:</span>
     <span style="flex:1;border-bottom:1px dotted #d32f2f;height:6mm;"></span>
   </div>
