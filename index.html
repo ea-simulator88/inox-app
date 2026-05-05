@@ -396,6 +396,7 @@ const CONFIG = {
     { sheet_name: "Phí (KT)",      value: "form.phikhachtra" },
     { sheet_name: "Tổng",          value: "sheet_formula"    },
     { sheet_name: "Tên khách",     value: "form.ghichu"      },
+    { sheet_name: "Ghi chú",       value: "form.xuatghichu"  },
   ],
   import_columns: [
     { sheet_name: "Mã SP",        value: "product.ma"        },
@@ -739,6 +740,13 @@ const CONFIG = {
         <div style="position:relative;">
           <input type="text" id="cart-ghichu" placeholder="Tên khách, đơn hàng..." oninput="ixShow(this)" style="width:100%;box-sizing:border-box;padding-right:26px;" />
           <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+        </div>
+        <div id="cart-row-xuatghichu" style="display:none;">
+          <label>Ghi chú (không bắt buộc)</label>
+          <div style="position:relative;">
+            <input type="text" id="cart-xuatghichu" placeholder="Ghi chú..." oninput="ixShow(this)" style="width:100%;box-sizing:border-box;padding-right:26px;" />
+            <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+          </div>
         </div>
       </div>
 
@@ -1188,6 +1196,14 @@ const CONFIG = {
           <label id="dt-ghichu-label" style="font-size:12px;color:#888;display:block;margin-bottom:6px;margin-top:0;">Ghi chú (không bắt buộc)</label>
           <div style="position:relative;">
           <input type="text" id="dt-ghichu" placeholder="Tên khách, đơn hàng..." oninput="ixShow(this)"
+            style="width:100%;padding:9px 36px 9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;box-sizing:border-box;" />
+          <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+          </div>
+        </div>
+        <div id="dt-row-xuatghichu" style="margin-bottom:14px;display:none;">
+          <label style="font-size:12px;color:#888;display:block;margin-bottom:6px;margin-top:0;">Ghi chú (không bắt buộc)</label>
+          <div style="position:relative;">
+          <input type="text" id="dt-xuatghichu" placeholder="Ghi chú..." oninput="ixShow(this)"
             style="width:100%;padding:9px 36px 9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;box-sizing:border-box;" />
           <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
           </div>
@@ -2817,6 +2833,12 @@ function setCartMode(mode) {
   }
   const draftBtn = document.getElementById('btn-cart-draft');
   if (draftBtn) draftBtn.style.display = mode === 'Xuất' ? 'block' : 'none';
+  const _cxgRow = document.getElementById('cart-row-xuatghichu');
+  if (_cxgRow) _cxgRow.style.display = mode === 'Xuất' ? 'block' : 'none';
+  if (mode !== 'Xuất') {
+    const _cxgIn = document.getElementById('cart-xuatghichu');
+    if (_cxgIn) _cxgIn.value = '';
+  }
   const cgLbl = document.getElementById('cart-ghichu-label');
   if (cgLbl) {
     if (mode === 'Xuất') cgLbl.innerHTML = 'Tên khách <span style="color:#f44336;">*</span>';
@@ -2988,6 +3010,7 @@ async function submitCart(mode) {
   if (giaodichEl) cartGiaodich = giaodichEl.value;
   if (!cartGiaodich) { showInfoModal('Thiếu thông tin!', 'Vui lòng chọn hình thức Giao dịch.'); return; }
   const ghichu = document.getElementById('cart-ghichu').value.trim();
+  const xuatGhiChu = mode === 'Xuất' ? (document.getElementById('cart-xuatghichu')?.value || '').trim() : '';
   if (mode === 'Xuất' && !ghichu) { showInfoModal('Thiếu thông tin!', 'Vui lòng nhập Tên khách.'); return; }
   const phiChanh = getInputNum('cart-phichanh');
   const phiKhachTra = mode === 'Xuất' ? getInputNum('cart-phikhachtra') : 0;
@@ -3039,15 +3062,15 @@ async function submitCart(mode) {
       });
       const subHtml = '<div style="border:1.5px solid #f44336;border-radius:8px;padding:8px 12px;text-align:left;font-size:13px;line-height:1.7;word-break:break-word;">' + warnLines.join('<br>') + '</div>';
       const warnMas = lowItems.map(i => i.product.ma);
-      showModal('Giá bán thấp hơn giá vốn!', subHtml, () => doSubmitCart(mode, cartGiaodich, ghichu, phiChanh, phiKhachTra), warnMas);
+      showModal('Giá bán thấp hơn giá vốn!', subHtml, () => doSubmitCart(mode, cartGiaodich, ghichu, phiChanh, phiKhachTra, xuatGhiChu), warnMas);
       return;
     }
   }
 
-  doSubmitCart(mode, cartGiaodich, ghichu, phiChanh, phiKhachTra);
+  doSubmitCart(mode, cartGiaodich, ghichu, phiChanh, phiKhachTra, xuatGhiChu);
 }
 
-async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra) {
+async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra, xuatGhiChu) {
   const confirmBtn = document.getElementById('btn-cart-confirm');
   if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = '⏳ Đang ghi...'; }
 
@@ -3068,6 +3091,7 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra) {
       if (col.value === 'form.phichanh')    return idx === 0 ? (phiChanh ? (mode === 'Xuất' ? -phiChanh : phiChanh) : '') : '';
       if (col.value === 'form.phikhachtra') return idx === 0 && mode === 'Xuất' ? (phiKhachTra || '') : '';
       if (col.value === 'form.ghichu')      return ghichu;
+      if (col.value === 'form.xuatghichu')  return idx === 0 && mode === 'Xuất' ? (xuatGhiChu || '') : '';
       if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
       return '';
     });
@@ -3090,11 +3114,13 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra) {
     ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
     ${phiKhachTra > 0 && mode === 'Xuất' ? `<div class="info-row"><span class="info-label">Phí KH trả</span><span class="info-value">${fmt(phiKhachTra)} đ</span></div>` : ''}
     ${ghichu ? `<div class="info-row"><span class="info-label">${mode === 'Xuất' ? 'Tên khách' : 'Ghi chú'}</span><span class="info-value">${ghichu}</span></div>` : ''}
+    ${xuatGhiChu && mode === 'Xuất' ? `<div class="info-row"><span class="info-label">Ghi chú</span><span class="info-value">${xuatGhiChu}</span></div>` : ''}
   `;
 
   cart = [];
   cartGiaodich = '';
   document.getElementById('cart-ghichu').value = '';
+  document.getElementById('cart-xuatghichu').value = '';
   document.getElementById('cart-phichanh').value = '';
   document.getElementById('cart-phikhachtra').value = '';
   const _gdt = document.getElementById('cart-giaodich');
@@ -4098,6 +4124,8 @@ function dtSetMode(mode) {
     bn.className = 'toggle-btn';
     const _dpktRow = document.getElementById('dt-row-phikhachtra');
     if (_dpktRow) _dpktRow.style.display = 'block';
+    const _dxgRow = document.getElementById('dt-row-xuatghichu');
+    if (_dxgRow) _dxgRow.style.display = 'block';
   } else {
     bn.className = 'toggle-btn active-nhap';
     bx.className = 'toggle-btn';
@@ -4106,6 +4134,10 @@ function dtSetMode(mode) {
     if (_dpktRow) _dpktRow.style.display = 'none';
     const _dpktIn = document.getElementById('dt-phikhachtra');
     if (_dpktIn) _dpktIn.value = '';
+    const _dxgRow = document.getElementById('dt-row-xuatghichu');
+    if (_dxgRow) _dxgRow.style.display = 'none';
+    const _dxgIn = document.getElementById('dt-xuatghichu');
+    if (_dxgIn) _dxgIn.value = '';
   }
   document.getElementById('dt-row-phichanh').style.display = 'block';
   document.getElementById('dt-confirm-hint').textContent = `Mỗi SP ghi 1 dòng vào sheet ${mode}`;
@@ -4128,6 +4160,7 @@ async function dtSubmit() {
   if (dtCart.length === 0) { showInfoModal('Giỏ trống!', 'Thêm ít nhất 1 sản phẩm.'); return; }
   const giaodich = document.getElementById('dt-giaodich').value;
   const ghichu = document.getElementById('dt-ghichu').value.trim();
+  const xuatGhiChu = dtMode === 'Xuất' ? (document.getElementById('dt-xuatghichu')?.value || '').trim() : '';
   const phiChanh = parseInt((document.getElementById('dt-phichanh').value || '').replace(/[^0-9]/g,'')) || 0;
   const phiKhachTra = dtMode === 'Xuất' ? (parseInt((document.getElementById('dt-phikhachtra').value || '').replace(/[^0-9]/g,'')) || 0) : 0;
   if (dtMode === 'Xuất' && !ghichu) { showInfoModal('Thiếu thông tin!', 'Vui lòng nhập Tên khách.'); return; }
@@ -4171,15 +4204,15 @@ async function dtSubmit() {
       });
       const subHtml = '<div style="border:1.5px solid #f44336;border-radius:8px;padding:8px 12px;text-align:left;font-size:13px;line-height:1.7;word-break:break-word;">' + warnLines.join('<br>') + '</div>';
       const warnMas = dtLow.map(i => i.product.ma);
-      showModal('Giá bán thấp hơn giá vốn!', subHtml, () => _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra), warnMas);
+      showModal('Giá bán thấp hơn giá vốn!', subHtml, () => _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra, xuatGhiChu), warnMas);
       return;
     }
   }
 
-  _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra);
+  _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra, xuatGhiChu);
 }
 
-async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra) {
+async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra, xuatGhiChu) {
   const btn = document.getElementById('dt-btn-confirm');
   btn.disabled = true;
   btn.textContent = '⏳ Đang ghi...';
@@ -4197,6 +4230,7 @@ async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra) {
       if (col.value === 'form.phichanh')    return idx === 0 ? (phiChanh ? (dtMode === 'Xuất' ? -phiChanh : phiChanh) : '') : '';
       if (col.value === 'form.phikhachtra') return idx === 0 && dtMode === 'Xuất' ? (phiKhachTra || '') : '';
       if (col.value === 'form.ghichu')      return ghichu;
+      if (col.value === 'form.xuatghichu')  return idx === 0 && dtMode === 'Xuất' ? (xuatGhiChu || '') : '';
       if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
       return '';
     });
@@ -4218,6 +4252,7 @@ async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra) {
   document.getElementById('dt-phichanh').value = '';
   document.getElementById('dt-phikhachtra').value = '';
   document.getElementById('dt-ghichu').value = '';
+  document.getElementById('dt-xuatghichu').value = '';
   saveCart();
 
   btn.disabled = false;
@@ -4237,6 +4272,7 @@ async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra) {
     ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
     ${phiKhachTra > 0 && isXuat ? `<div class="info-row"><span class="info-label">Phí KH trả</span><span class="info-value">${fmt(phiKhachTra)} đ</span></div>` : ''}
     ${ghichu ? `<div class="info-row"><span class="info-label">${isXuat ? 'Tên khách' : 'Ghi chú'}</span><span class="info-value">${ghichu}</span></div>` : ''}
+    ${xuatGhiChu && isXuat ? `<div class="info-row"><span class="info-label">Ghi chú</span><span class="info-value">${xuatGhiChu}</span></div>` : ''}
   `;
   document.getElementById('dt-success-overlay').style.display = 'flex';
 }
@@ -6334,6 +6370,7 @@ async function dtSaveDraft() {
   const thoiGian = fmtTime(now);
   const giaodich = document.getElementById('dt-giaodich')?.value || '';
   const ghichu   = (document.getElementById('dt-ghichu')?.value || '').trim();
+  const xuatGhiChu = (document.getElementById('dt-xuatghichu')?.value || '').trim();
   const phiChanh = parseInt((document.getElementById('dt-phichanh')?.value || '').replace(/[^0-9]/g,'')) || 0;
   const phiKhachTra = parseInt((document.getElementById('dt-phikhachtra')?.value || '').replace(/[^0-9]/g,'')) || 0;
   const cols = CONFIG.export_columns;
@@ -6345,6 +6382,7 @@ async function dtSaveDraft() {
     if (col.value === 'form.phichanh')    return idx === 0 ? (phiChanh ? -phiChanh : '') : '';
     if (col.value === 'form.phikhachtra') return idx === 0 ? (phiKhachTra || '') : '';
     if (col.value === 'form.ghichu')      return ghichu;
+    if (col.value === 'form.xuatghichu')  return idx === 0 ? (xuatGhiChu || '') : '';
     if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
     return '';
   }));
@@ -6362,6 +6400,7 @@ async function dtSaveDraft() {
   document.getElementById('dt-phichanh').value = '';
   document.getElementById('dt-phikhachtra').value = '';
   document.getElementById('dt-ghichu').value = '';
+  document.getElementById('dt-xuatghichu').value = '';
   saveCart();
   if (draftBtn) { draftBtn.disabled = false; draftBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/></svg> Lưu nháp'; }
   dtSetMode(dtMode);
@@ -6394,6 +6433,7 @@ async function saveDraft() {
   const thoiGian = fmtTime(now);
   const giaodich = document.getElementById('cart-giaodich')?.value || '';
   const ghichu   = (document.getElementById('cart-ghichu')?.value || '').trim();
+  const xuatGhiChu = (document.getElementById('cart-xuatghichu')?.value || '').trim();
   const phiChanh = getInputNum('cart-phichanh');
   const phiKhachTra = getInputNum('cart-phikhachtra');
   const cols = CONFIG.export_columns;
@@ -6405,6 +6445,7 @@ async function saveDraft() {
     if (col.value === 'form.phichanh')    return idx === 0 ? (phiChanh ? -phiChanh : '') : '';
     if (col.value === 'form.phikhachtra') return idx === 0 ? (phiKhachTra || '') : '';
     if (col.value === 'form.ghichu')      return ghichu;
+    if (col.value === 'form.xuatghichu')  return idx === 0 ? (xuatGhiChu || '') : '';
     if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
     return '';
   }));
@@ -6419,6 +6460,7 @@ async function saveDraft() {
   rows.forEach(row => _historyData.push(_mapHistRow(row, 'Nháp')));
   cart = []; cartGiaodich = '';
   document.getElementById('cart-ghichu').value = '';
+  document.getElementById('cart-xuatghichu').value = '';
   document.getElementById('cart-phichanh').value = '';
   document.getElementById('cart-phikhachtra').value = '';
   const _gdt = document.getElementById('cart-giaodich');
