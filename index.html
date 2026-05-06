@@ -1392,14 +1392,19 @@ function startAutoRefresh() {
   if (_autoRefreshTimer) clearInterval(_autoRefreshTimer);
   _autoRefreshTimer = setInterval(() => {
     if (!currentRole) return;
-    fetchProductsFromServer().then(() => {
+    _refreshProductsFastShared().then(() => {
+      _syncCartsWithProductMap();
+      renderCart();
+      dtRenderCart();
+      updateCartBadge();
+      saveCartDebounced();
       // Chỉ re-render product list nếu giỏ hàng đang trống (tránh reset scroll khi đang chọn hàng)
       if (window.innerWidth >= 768) { if (dtCart.length === 0) dtFilterProducts(); }
       else { if (cart.length === 0) filterProductList(); }
       filterManageProducts();
       updateProductStats();
     }).catch(() => {});
-  }, 10000);
+  }, 7000);
 }
 function stopAutoRefresh() {
   if (_autoRefreshTimer) { clearInterval(_autoRefreshTimer); _autoRefreshTimer = null; }
@@ -1476,6 +1481,43 @@ function _refreshProductsShared() {
     _productsRefreshPromise = null;
   });
   return _productsRefreshPromise;
+}
+let _productsFastRefreshPromise = null;
+function _syncCartsWithProductMap() {
+  cart = cart.map(i => {
+    const latest = productMap.get(i.product.ma);
+    return { product: latest || i.product, sl: i.sl, gia: i.gia };
+  });
+  dtCart = dtCart.map(i => {
+    const latest = productMap.get(i.product.ma);
+    return { product: latest || i.product, sl: i.sl, gia: i.gia };
+  });
+}
+async function fetchProductsFastFromServer() {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
+  const res = await fetch(SCRIPT_URL + '?action=getFast&token=inox2026xK9m', { signal: controller.signal, cache: 'no-store' });
+  clearTimeout(timeoutId);
+  const data = await res.json();
+  const fastItems = Array.isArray(data.items) ? data.items : [];
+  if (fastItems.length === 0) return;
+  const byMa = new Map(fastItems.map(p => [p.ma, p]));
+  products = products.map(oldP => {
+    const n = byMa.get(oldP.ma);
+    if (!n) return oldP;
+    byMa.delete(oldP.ma);
+    return Object.assign({}, oldP, n);
+  });
+  byMa.forEach(p => products.push(p));
+  _rebuildProductMap();
+  try { localStorage.setItem('products_cache', JSON.stringify(products)); } catch(e) {}
+}
+function _refreshProductsFastShared() {
+  if (_productsFastRefreshPromise) return _productsFastRefreshPromise;
+  _productsFastRefreshPromise = fetchProductsFastFromServer().finally(() => {
+    _productsFastRefreshPromise = null;
+  });
+  return _productsFastRefreshPromise;
 }
 
 // ===== SCREEN =====
@@ -1717,14 +1759,7 @@ function doRefreshProducts() {
   const btnIds = ['main-refresh-btn', 'manage-refresh-btn', 'dt-btn-refresh'];
   btnIds.forEach(id => _setRefreshLoading(id, true));
   _refreshProductsShared().then(() => {
-    cart = cart.map(i => {
-      const latest = productMap.get(i.product.ma);
-      return { product: latest || i.product, sl: i.sl, gia: i.gia };
-    });
-    dtCart = dtCart.map(i => {
-      const latest = productMap.get(i.product.ma);
-      return { product: latest || i.product, sl: i.sl, gia: i.gia };
-    });
+    _syncCartsWithProductMap();
     renderCart();
     dtRenderCart();
     updateCartBadge();
@@ -1742,14 +1777,7 @@ async function refreshCartData() {
   btnIds.forEach(id => _setRefreshLoading(id, true));
   try {
     await _refreshProductsShared();
-    cart = cart.map(i => {
-      const latest = productMap.get(i.product.ma);
-      return { product: latest || i.product, sl: i.sl, gia: i.gia };
-    });
-    dtCart = dtCart.map(i => {
-      const latest = productMap.get(i.product.ma);
-      return { product: latest || i.product, sl: i.sl, gia: i.gia };
-    });
+    _syncCartsWithProductMap();
     renderCart();
     dtRenderCart();
     if (window.innerWidth >= 768) dtRenderProducts();
@@ -1766,9 +1794,16 @@ async function refreshCartData() {
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && currentRole) {
-    _refreshProductsShared().then(() => {
+    _refreshProductsFastShared().then(() => {
+      _syncCartsWithProductMap();
+      renderCart();
+      dtRenderCart();
+      updateCartBadge();
+      saveCartDebounced();
       if (window.innerWidth >= 768) dtFilterProducts();
       else filterProductList();
+      filterManageProducts();
+      updateProductStats();
     }).catch(() => {});
   }
 });
@@ -2935,6 +2970,7 @@ function renderCart() {
       ? (gs > 0 ? `${gs.toLocaleString('en-US')}đ` : 'Nhập giá...')
       : (gv > 0 ? `${gv.toLocaleString('en-US')}đ` : 'Nhập giá...');
     const tonkho = Number(item.product.tonkho) || 0;
+    const lowTon = tonkho <= LOW_STOCK_THRESHOLD;
     const showWarnSl = cartMode === 'Xuất' && item.sl > 0 && item.sl > tonkho;
     const showWarnGia = cartMode === 'Xuất' && item.gia > 0 && gs > 0 && item.gia < gs;
     return `<div class="cart-item" id="ci-${item.product.ma.replace(/[^a-zA-Z0-9]/g, '_')}">
@@ -2942,6 +2978,7 @@ function renderCart() {
         <div>
           <div class="cart-item-name">${item.product.ten}</div>
           <div class="cart-item-size">${item.product.ma}${item.product.ncc ? ' · ' + item.product.ncc : ''}</div>
+          <div style="font-size:12px;font-weight:600;color:${lowTon ? '#f44336' : '#4CAF50'};">Tồn: ${fmt(tonkho)}</div>
           ${[item.product.kichthuoc, item.product.motaSP].filter(Boolean).length ? `<div style="font-size:12px;color:#555;margin-top:1px;">${[item.product.kichthuoc, item.product.motaSP].filter(Boolean).join(' · ')}</div>` : ''}
           ${cartMode === 'Xuất'
               ? (item.product.giasi ? `<div style="font-size:12px;color:#2e7d32;margin-top:3px;font-weight:600;">Giá sỉ: ${fmtMoney(item.product.giasi)}</div>` : '')
@@ -4105,6 +4142,7 @@ function dtRenderCart() {
       ? (gs > 0 ? `Giá sỉ: ${gs.toLocaleString('en-US')}đ` : 'Nhập giá...')
       : (gvNum > 0 ? `Giá vốn: ${gvNum.toLocaleString('en-US')}đ` : 'Nhập giá...');
     const tonkho = Number(p.tonkho) || 0;
+    const lowTon = tonkho <= LOW_STOCK_THRESHOLD;
     const showWarnSl = dtMode === 'Xuất' && item.sl > 0 && item.sl > tonkho;
     const showWarnGia = dtMode === 'Xuất' && item.gia > 0 && gs > 0 && item.gia < gs;
     const gv = dtMode === 'Xuất'
@@ -4115,6 +4153,7 @@ function dtRenderCart() {
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.ten}</div>
           <div style="font-size:11px;color:#1565c0;">${p.ma}${p.ncc ? ' · ' + p.ncc : ''}</div>
+          <div style="font-size:11px;font-weight:600;color:${lowTon ? '#f44336' : '#4CAF50'};">Tồn: ${fmt(tonkho)}</div>
           ${gv}
         </div>
         <button onclick="dtRemoveFromCart('${p.ma}')"

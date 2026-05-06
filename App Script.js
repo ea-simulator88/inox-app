@@ -476,6 +476,54 @@ function doGet(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
+  // ── Fast refresh: giá + tồn + sản phẩm mới (action=getFast) ───
+  if (e.parameter.action === 'getFast') {
+    const sheet = ss.getSheetByName('Sản phẩm');
+    if (!sheet) return _json({ items: [] });
+    const values = sheet.getDataRange().getValues();
+    if (!values || values.length <= 1) return _json({ items: [] });
+    const headers = (values[0] || []).map(function(h) { return String(h || '').trim(); });
+    const idxAny = function(names) {
+      for (var i = 0; i < names.length; i++) {
+        var k = headers.indexOf(names[i]);
+        if (k !== -1) return k;
+      }
+      return -1;
+    };
+    const iMa = idxAny(['Mã SP']);
+    const iTen = idxAny(['Tên SP', 'Tên hàng', 'Mặt hàng']);
+    const iNcc = idxAny(['Nhà Cung Cấp', 'Nhà cung cấp']);
+    const iKt = idxAny(['Kích thước']);
+    const iMoTa = idxAny(['Mô tả Sp', 'Mô tả SP']);
+    const iDvt = idxAny(['Đơn vị tính', 'ĐVT']);
+    const iGiaVon = idxAny(['Giá vốn']);
+    const iGiaSi = idxAny(['Giá sỉ']);
+    const iTonKho = idxAny(['Tồn kho']);
+    const iNhanHieu = idxAny(['Nhãn hiệu']);
+    const iPhanLoai = idxAny(['Phân loại']);
+    const iAn = idxAny(['Ẩn']);
+
+    const items = values.slice(1).map(function(r) {
+      const ma = iMa !== -1 ? String(r[iMa] || '').trim() : '';
+      if (!ma) return null;
+      return {
+        ma: ma,
+        ten: iTen !== -1 ? (r[iTen] || '') : '',
+        ncc: iNcc !== -1 ? (r[iNcc] || '') : '',
+        kichthuoc: iKt !== -1 ? (r[iKt] || '') : '',
+        motaSP: iMoTa !== -1 ? (r[iMoTa] || '') : '',
+        dvt: iDvt !== -1 ? (r[iDvt] || 'Cái') : 'Cái',
+        giavon: iGiaVon !== -1 ? (r[iGiaVon] || '') : '',
+        giasi: iGiaSi !== -1 ? (r[iGiaSi] || '') : '',
+        tonkho: iTonKho !== -1 ? (Number(r[iTonKho]) || 0) : 0,
+        nhanHieu: iNhanHieu !== -1 ? (r[iNhanHieu] || '') : '',
+        phanloai: iPhanLoai !== -1 ? (r[iPhanLoai] || '') : '',
+        an: iAn !== -1 ? (r[iAn] || '') : ''
+      };
+    }).filter(function(x) { return !!x; });
+    return _json({ items: items });
+  }
+
   // ── Lấy danh sách sản phẩm (action=get) ────────────
   const sheet = ss.getSheetByName('Sản phẩm');
   const data = sheet.getDataRange().getValues();
