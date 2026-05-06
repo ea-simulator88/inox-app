@@ -1469,6 +1469,14 @@ function _rebuildProductMap() {
   productMap = new Map();
   products.forEach(p => productMap.set(p.ma, p));
 }
+let _productsRefreshPromise = null;
+function _refreshProductsShared() {
+  if (_productsRefreshPromise) return _productsRefreshPromise;
+  _productsRefreshPromise = fetchProductsFromServer().finally(() => {
+    _productsRefreshPromise = null;
+  });
+  return _productsRefreshPromise;
+}
 
 // ===== SCREEN =====
 function updateProductStats() {
@@ -1708,23 +1716,19 @@ function doRefreshProducts() {
   // Fetch server nền — khi xong tự cập nhật lại
   const btnIds = ['main-refresh-btn', 'manage-refresh-btn', 'dt-btn-refresh'];
   btnIds.forEach(id => _setRefreshLoading(id, true));
-  fetchProductsFromServer().then(() => {
+  _refreshProductsShared().then(() => {
     cart = cart.map(i => {
-      const latest = products.find(p => p.ma === i.product.ma);
+      const latest = productMap.get(i.product.ma);
       return { product: latest || i.product, sl: i.sl, gia: i.gia };
     });
     dtCart = dtCart.map(i => {
-      const latest = products.find(p => p.ma === i.product.ma);
+      const latest = productMap.get(i.product.ma);
       return { product: latest || i.product, sl: i.sl, gia: i.gia };
     });
-    if (window.innerWidth >= 768) dtFilterProducts();
-    filterProductList();
-    filterManageProducts();
     renderCart();
     dtRenderCart();
     updateCartBadge();
     saveCart();
-    updateProductStats();
     showToast('Đã làm mới sản phẩm');
   }).catch(() => {
     showToast('⚠️ Không thể kết nối server!');
@@ -1734,16 +1738,16 @@ function doRefreshProducts() {
 }
 
 async function refreshCartData() {
-  const btnIds = ['cart-refresh-btn', 'dt-cart-refresh-btn'];
+  const btnIds = ['cart-refresh-btn'];
   btnIds.forEach(id => _setRefreshLoading(id, true));
   try {
-    await fetchProductsFromServer();
+    await _refreshProductsShared();
     cart = cart.map(i => {
-      const latest = products.find(p => p.ma === i.product.ma);
+      const latest = productMap.get(i.product.ma);
       return { product: latest || i.product, sl: i.sl, gia: i.gia };
     });
     dtCart = dtCart.map(i => {
-      const latest = products.find(p => p.ma === i.product.ma);
+      const latest = productMap.get(i.product.ma);
       return { product: latest || i.product, sl: i.sl, gia: i.gia };
     });
     renderCart();
@@ -1762,7 +1766,7 @@ async function refreshCartData() {
 
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && currentRole) {
-    fetchProductsFromServer().then(() => {
+    _refreshProductsShared().then(() => {
       if (window.innerWidth >= 768) dtFilterProducts();
       else filterProductList();
     }).catch(() => {});
