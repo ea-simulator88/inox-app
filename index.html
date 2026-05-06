@@ -5855,7 +5855,7 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
   const B = 'border:1px solid #d73c3c;';
   const thS = B + 'padding:1.6mm 1mm;text-align:center;font-size:3.9mm;font-weight:600;'; // chỉnh kích thước hóa đơn các dòng đầu tiên
   const tdBase = 'border-left:1px solid #d73c3c;border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;height:6mm;font-size:3.9mm;'; // chỉnh kích thước hóa đơn các dòng
-  const paddedRows = Array.from({ length: 15 }, (_, i) => pageRows[i] || null);
+  const paddedRows = Array.from({ length: 14 }, (_, i) => pageRows[i] || null); // chỉnh hóa đơn các dòng
   const rowOffset = pageIndex * 15;
 
   const headerHTML = hidePrice
