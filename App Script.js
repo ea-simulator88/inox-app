@@ -227,6 +227,30 @@ function doPost(e) {
           }
         }
 
+        // Fallback: nếu match signature bị lệch (do sửa tay/định dạng), vẫn xóa đúng đơn theo
+        // thời gian + đối tượng (khách/NCC) để tránh append trùng.
+        if (rowsToDelete.length === 0 && Array.isArray(data.matchRows) && data.matchRows.length > 0) {
+          const first = data.matchRows[0] || {};
+          const expectedParty = (data.sheet === 'Xuất' || data.sheet === 'Nháp')
+            ? String(first.tenkhach || '').trim().toLowerCase()
+            : String(first.ncc || '').trim().toLowerCase();
+          let remaining = data.matchRows.length;
+
+          for (let i = vals.length - 1; i >= 1 && remaining > 0; i--) {
+            const cv = dvals[i][1] || vals[i][1];
+            if (!cv) continue;
+            if (_historyTimeKey(cv) !== targetTimeKey) continue;
+
+            const rowParty = (data.sheet === 'Xuất' || data.sheet === 'Nháp')
+              ? String(vals[i][13] || '').trim().toLowerCase()
+              : String(vals[i][2] || '').trim().toLowerCase();
+
+            if (expectedParty && rowParty !== expectedParty) continue;
+            rowsToDelete.push(i + 1);
+            remaining--;
+          }
+        }
+
         // Gom các dòng liên tiếp → xóa 1 lần thay vì từng dòng
         let j = 0;
         while (j < rowsToDelete.length) {
@@ -388,8 +412,6 @@ function _historyMatchSignature_(sheetName, row) {
   if (sheetName === 'Xuất') {
     // ghichu (col 14) excluded: updateHistoryRows appends edit notes into that cell → mismatch after edit. //
     parts.push(
-      Number(getVal(row, 10, 'phichanh')) || 0,
-      Number(getVal(row, 11, 'phikhachtra')) || 0,
       getVal(row, 13, 'tenkhach'),
       getVal(row, 15, 'nguoighi')
     );
@@ -402,9 +424,7 @@ function _historyMatchSignature_(sheetName, row) {
     );
   } else {
     // Nhập: ghichu (col 12) excluded for same reason — notes appended there after edit.
-    parts.push(
-      Number(getVal(row, 10, 'phichanh')) || 0
-    );
+    // phichanh excluded: manual edits may change sign/format and break strict matching.
   }
 
   return parts.map(function(v) { return (v || '').toString().trim(); }).join('||');
