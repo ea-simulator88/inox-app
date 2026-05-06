@@ -5882,7 +5882,12 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
       ? `<tr><td colspan="5" style="${B}padding:1.6mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">Phí chành khách trả</td><td style="${B}padding:1.6mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">+ ${fmtInvMoney(phiKT)} đ</td></tr>`
       : '';
     const noteText = !hidePrice && g.loai === 'Xuất'
-      ? ((allRows.find(r => String(r.ghichu || '').trim()) || {}).ghichu || '').toString().trim()
+      ? ((allRows.find(function(r) {
+          const raw = String(r.ghichu || '').trim();
+          if (!raw) return false;
+          // Ẩn ghi chú hệ thống do App Script chèn (ví dụ: Phí VC..., Sửa..., GD...)
+          return !/^(Phí VC:|Sửa\s|GD:)/i.test(raw);
+        }) || {}).ghichu || '').toString().trim()
       : '';
     const noteRow = noteText
       ? `<tr><td colspan="6" style="${B}padding:1.6mm 2mm;text-align:left;font-size:3.5mm;font-weight:600;">Ghi chú: ${_esc(noteText)}</td></tr>`
