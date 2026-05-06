@@ -5881,7 +5881,13 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
     const phiKTRow = phiKT > 0 && !hidePrice
       ? `<tr><td colspan="5" style="${B}padding:1.6mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">Phí chành khách trả</td><td style="${B}padding:1.6mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">+ ${fmtInvMoney(phiKT)} đ</td></tr>`
       : '';
-    footerHTML = hidePrice ? '' : `<tfoot>${phiKTRow}<tr><td colspan="5" style="${B}padding:1.6mm 1mm;text-align:center;font-size:3.9mm;font-weight:700;">Tổng Cộng</td><td style="${B}padding:1.6mm 1mm;text-align:right;font-size:3.9mm;font-weight:700;">${fmtInvMoney(grandTotal)} đ</td></tr></tfoot>`;
+    const noteText = !hidePrice && g.loai === 'Xuất'
+      ? ((allRows.find(r => String(r.ghichu || '').trim()) || {}).ghichu || '').toString().trim()
+      : '';
+    const noteRow = noteText
+      ? `<tr><td colspan="6" style="${B}padding:1.6mm 2mm;text-align:left;font-size:3.5mm;font-weight:600;">Ghi chú: ${_esc(noteText)}</td></tr>`
+      : '';
+    footerHTML = hidePrice ? '' : `<tfoot>${phiKTRow}${noteRow}<tr><td colspan="5" style="${B}padding:1.6mm 1mm;text-align:center;font-size:3.9mm;font-weight:700;">Tổng Cộng</td><td style="${B}padding:1.6mm 1mm;text-align:right;font-size:3.9mm;font-weight:700;">${fmtInvMoney(grandTotal)} đ</td></tr></tfoot>`;
   } else {
     const cs = hidePrice ? 4 : 6;
     footerHTML = `<tfoot><tr><td colspan="${cs}" style="border-top:1px solid #d73c3c;padding:1.6mm 1.2mm;font-style:italic;font-size:3.2mm;font-weight:600;text-align:right ;color:#d32f2f;">Xem tiếp trang sau -&gt;</td></tr></tfoot>`;
