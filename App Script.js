@@ -29,6 +29,16 @@ function _clearCfgUsersCache_() {
   CacheService.getScriptCache().remove('cfg_users');
 }
 
+function _isDuplicateHistoryRequest_(requestId) {
+  const rid = (requestId || '').toString().trim();
+  if (!rid) return false;
+  const cache = CacheService.getScriptCache();
+  const key = 'hist_req_' + rid;
+  if (cache.get(key)) return true;
+  cache.put(key, '1', 180); // 3 phút chống gửi trùng do retry/double-click/mạng chập chờn
+  return false;
+}
+
 function doPost(e) {
   if (e.parameter.token !== 'inox2026xK9m')
     return _json({ error: 'unauthorized' });
@@ -198,6 +208,14 @@ function doPost(e) {
 
     // ── XÓA / CẬP NHẬT dòng lịch sử theo thời gian ───────
     if (data.action === 'deleteHistoryRows' || data.action === 'updateHistoryRows') {
+      if (_isDuplicateHistoryRequest_(data.request_id)) {
+        return ContentService.createTextOutput(JSON.stringify({ success: true, duplicate: true }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      const lock = LockService.getScriptLock();
+      lock.waitLock(20000);
+      try {
       const targetTimeKey = _historyTimeKey(data.thoigian);
       if (targetTimeKey && sheet) {
         const matchCounts = {};
@@ -309,6 +327,9 @@ function doPost(e) {
           });
           sheet.getRange(startRow, formulaCol, formulas.length, 1).setFormulas(formulas);
         }
+      }
+      } finally {
+        lock.releaseLock();
       }
       return ContentService.createTextOutput(JSON.stringify({ success: true }))
         .setMimeType(ContentService.MimeType.JSON);

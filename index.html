@@ -6408,11 +6408,12 @@ async function _doHistSaveEdit() {
 
   const saveBtn = document.getElementById('hedit-save-btn');
   if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '\u0110ang l\u01B0u...'; }
+  const requestId = 'upd_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
 
   fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sheet: g.loai, action: 'updateHistoryRows', thoigian: g.thoigian, rows: updatedRows, matchRows: buildHistoryMatchRows(g.rows), notes, token: 'inox2026xK9m' })
+    body: JSON.stringify({ sheet: g.loai, action: 'updateHistoryRows', thoigian: g.thoigian, rows: updatedRows, matchRows: buildHistoryMatchRows(g.rows), notes, request_id: requestId, token: 'inox2026xK9m' })
   }).catch(function() {
     showToast('⚠️ Lỗi kết nối, dữ liệu có thể chưa được lưu.');
   });
@@ -6439,10 +6440,11 @@ async function histDeleteGroup(idx) {
   if (!confirm('X\u00F3a giao d\u1ECBch ' + g.loai + ' \u2013 ' + g.rows.length + ' SP \u2013 ' + total.toLocaleString('en-US') + ' \u0111?\nH\u00E0nh \u0111\u1ED9ng n\u00E0y kh\u00F4ng th\u1EC3 ho\u00E0n t\u00E1c!')) return;
 
   try {
+    const requestId = 'del_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
     await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sheet: g.loai, action: 'deleteHistoryRows', thoigian: g.thoigian, matchRows: buildHistoryMatchRows(g.rows), token: 'inox2026xK9m' })
+      body: JSON.stringify({ sheet: g.loai, action: 'deleteHistoryRows', thoigian: g.thoigian, matchRows: buildHistoryMatchRows(g.rows), request_id: requestId, token: 'inox2026xK9m' })
     });
   } catch(e) { showToast('⚠️ Lỗi kết nối, dữ liệu có thể chưa được lưu.'); return; }
 
@@ -6623,10 +6625,11 @@ async function _doDraftConfirm(idx, giaodich) {
 
   // 2. ÂM THẦM XỬ LÝ TRÊN GOOGLE SHEET Ở BACKGROUND (Đã xóa chữ await)
   // Lệnh xóa Nháp
+  const requestIdDraftDelete = 'del_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
   fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({sheet:'Nháp', action:'deleteHistoryRows', thoigian:g.thoigian, matchRows: buildHistoryMatchRows(g.rows), token:'inox2026xK9m' ,user_name: currentUserName})
+    body: JSON.stringify({sheet:'Nháp', action:'deleteHistoryRows', thoigian:g.thoigian, matchRows: buildHistoryMatchRows(g.rows), request_id: requestIdDraftDelete, token:'inox2026xK9m' ,user_name: currentUserName})
   }).catch(e => console.log(e));
 
   // Lệnh ghi Xuất
