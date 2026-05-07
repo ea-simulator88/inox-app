@@ -227,7 +227,7 @@ function doPost(e) {
           }
         }
 
-        // Fallback: nếu match signature bị lệch (do sửa tay/định dạng), vẫn xóa đúng đơn theo
+        // Fallback 1: nếu match signature bị lệch (do sửa tay/định dạng), vẫn xóa đúng đơn theo
         // thời gian + đối tượng (khách/NCC) để tránh append trùng.
         if (rowsToDelete.length === 0 && Array.isArray(data.matchRows) && data.matchRows.length > 0) {
           const first = data.matchRows[0] || {};
@@ -248,6 +248,25 @@ function doPost(e) {
             if (expectedParty && rowParty !== expectedParty) continue;
             rowsToDelete.push(i + 1);
             remaining--;
+          }
+        }
+
+        // Fallback 2 (chống trùng trên máy/định dạng khác): với update, nếu chưa xóa đủ số dòng cũ,
+        // tiếp tục xóa thêm các dòng cùng timestamp cho tới đủ matchRows.length.
+        if (data.action === 'updateHistoryRows' && Array.isArray(data.matchRows) && data.matchRows.length > 0) {
+          const need = data.matchRows.length;
+          if (rowsToDelete.length < need) {
+            const picked = {};
+            rowsToDelete.forEach(function(rn) { picked[rn] = true; });
+            for (let i = vals.length - 1; i >= 1 && rowsToDelete.length < need; i--) {
+              const rn = i + 1;
+              if (picked[rn]) continue;
+              const cv = dvals[i][1] || vals[i][1];
+              if (!cv) continue;
+              if (_historyTimeKey(cv) !== targetTimeKey) continue;
+              rowsToDelete.push(rn);
+              picked[rn] = true;
+            }
           }
         }
 
