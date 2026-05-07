@@ -213,8 +213,7 @@ function doPost(e) {
         // Thu thập các dòng cần xóa (vòng lặp ngược → mảng đã theo thứ tự giảm dần)
         const rowsToDelete = [];
         for (let i = vals.length - 1; i >= 1; i--) {
-          // Ưu tiên raw value (Date object) để tránh lệch ngày/tháng khi display là dd/MM/yyyy
-          const cv = vals[i][1] || dvals[i][1];
+          const cv = dvals[i][1] || vals[i][1];
           if (!cv) continue;
           if (_historyTimeKey(cv) !== targetTimeKey) continue;
           if (!Array.isArray(data.matchRows) || data.matchRows.length === 0) {
@@ -238,8 +237,7 @@ function doPost(e) {
           let remaining = data.matchRows.length;
 
           for (let i = vals.length - 1; i >= 1 && remaining > 0; i--) {
-            // Ưu tiên raw value (Date object) để tránh mismatch thời gian theo locale display
-            const cv = vals[i][1] || dvals[i][1];
+            const cv = dvals[i][1] || vals[i][1];
             if (!cv) continue;
             if (_historyTimeKey(cv) !== targetTimeKey) continue;
 
