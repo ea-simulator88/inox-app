@@ -101,7 +101,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .product-item-ten { font-size: 15px; font-weight: 600; color: #1a1a1a; }
 .product-item-size { font-size: 12px; color: #555; margin-top: 2px; }
 .product-item-meta { text-align: right; flex-shrink: 0; }
-.product-item-tonkho { font-size: 14px; font-weight: 600; color: #4CAF50; }
+.product-item-tonkho { font-size: 14px; font-weight: 600; color: #7d1ae8; }
 .product-item-tonkho.low { color: #f44336; }
 
 /* ===== CART ===== */
@@ -2734,10 +2734,19 @@ function renderProductList(list, kw) {
     const cartSl = cartItem ? cartItem.sl : '';
     const maLine = [p.ma, p.ncc, p.phanloai].filter(Boolean).join(' · ');
     const sizeLine = [p.kichthuoc, p.motaSP].filter(Boolean).join(' · ');
+    const gv = Number(p.giavon) || 0;
+    const gs = Number(p.giasi) || 0;
+    const priceParts = [];
+    if (currentRole === 'owner' && gv > 0) priceParts.push(`<span style="color:#2e7d32;">Giá vốn ${fmtMoney(gv)}</span>`);
+    if (gs > 0) priceParts.push(`<span style="color:#f44336;">Giá sỉ ${fmtMoney(gs)}</span>`);
+    const priceLine = priceParts.length
+      ? `<div class="product-item-size" style="font-size: 11px;">${priceParts.join(' <span style="color:#1a1a1a;">|</span> ')}</div>`
+      : '';
     return `<div class="product-item">
       <div class="product-item-left" onclick="showForm(products.find(x=>x.ma==='${p.ma}'))">
         <div class="product-item-ma">${highlightText(maLine, kw)}</div>
         <div class="product-item-ten">${highlightText(p.ten, kw)}</div>
+        ${priceLine}
         <div class="product-item-size">${highlightText(sizeLine, kw)}</div>
       </div>
       <div class="product-item-meta">
@@ -2978,7 +2987,7 @@ function renderCart() {
         <div>
           <div class="cart-item-name">${item.product.ten}</div>
           <div class="cart-item-size">${item.product.ma}${item.product.ncc ? ' · ' + item.product.ncc : ''}</div>
-          <div style="font-size:12px;font-weight:600;color:${lowTon ? '#f44336' : '#4CAF50'};">Tồn: ${fmt(tonkho)}</div>
+          <div style="font-size:12px;font-weight:600;color:${lowTon ? '#f44336' : '#7d1ae8'};">Tồn: ${fmt(tonkho)}</div>
           ${[item.product.kichthuoc, item.product.motaSP].filter(Boolean).length ? `<div style="font-size:12px;color:#555;margin-top:1px;">${[item.product.kichthuoc, item.product.motaSP].filter(Boolean).join(' · ')}</div>` : ''}
           ${cartMode === 'Xuất'
               ? (item.product.giasi ? `<div style="font-size:12px;color:#2e7d32;margin-top:3px;font-weight:600;">Giá sỉ: ${fmtMoney(item.product.giasi)}</div>` : '')
@@ -3543,7 +3552,7 @@ function renderManageProductList(list, kw) {
           </div>
           <div style="font-size:15px;font-weight:600;margin:2px 0;">${highlightText(p.ten, kw)}</div>
           <div style="font-size:12px;color:#aaa;">${highlightText(p.kichthuoc, kw)}</div>
-          <div style="font-size:13px;color:${low ? '#f44336' : '#4CAF50'};font-weight:${low ? '700' : '700'};margin-top:4px;">Tồn kho: ${fmt(p.tonkho)} ${p.dvt}</div>
+          <div style="font-size:13px;color:${low ? '#f44336' : '#7d1ae8'};font-weight:${low ? '700' : '700'};margin-top:4px;">Tồn kho: ${fmt(p.tonkho)} ${p.dvt}</div>
         </div>
         <div style="flex-shrink:0;margin-left:8px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
           <div style="display:flex;gap:8px;">
@@ -3992,6 +4001,14 @@ function dtRenderProducts(list, kw) {
     const slId = 'dt-sl-' + p.ma;
     const maLine = p.ma + (p.ncc ? ' · ' + p.ncc : '');
     const sizeLine = [p.kichthuoc, p.motaSP].filter(Boolean).join(' · ');
+    const gv = Number(p.giavon) || 0;
+    const gs = Number(p.giasi) || 0;
+    const priceParts = [];
+    if (currentRole === 'owner' && gv > 0) priceParts.push(`<span style="color:#2e7d32;">Giá vốn ${fmtMoney(gv)}</span>`);
+    if (gs > 0) priceParts.push(`<span style="color:#f44336;">Giá sỉ ${fmtMoney(gs)}</span>`);
+    const priceLine = priceParts.length
+      ? `<div style="font-size:11px;">${priceParts.join(' <span style="color:#1a1a1a;">|</span> ')}</div>`
+      : '';
     return `<div class="dt-product-item${inCart ? ' in-cart' : ''}"
       style="padding:8px 10px;border-radius:8px;border:1px solid ${inCart ? '#a5d6a7' : 'transparent'};
       margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;
@@ -3999,10 +4016,11 @@ function dtRenderProducts(list, kw) {
       <div style="flex:1;min-width:0;">
         <div style="font-size:11px;color:#1565c0;">${highlightText(maLine, kw)}</div>
         <div style="font-size:13px;font-weight:600;margin:1px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${highlightText(p.ten, kw)}</div>
+        ${priceLine}
         <div style="font-size:11px;color:#555;">${highlightText(sizeLine, kw)}</div>
       </div>
       <div style="flex-shrink:0;margin-left:8px;text-align:right;">
-        <div style="font-size:12px;font-weight:600;color:${low ? '#f44336' : '#4CAF50'};">Tồn: ${fmt(p.tonkho)}</div>
+        <div style="font-size:12px;font-weight:600;color:${low ? '#f44336' : '#7d1ae8'};">Tồn: ${fmt(p.tonkho)}</div>
         <div style="display:flex;align-items:center;gap:4px;margin-top:5px;justify-content:flex-end;">
           <button class="dt-btn-sub-cart" onclick="event.stopPropagation();dtSubFromCart('${p.ma}')" ${cartItem && cartItem.sl > 1 ? '' : 'disabled'}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <input id="${slId}" data-ma="${p.ma}" type="text" inputmode="numeric" value="${currentSl}" placeholder="1"
@@ -4146,14 +4164,14 @@ function dtRenderCart() {
     const showWarnSl = dtMode === 'Xuất' && item.sl > 0 && item.sl > tonkho;
     const showWarnGia = dtMode === 'Xuất' && item.gia > 0 && gs > 0 && item.gia < gs;
     const gv = dtMode === 'Xuất'
-      ? (p.giasi ? `<div style="font-size:11px;color:#2e7d32;">Giá sỉ: ${fmtMoney(p.giasi)}</div>` : '')
-      : (currentRole === 'owner' && p.giavon ? `<div style="font-size:11px;color:#f44336;">Vốn: ${fmtMoney(p.giavon)}</div>` : '');
+      ? (p.giasi ? `<div style="font-size:11px;color:#f44336;">Giá sỉ: ${fmtMoney(p.giasi)}</div>` : '')
+      : (currentRole === 'owner' && p.giavon ? `<div style="font-size:11px;color:#2e7d32;">Vốn: ${fmtMoney(p.giavon)}</div>` : '');
     return `<div class="dt-cart-item" id="dtci-${p.ma.replace(/[^a-zA-Z0-9]/g, '_')}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
         <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.ten}</div>
           <div style="font-size:11px;color:#1565c0;">${p.ma}${p.ncc ? ' · ' + p.ncc : ''}</div>
-          <div style="font-size:11px;font-weight:600;color:${lowTon ? '#f44336' : '#4CAF50'};">Tồn: ${fmt(tonkho)}</div>
+          <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.ten}</div>
+          <div style="font-size:11px;font-weight:600;color:${lowTon ? '#f44336' : '#7d1ae8'};">Tồn: ${fmt(tonkho)}</div>
           ${gv}
         </div>
         <button onclick="dtRemoveFromCart('${p.ma}')"
