@@ -5964,7 +5964,7 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
   const thS = B + 'padding:1.6mm 1mm;text-align:center;font-size:3.9mm;font-weight:600;'; // chỉnh kích thước Hóa đơn các dòng đầu tiên
   const tdBase = 'border-left:1px solid #d73c3c;border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;height:6mm;font-size:3.9mm;'; // chỉnh kích thước Hóa đơn các dòng
   const paddedRows = Array.from({ length: 14 }, (_, i) => pageRows[i] || null); // chỉnh Hóa đơn các dòng
-  const rowOffset = pageIndex * 14;
+  const rowOffset = pageIndex * 14; // chỉnh Hóa đơn các dòng
 
   const headerHTML = hidePrice
     ? `<th style="${thS}width:6%;">TT</th><th style="${thS}width:60%;">Tên Hàng</th><th style="${thS}width:17%;">ĐVT</th><th style="${thS}width:17%;">SL</th>`
@@ -6054,7 +6054,7 @@ function _buildInvoiceHTML(g, hidePrice) {
   if (rows.length === 0) {
     chunks.push([]);
   } else {
-    for (let i = 0; i < rows.length; i += 14) chunks.push(rows.slice(i, i + 14)); //Chỉnh số dòng Hóa đơn
+    for (let i = 0; i < rows.length; i += 14) chunks.push(rows.slice(i, i + 14)); // chỉnh Hóa đơn các dòng
   }
   const totalPages = chunks.length;
   return chunks.map(function(pageRows, pageIndex) {
