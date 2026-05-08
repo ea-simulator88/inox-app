@@ -1314,6 +1314,12 @@ const CONFIG = {
       </div>
     </div>
 
+    <div style="font-size:13px;color:#888;margin-bottom:5px;">Ghi ch&#250; (kh&#244;ng b&#7855;t bu&#7897;c)</div>
+    <div style="position:relative;margin-bottom:14px;">
+      <input type="text" id="hedit-ghichu" placeholder="Nh&#7853;p ghi ch&#250;..." oninput="ixShow(this)" style="width:100%;padding:9px 36px 9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;box-sizing:border-box;">
+      <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
+    </div>
+
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
       <div style="font-size:14.3px;font-weight:700;color:#555;margin-top: -8px;">S&#7843;n ph&#7849;m:</div>
       <button onclick="heditAddRow()" title="Thêm sản phẩm" style="background:none;border:none;color:#4CAF50;font-size:25px;line-height:1;cursor:pointer;padding:0 4px;font-weight:700;margin-right: 6px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 15" width="18" height="25" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="6" x2="10" y2="6"/><line x1="6" y1="2" x2="6" y2="10"/></svg></button>
@@ -2515,32 +2521,53 @@ function parseAppDateTime(raw) {
   if (typeof raw === 'number') return new Date(raw);
 
   const s = String(raw).trim();
-  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/);
+  const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*(AM|PM))?$/i);
   if (m) {
-    return new Date(
-      Number(m[1]),
-      Number(m[2]) - 1,
-      Number(m[3]),
-      Number(m[4]),
-      Number(m[5]),
-      Number(m[6] || 0)
-    );
+    return buildAppDateTime(m[1], m[2], m[3], m[4], m[5], m[6], m[7]);
+  }
+
+  // Hỗ trợ ngày hiển thị từ Sheet/browser: dd/MM/yyyy hoặc MM/dd/yyyy, có thể kèm AM/PM.
+  // Khi ngày/tháng đều <= 12, ưu tiên dd/MM theo dữ liệu VN; dữ liệu mới từ server sẽ là yyyy-MM-dd.
+  const slash = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*(AM|PM))?$/i);
+  if (slash) {
+    const a = Number(slash[1]);
+    const b = Number(slash[2]);
+    const dayFirst = a > 12 || b <= 12;
+    return buildAppDateTime(slash[3], dayFirst ? b : a, dayFirst ? a : b, slash[4], slash[5], slash[6], slash[7]);
   }
 
   const d = new Date(s);
   return isNaN(d.getTime()) ? null : d;
 }
 
+function buildAppDateTime(year, month, day, hour, minute, second, ampm) {
+  let hh = Number(hour);
+  if (ampm) {
+    const ap = String(ampm).toUpperCase();
+    if (ap === 'PM' && hh < 12) hh += 12;
+    if (ap === 'AM' && hh === 12) hh = 0;
+  }
+  const d = new Date(Number(year), Number(month) - 1, Number(day), hh, Number(minute), Number(second || 0));
+  if (
+    isNaN(d.getTime()) ||
+    d.getFullYear() !== Number(year) ||
+    d.getMonth() !== Number(month) - 1 ||
+    d.getDate() !== Number(day)
+  ) return null;
+  return d;
+}
+
+function historyTimeKey(raw) {
+  const d = parseAppDateTime(raw);
+  return d ? fmtTime(d) : String(raw || '').trim();
+}
+
 function formatHistoryTimeText(g) {
-  return (g && g.thoigian ? String(g.thoigian) : '').trim() || fmtTime(new Date(g.thoigian_raw || Date.now()));
+  const raw = g && g.thoigian ? g.thoigian : (g ? g.thoigian_raw : '');
+  return historyTimeKey(raw) || fmtTime(new Date((g && g.thoigian_raw) || Date.now()));
 }
 
 function parseHistoryDateParts(raw) {
-  const s = String(raw || '').trim();
-  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m) {
-    return { year: Number(m[1]), month: Number(m[2]), day: Number(m[3]) };
-  }
   const d = parseAppDateTime(raw);
   return d ? { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() } : null;
 }
@@ -4477,10 +4504,11 @@ function _mapHistRow(r, loai) {
   const isXuat = loai === 'Xuất' || loai === 'Nháp';
   const raw = r[1];
   const t = parseAppDateTime(raw);
+  const timeKey = t ? fmtTime(t) : (raw ? raw.toString() : '');
   return {
     loai,
     ma:           (r[0] || '').toString().trim(),
-    thoigian:     raw ? raw.toString() : '',
+    thoigian:     timeKey,
     thoigian_raw: t ? t.getTime() : 0,
     ncc:          (r[2] || '').toString(),
     hanghoa:      (r[3] || '').toString(),
@@ -4985,7 +5013,7 @@ function _orderPartyName(r) {
 }
 
 function _orderKey(r) {
-  const t = (r.thoigian || '').toString().trim();
+  const t = historyTimeKey(r.thoigian || r.thoigian_raw);
   const party = _orderPartyName(r).toLowerCase();
   const loai = (r.loai || '').toString().trim();
   return `${t}||${party}||${loai}`;
@@ -6268,6 +6296,12 @@ function histEditGroup(idx) {
     }
   }
 
+  const ghichuEl = document.getElementById('hedit-ghichu');
+  if (ghichuEl) {
+    ghichuEl.value = (g.rows[0] && g.rows[0].ghichu) ? g.rows[0].ghichu : '';
+    ixShow(ghichuEl);
+  }
+
   _histEditRows = g.rows.map(r => ({
     ...r,
     _origMa: r.ma || '',
@@ -6375,6 +6409,7 @@ async function histSaveEdit() {
 async function _doHistSaveEdit() {
   const g = _historyGroups[_histEditIdx];
   if (!g) return;
+  const editTimeKey = historyTimeKey(g.thoigian || g.thoigian_raw);
   const isXuat  = g.loai === 'Xuất';
   const isDraft = g.loai === 'Nháp';
   const newTenkhach = (isXuat || isDraft) ? (document.getElementById('hedit-tenkhach').value || '').trim() : '';
@@ -6382,6 +6417,7 @@ async function _doHistSaveEdit() {
   const newPhiChanh = parseNum(document.getElementById('hedit-phichanh')?.value) || 0;
   const newPhiKhachTra = (isXuat || isDraft) ? (parseNum(document.getElementById('hedit-phikhachtra')?.value) || 0) : 0;
 
+  const newGhichu = (document.getElementById('hedit-ghichu')?.value || '').trim();
   const updatedRows = [];
   const notes = [];
   const today = new Date();
@@ -6417,12 +6453,15 @@ async function _doHistSaveEdit() {
     }
 
     notes.push(changes.length > 0 ? changes.join('; ') + '; ' + dateStr : '');
-    // col: [ma, thoigian, ncc, hanghoa, kichthuoc, mota, dvt, soluong, gia, giaodich, phichanh, phikhachtra, '', tenkhach/ghichu]
     const storedPhi = i === 0 ? (newPhiChanh ? ((isXuat || isDraft) ? -newPhiChanh : newPhiChanh) : '') : '';
     const storedPkt = i === 0 && (isXuat || isDraft) ? (newPhiKhachTra || '') : '';
-    const ghichuStr = r.ghichu || '';
+    const ghichuStr = newGhichu;
     const nguoiGhiStr = r.nguoighi || currentUserName;
-    updatedRows.push([newMa, r.thoigian, ncc, hanghoa, kichthuoc, mota, dvt, soluong, gia, newGiaodich, storedPhi, storedPkt, '', (isXuat || isDraft) ? newTenkhach : '' , ghichuStr, nguoiGhiStr]);
+    if (isXuat || isDraft) {
+      updatedRows.push([newMa, editTimeKey, ncc, hanghoa, kichthuoc, mota, dvt, soluong, gia, newGiaodich, storedPhi, storedPkt, '', newTenkhach, ghichuStr, nguoiGhiStr]);
+    } else {
+      updatedRows.push([newMa, editTimeKey, ncc, hanghoa, kichthuoc, mota, dvt, soluong, gia, newGiaodich, storedPhi, '', ghichuStr]);
+    }
   });
 
   const saveBtn = document.getElementById('hedit-save-btn');
@@ -6432,7 +6471,7 @@ async function _doHistSaveEdit() {
   fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sheet: g.loai, action: 'updateHistoryRows', thoigian: g.thoigian, rows: updatedRows, matchRows: buildHistoryMatchRows(g.rows), notes, request_id: requestId, token: 'inox2026xK9m' })
+    body: JSON.stringify({ sheet: g.loai, action: 'updateHistoryRows', thoigian: g.thoigian, thoigian_key: editTimeKey, rows: updatedRows, matchRows: buildHistoryMatchRows(g.rows), notes, request_id: requestId, token: 'inox2026xK9m' })
   }).catch(function() {
     showToast('⚠️ Lỗi kết nối, dữ liệu có thể chưa được lưu.');
   });
@@ -6455,6 +6494,7 @@ async function _doHistSaveEdit() {
 async function histDeleteGroup(idx) {
   const g = _historyGroups[idx];
   if (!g) return;
+  const deleteTimeKey = historyTimeKey(g.thoigian || g.thoigian_raw);
   const total = g.rows.reduce((s, r) => s + r.soluong * r.gia, 0);
   if (!confirm('X\u00F3a giao d\u1ECBch ' + g.loai + ' \u2013 ' + g.rows.length + ' SP \u2013 ' + total.toLocaleString('en-US') + ' \u0111?\nH\u00E0nh \u0111\u1ED9ng n\u00E0y kh\u00F4ng th\u1EC3 ho\u00E0n t\u00E1c!')) return;
 
@@ -6463,7 +6503,7 @@ async function histDeleteGroup(idx) {
     await fetch(SCRIPT_URL + '?token=inox2026xK9m', {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sheet: g.loai, action: 'deleteHistoryRows', thoigian: g.thoigian, matchRows: buildHistoryMatchRows(g.rows), request_id: requestId, token: 'inox2026xK9m' })
+      body: JSON.stringify({ sheet: g.loai, action: 'deleteHistoryRows', thoigian: g.thoigian, thoigian_key: deleteTimeKey, matchRows: buildHistoryMatchRows(g.rows), request_id: requestId, token: 'inox2026xK9m' })
     });
   } catch(e) { showToast('⚠️ Lỗi kết nối, dữ liệu có thể chưa được lưu.'); return; }
 
@@ -6631,6 +6671,7 @@ async function _doDraftConfirm(idx, giaodich) {
   if (!g || g.loai !== 'Nháp') return;
   if (!confirm('Xác nhận Xuất đơn nháp này?\n' + g.rows.length + ' SP · ' + g.rows.reduce((s,r)=>s+r.soluong*r.gia,0).toLocaleString('en-US') + ' đ')) return;
 
+  const draftTimeKey = historyTimeKey(g.thoigian || g.thoigian_raw);
   const _nowTs = fmtTime(new Date());
   const rows = g.rows.map(r => [r.ma, _nowTs, r.ncc, r.hanghoa, r.kichthuoc, r.mota, r.dvt, r.soluong, r.gia, giaodich || r.giaodich, r.phichanh || '', r.phikhachtra || '', '', r.tenkhach || '', r.ghichu || '' ,currentUserName ]);
 
@@ -6648,7 +6689,7 @@ async function _doDraftConfirm(idx, giaodich) {
   fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({sheet:'Nháp', action:'deleteHistoryRows', thoigian:g.thoigian, matchRows: buildHistoryMatchRows(g.rows), request_id: requestIdDraftDelete, token:'inox2026xK9m' ,user_name: currentUserName})
+    body: JSON.stringify({sheet:'Nháp', action:'deleteHistoryRows', thoigian:g.thoigian, thoigian_key:draftTimeKey, matchRows: buildHistoryMatchRows(g.rows), request_id: requestIdDraftDelete, token:'inox2026xK9m' ,user_name: currentUserName})
   }).catch(e => console.log(e));
 
   // Lệnh ghi Xuất

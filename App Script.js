@@ -216,7 +216,7 @@ function doPost(e) {
       const lock = LockService.getScriptLock();
       lock.waitLock(20000);
       try {
-      const targetTimeKey = _historyTimeKey(data.thoigian);
+      const targetTimeKey = _historyTimeKey(data.thoigian_key || data.thoigian);
       if (targetTimeKey && sheet) {
         const matchCounts = {};
         if (Array.isArray(data.matchRows)) {
@@ -407,12 +407,9 @@ function fmtDateTime(d) {
 
   const s = String(d).trim();
   const m = s.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}(?::\d{2})?)/);
-  if (m) return m[1];
+  if (m) return m[1].length === 16 ? m[1] + ':00' : m[1];
 
-  const parsed = new Date(s);
-  return isNaN(parsed.getTime())
-    ? s
-    : Utilities.formatDate(parsed, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
+  return _historyTimeKey(s) || s;
 }
 
 function _historyTimeKey(v) {
@@ -422,27 +419,51 @@ function _historyTimeKey(v) {
   }
 
   const s = String(v).trim();
-  const m = s.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/);
-  if (m) return m[1];
+  const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*(AM|PM))?$/i);
+  if (m) return _formatHistoryParts_(m[1], m[2], m[3], m[4], m[5], m[6], m[7]);
 
-  // Hỗ trợ định dạng hiển thị dd/MM/yyyy HH:mm(:ss) từ Google Sheet
-  // để tránh lệch parse theo locale giữa các máy khi edit lịch sử.
-  const mVn = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-  if (mVn) {
-    const dd = Number(mVn[1]);
-    const mm = Number(mVn[2]);
-    const yyyy = Number(mVn[3]);
-    const HH = Number(mVn[4]);
-    const MM = Number(mVn[5]);
-    const SS = Number(mVn[6] || 0);
-    const dVn = new Date(yyyy, mm - 1, dd, HH, MM, SS);
-    if (!isNaN(dVn.getTime())) {
-      return Utilities.formatDate(dVn, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
-    }
+  // Hỗ trợ định dạng hiển thị dd/MM/yyyy hoặc MM/dd/yyyy, có thể kèm AM/PM.
+  // Nếu ngày/tháng mơ hồ, ưu tiên dd/MM theo dữ liệu VN; Date object từ Sheet sẽ không đi nhánh này.
+  const mSlash = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*(AM|PM))?$/i);
+  if (mSlash) {
+    const a = Number(mSlash[1]);
+    const b = Number(mSlash[2]);
+    const dayFirst = a > 12 || b <= 12;
+    const dd = dayFirst ? a : b;
+    const mm = dayFirst ? b : a;
+    return _formatHistoryParts_(mSlash[3], mm, dd, mSlash[4], mSlash[5], mSlash[6], mSlash[7]);
   }
 
   const d = new Date(s);
   return isNaN(d.getTime()) ? '' : Utilities.formatDate(d, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
+}
+
+function _formatHistoryParts_(yyyy, mm, dd, hh, min, sec, ampm) {
+  const y = Number(yyyy);
+  const mo = Number(mm);
+  const da = Number(dd);
+  let HH = Number(hh);
+  if (ampm) {
+    const ap = String(ampm).toUpperCase();
+    if (ap === 'PM' && HH < 12) HH += 12;
+    if (ap === 'AM' && HH === 12) HH = 0;
+  }
+  const MI = Number(min);
+  const SS = Number(sec || 0);
+  const d = new Date(y, mo - 1, da, HH, MI, SS);
+  if (
+    isNaN(d.getTime()) ||
+    d.getFullYear() !== y ||
+    d.getMonth() !== mo - 1 ||
+    d.getDate() !== da ||
+    HH < 0 || HH > 23 ||
+    MI < 0 || MI > 59 ||
+    SS < 0 || SS > 59
+  ) return '';
+  return [
+    String(y).padStart(4, '0') + '-' + String(mo).padStart(2, '0') + '-' + String(da).padStart(2, '0'),
+    String(HH).padStart(2, '0') + ':' + String(MI).padStart(2, '0') + ':' + String(SS).padStart(2, '0')
+  ].join(' ');
 }
 
 function _historyMatchSignature_(sheetName, row) {
@@ -492,8 +513,9 @@ function _historyRowsFromSheet_(sheet) {
   const displays = sheet.getDataRange().getDisplayValues().slice(1);
   return values.map(function(r, i) {
     const out = r.slice();
-    // Ưu tiên chuỗi hiển thị đúng theo Google Sheet để không lệch múi giờ khi render lịch sử.
-    out[1] = (displays[i] && displays[i][1]) ? displays[i][1] : fmtDateTime(r[1]);
+    // Ưu tiên giờ đang hiển thị trong Sheet để không lệch múi giờ; vẫn chuẩn hóa format cho edit/xóa.
+    const displayTime = (displays[i] && displays[i][1]) ? _historyTimeKey(displays[i][1]) : '';
+    out[1] = displayTime || fmtDateTime(r[1]) || r[1];
     return out;
   });
 }
