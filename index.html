@@ -5961,10 +5961,10 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
   const phiKT = Number((allRows[0] && allRows[0].phikhachtra) || 0);
   const tenkhach = g.tenkhach || '';
   const B = 'border:1px solid #d73c3c;';
-  const thS = B + 'padding:1.6mm 1mm;text-align:center;font-size:3.9mm;font-weight:600;'; // chỉnh kích thước hóa đơn các dòng đầu tiên
-  const tdBase = 'border-left:1px solid #d73c3c;border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;height:6mm;font-size:3.9mm;'; // chỉnh kích thước hóa đơn các dòng
-  const paddedRows = Array.from({ length: 14 }, (_, i) => pageRows[i] || null); // chỉnh hóa đơn các dòng
-  const rowOffset = pageIndex * 15;
+  const thS = B + 'padding:1.6mm 1mm;text-align:center;font-size:3.9mm;font-weight:600;'; // chỉnh kích thước Hóa đơn các dòng đầu tiên
+  const tdBase = 'border-left:1px solid #d73c3c;border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;height:6mm;font-size:3.9mm;'; // chỉnh kích thước Hóa đơn các dòng
+  const paddedRows = Array.from({ length: 14 }, (_, i) => pageRows[i] || null); // chỉnh Hóa đơn các dòng
+  const rowOffset = pageIndex * 14;
 
   const headerHTML = hidePrice
     ? `<th style="${thS}width:6%;">TT</th><th style="${thS}width:60%;">Tên Hàng</th><th style="${thS}width:17%;">ĐVT</th><th style="${thS}width:17%;">SL</th>`
@@ -5989,13 +5989,9 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
     const phiKTRow = phiKT > 0 && !hidePrice
       ? `<tr><td colspan="5" style="${B}padding:1.6mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">Phí chành khách trả</td><td style="${B}padding:1.6mm 1mm;text-align:right;font-size:3.2mm;font-weight:700;">+ ${fmtInvMoney(phiKT)} đ</td></tr>`
       : '';
+    // Chỉ lấy ghi chú nhập tay ở dòng đầu đơn xuất (xuatghichu được lưu ở dòng đầu).
     const noteText = !hidePrice && g.loai === 'Xuất'
-      ? ((allRows.find(function(r) {
-          const raw = String(r.ghichu || '').trim();
-          if (!raw) return false;
-          // Ẩn ghi chú hệ thống do App Script chèn (ví dụ: Phí VC..., Sửa..., GD...)
-          return !/^(Phí VC:|Sửa\s|GD:)/i.test(raw);
-        }) || {}).ghichu || '').toString().trim()
+      ? String((allRows[0] && allRows[0].ghichu) || '').trim()
       : '';
     const noteRow = noteText
       ? `<tr><td colspan="6" style="${B}padding:1.6mm 2mm;text-align:left;font-size:3.5mm;font-weight:600;">Ghi chú: ${_esc(noteText)}</td></tr>`
@@ -6058,7 +6054,7 @@ function _buildInvoiceHTML(g, hidePrice) {
   if (rows.length === 0) {
     chunks.push([]);
   } else {
-    for (let i = 0; i < rows.length; i += 15) chunks.push(rows.slice(i, i + 15));
+    for (let i = 0; i < rows.length; i += 14) chunks.push(rows.slice(i, i + 14)); //Chỉnh số dòng Hóa đơn
   }
   const totalPages = chunks.length;
   return chunks.map(function(pageRows, pageIndex) {
