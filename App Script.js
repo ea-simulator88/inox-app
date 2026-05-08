@@ -425,6 +425,22 @@ function _historyTimeKey(v) {
   const m = s.match(/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/);
   if (m) return m[1];
 
+  // Hỗ trợ định dạng hiển thị dd/MM/yyyy HH:mm(:ss) từ Google Sheet
+  // để tránh lệch parse theo locale giữa các máy khi edit lịch sử.
+  const mVn = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (mVn) {
+    const dd = Number(mVn[1]);
+    const mm = Number(mVn[2]);
+    const yyyy = Number(mVn[3]);
+    const HH = Number(mVn[4]);
+    const MM = Number(mVn[5]);
+    const SS = Number(mVn[6] || 0);
+    const dVn = new Date(yyyy, mm - 1, dd, HH, MM, SS);
+    if (!isNaN(dVn.getTime())) {
+      return Utilities.formatDate(dVn, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
+    }
+  }
+
   const d = new Date(s);
   return isNaN(d.getTime()) ? '' : Utilities.formatDate(d, 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
 }
@@ -476,6 +492,7 @@ function _historyRowsFromSheet_(sheet) {
   const displays = sheet.getDataRange().getDisplayValues().slice(1);
   return values.map(function(r, i) {
     const out = r.slice();
+    // Ưu tiên chuỗi hiển thị đúng theo Google Sheet để không lệch múi giờ khi render lịch sử.
     out[1] = (displays[i] && displays[i][1]) ? displays[i][1] : fmtDateTime(r[1]);
     return out;
   });
