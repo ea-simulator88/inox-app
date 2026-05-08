@@ -3257,6 +3257,7 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra, xuatG
         ? '<svg width="16" height="18" viewBox="0 0 24 26" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path d="M20 6L9 17l-5-5"/></svg> Xác nhận Xuất'
         : '<svg width="16" height="18" viewBox="0 0 24 26" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path d="M20 6L9 17l-5-5"/></svg> Xác nhận Nhập';
   }
+  _markHistoryStale();
   showScreen('screen-success');
 }
 
@@ -3486,6 +3487,7 @@ async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
     ${isXuat && phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
     ${ghichu ? `<div class="info-row"><span class="info-label">Ghi chú</span><span class="info-value">${ghichu}</span></div>` : ''}
   `;
+  _markHistoryStale();
   showScreen('screen-success');
 }
 
@@ -4448,6 +4450,10 @@ let _reportDateFrom = null;
 let _reportDateTo   = null;
 let _reportSortMode = 'newest';
 
+function _markHistoryStale() {
+  setTimeout(function() { _fetchHistoryData(true).catch(function() {}); }, 2000);
+}
+
 async function _fetchHistoryData(force = false) {
   if (!force && _historyData.length) return _historyData;
   const controller = new AbortController();
@@ -4464,15 +4470,19 @@ async function _fetchHistoryData(force = false) {
 
 async function showHistory() {
   showScreen('screen-history');
-  const list = document.getElementById('history-list');
-  list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
   _historyFilter = 'all';
   _updateHistDateLabel();
-  try {
-    await _fetchHistoryData();
+  if (_historyData.length) {
     histFilter('all');
-  } catch(e) {
-    list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được lịch sử.</div>';
+  } else {
+    const list = document.getElementById('history-list');
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+    try {
+      await _fetchHistoryData();
+      histFilter('all');
+    } catch(e) {
+      list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được lịch sử.</div>';
+    }
   }
 }
 
@@ -4728,10 +4738,6 @@ function _getTimeRange(filter, fromDate, toDate) {
 function showReport() {
   if (currentRole !== 'owner') { showToast('Không có quyền truy cập.'); return; }
   showScreen('screen-report');
-  const list = document.getElementById('report-list');
-  const summary = document.getElementById('report-summary');
-  if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
-  if (summary) summary.innerHTML = '';
   _reportTypeFilter = 'all';
   _reportSortMode = 'newest';
   ['report-search'].forEach(id => {
@@ -4743,9 +4749,17 @@ function showReport() {
   _syncReportTypeButtons();
   _syncReportTimeButtons();
   _updateReportDateLabel();
-  _fetchHistoryData().then(() => renderReport()).catch(() => {
-    if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được báo cáo.</div>';
-  });
+  if (_historyData.length) {
+    renderReport();
+  } else {
+    const list = document.getElementById('report-list');
+    const summary = document.getElementById('report-summary');
+    if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+    if (summary) summary.innerHTML = '';
+    _fetchHistoryData().then(() => renderReport()).catch(() => {
+      if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được báo cáo.</div>';
+    });
+  }
 }
 
 async function refreshReportData() {
