@@ -6492,10 +6492,11 @@ async function _doHistSaveEdit() {
       }
     }
 
-    notes.push(changes.length > 0 ? changes.join('; ') + '; ' + dateStr : '');
+    const changeNote = changes.length > 0 ? changes.join('; ') + '; ' + dateStr : '';
+    notes.push('');
     const storedPhi = i === 0 ? (newPhiChanh ? ((isXuat || isDraft) ? -newPhiChanh : newPhiChanh) : '') : '';
     const storedPkt = i === 0 && (isXuat || isDraft) ? (newPhiKhachTra || '') : '';
-    const ghichuStr = newGhichu;
+    const ghichuStr = changeNote ? (newGhichu ? newGhichu + ' | ' + changeNote : changeNote) : newGhichu;
     const nguoiGhiStr = r.nguoighi || currentUserName;
     if (isXuat || isDraft) {
       updatedRows.push([newMa, editTimeKey, ncc, hanghoa, kichthuoc, dvt, soluong, gia, newGiaodich, storedPhi, storedPkt, '', newTenkhach, ghichuStr, nguoiGhiStr]);
