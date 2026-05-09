@@ -684,13 +684,13 @@ function MASP(ten, allTen, currentRow) {
 function onEdit(e) {
   const sheet = e.range.getSheet();
   const sheetName = sheet.getName();
-  if (sheetName !== 'Xuất' && sheetName !== 'Nhập') return;
+  if (sheetName !== 'Xuất' && sheetName !== 'Nhập' && sheetName !== 'Nháp' && sheetName !== 'Sản phẩm') return;
 
   const row = e.range.getRow();
   if (row <= 1) return;
 
   const col = e.range.getColumn();
-  const noteCol = sheetName === 'Nhập' ? 13 : 15; // Nhập=M(13), Xuất=O(15) sau khi thêm cột L Phí(KT)
+  const noteCol = sheetName === 'Nhập' ? 12 : sheetName === 'Sản phẩm' ? 11 : 14; // Nhập=L(12), SP=K(11), Xuất/Nháp=N(14)
   if (col === noteCol) return;
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
@@ -715,8 +715,14 @@ function onEdit(e) {
     if (m) baseline = m[1];
   }
 
+  const _sameVal_ = function(a, b) {
+    if (a === b) return true;
+    const na = parseFloat(a), nb = parseFloat(b);
+    return !isNaN(na) && !isNaN(nb) && na === nb;
+  };
+
   var finalEntries;
-  if (newVal === '' || newVal === baseline) {
+  if (newVal === '' || _sameVal_(newVal, baseline)) {
     // Xóa cell hoặc revert về giá trị gốc → loại bỏ note của cột này
     finalEntries = otherCol;
   } else {
