@@ -3575,6 +3575,14 @@ function renderManageProductList(list, kw) {
     const cardStyle = hidden
       ? 'margin-bottom:10px;opacity:0.5;border:1.5px dashed #aaa;'
       : 'margin-bottom:10px;';
+    const gv = Number(p.giavon) || 0;
+    const gs = Number(p.giasi) || 0;
+    const priceParts = [];
+    if (gv > 0) priceParts.push(`<span style="color:#2e7d32;">Giá vốn ${fmtMoney(gv)}</span>`);
+    if (gs > 0) priceParts.push(`<span style="color:#f44336;">Giá sỉ ${fmtMoney(gs)}</span>`);
+    const priceLine = priceParts.length
+      ? `<div style="font-size:12px;margin-top:3px;">${priceParts.join(' <span style="color:#1a1a1a;font-weight:normal;">|</span> ')}</div>`
+      : '';
     return `
     <div class="card" style="${cardStyle}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -3585,7 +3593,8 @@ function renderManageProductList(list, kw) {
           </div>
           <div style="font-size:15px;font-weight:600;margin:2px 0;">${highlightText(p.ten, kw)}</div>
           <div style="font-size:12px;color:#aaa;">${highlightText(p.kichthuoc, kw)}</div>
-          <div style="font-size:13px;color:${low ? '#f44336' : '#7d1ae8'};font-weight:${low ? '700' : '700'};margin-top:4px;">Tồn kho: ${fmt(p.tonkho)} ${p.dvt}</div>
+          <div style="font-size:12px;color:${low ? '#f44336' : '#7d1ae8'};margin-top:4px;">Tồn kho: ${fmt(p.tonkho)} ${p.dvt}</div>
+          ${priceLine}
         </div>
         <div style="flex-shrink:0;margin-left:8px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
           <div style="display:flex;gap:8px;">
