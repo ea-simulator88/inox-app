@@ -2169,6 +2169,7 @@ function doLogout() {
   localStorage.removeItem('last_activity');
   localStorage.removeItem('cart');
   localStorage.removeItem('dtCart');
+  localStorage.removeItem('history_cache');
   document.getElementById('login-pass').value = '';
   document.getElementById('desktop-layout').style.display = 'none';
   updateCartBadge();
@@ -4454,8 +4455,22 @@ function _markHistoryStale() {
   setTimeout(function() { _fetchHistoryData(true).catch(function() {}); }, 2000);
 }
 
+function _saveHistoryCache() {
+  try { localStorage.setItem('history_cache', JSON.stringify({ data: _historyData, ts: Date.now() })); } catch(e) {}
+}
+
 async function _fetchHistoryData(force = false) {
   if (!force && _historyData.length) return _historyData;
+  if (!force) {
+    try {
+      const cached = JSON.parse(localStorage.getItem('history_cache') || 'null');
+      if (cached && cached.data && (Date.now() - cached.ts) < 300000) {
+        _historyData = cached.data;
+        _fetchHistoryData(true).catch(function() {});
+        return _historyData;
+      }
+    } catch(e) {}
+  }
   const controller = new AbortController();
   const tid = setTimeout(() => controller.abort(), 10000);
   const res = await fetch(SCRIPT_URL + '?action=history&token=inox2026xK9m', { signal: controller.signal, cache: 'no-store' });
@@ -4465,6 +4480,7 @@ async function _fetchHistoryData(force = false) {
   const nhap  = (data.nhap  || []).map(r => _mapHistRow(r, 'Nhập'));
   const draft = (data.draft || []).map(r => _mapHistRow(r, 'Nháp'));
   _historyData = [...xuat, ...nhap, ...draft].sort((a, b) => b.thoigian_raw - a.thoigian_raw);
+  _saveHistoryCache();
   return _historyData;
 }
 
@@ -6494,6 +6510,7 @@ async function _doHistSaveEdit() {
   const targetOrderKey = _orderKey((g.rows && g.rows[0]) ? g.rows[0] : g);
   _historyData = _historyData.filter(r => _orderKey(r) !== targetOrderKey);
   updatedRows.forEach(row => _historyData.push(_mapHistRow(row, g.loai)));
+  _saveHistoryCache();
 
   document.getElementById('hist-edit-modal').style.display = 'none';
   _renderHistory();
@@ -6523,6 +6540,7 @@ async function histDeleteGroup(idx) {
 
   const targetOrderKey = _orderKey((g.rows && g.rows[0]) ? g.rows[0] : g);
   _historyData = _historyData.filter(r => _orderKey(r) !== targetOrderKey);
+  _saveHistoryCache();
   _renderHistory();
   showToast('🗑︎ Đã xóa giao dịch.');
 }
@@ -6566,6 +6584,7 @@ async function dtSaveDraft() {
   const totalQty = dtCart.reduce((s, x) => s + (Number(x.sl) || 0), 0);
   const totalAmount = dtCart.reduce((s, x) => s + (Number(x.sl) || 0) * (Number(x.gia) || 0), 0);
   rows.forEach(row => _historyData.push(_mapHistRow(row, 'Nháp')));
+  _saveHistoryCache();
   dtCart = [];
   document.getElementById('dt-giaodich').value = '';
   document.getElementById('dt-phichanh').value = '';
@@ -6629,6 +6648,7 @@ async function saveDraft() {
   const totalQty = cart.reduce((s, x) => s + (Number(x.sl) || 0), 0);
   const totalAmount = cart.reduce((s, x) => s + (Number(x.sl) || 0) * (Number(x.gia) || 0), 0);
   rows.forEach(row => _historyData.push(_mapHistRow(row, 'Nháp')));
+  _saveHistoryCache();
   cart = []; cartGiaodich = '';
   document.getElementById('cart-ghichu').value = '';
   document.getElementById('cart-xuatghichu').value = '';
@@ -6693,6 +6713,7 @@ async function _doDraftConfirm(idx, giaodich) {
   const targetOrderKey = _orderKey((g.rows && g.rows[0]) ? g.rows[0] : g);
   _historyData = _historyData.filter(r => _orderKey(r) !== targetOrderKey);
   rows.forEach(row => _historyData.push(_mapHistRow(row, 'Xuất')));
+  _saveHistoryCache();
   _renderHistory();
   showToast('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Đã xác nhận Xuất.');
   if (document.getElementById('screen-history-detail').classList.contains('active')) showHistory();
