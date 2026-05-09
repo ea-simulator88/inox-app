@@ -510,12 +510,9 @@ function _historyMatchSignature_(sheetName, row) {
 function _historyRowsFromSheet_(sheet) {
   if (!sheet || sheet.getLastRow() <= 1) return [];
   const values = sheet.getDataRange().getValues().slice(1);
-  const displays = sheet.getDataRange().getDisplayValues().slice(1);
-  return values.map(function(r, i) {
+  return values.map(function(r) {
     const out = r.slice();
-    // Ưu tiên giờ đang hiển thị trong Sheet để không lệch múi giờ; vẫn chuẩn hóa format cho edit/xóa.
-    const displayTime = (displays[i] && displays[i][1]) ? _historyTimeKey(displays[i][1]) : '';
-    out[1] = displayTime || fmtDateTime(r[1]) || r[1];
+    out[1] = fmtDateTime(r[1]) || _historyTimeKey(r[1]) || r[1];
     return out;
   });
 }
