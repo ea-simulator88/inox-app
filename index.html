@@ -1281,8 +1281,11 @@ const CONFIG = {
 <!-- HISTORY EDIT MODAL -->
 <div id="hist-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:flex-start;justify-content:center;padding:10px;overflow-y:auto;">
   <div style="background:#fff;width:min(700px,100%);border-radius:16px;padding:18px;margin:auto;">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px;">
-      <div style="font-size:16px;font-weight:700;">&#9999;&#65039; S&#7917;a giao d&#7883;ch</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;font-weight:700;">Sửa giao dịch</span>
+        <button onclick="histSaveEdit()" style="background:none;border:none;cursor:pointer;color:#4CAF50;padding:0;line-height:1;" title="Lưu"><svg width="18" height="20" viewBox="0 0 24 24" fill="none" style="display:flex;align-items:center;justify-content:center;" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button>
+      </div>
       <button onclick="document.getElementById('hist-edit-modal').style.display='none'" style="background:none;border:none;cursor:pointer;color:#aaa;padding:0;line-height:1;" title="Đóng"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div id="hedit-info" style="font-size:13px;color:#555;margin-bottom:14px;"></div>
