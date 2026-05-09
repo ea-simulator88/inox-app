@@ -103,6 +103,11 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .product-item-meta { text-align: right; flex-shrink: 0; }
 .product-item-tonkho { font-size: 14px; font-weight: 600; color: #7d1ae8; }
 .product-item-tonkho.low { color: #f44336; }
+.hedit-hn { flex:1;font-size:13px;color:#555;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-height:18px; }
+@media (max-width:600px) {
+  .hedit-row-top { flex-wrap:wrap; }
+  .hedit-hn { white-space:normal;overflow:visible;text-overflow:unset;width:100%;order:10;margin-top:4px; }
+}
 
 /* ===== CART ===== */
 .cart-btn { position: relative; background: none; border: none; font-size: 24px; cursor: pointer; padding: 4px 6px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
@@ -6254,11 +6259,11 @@ function _renderHistEditRows() {
     const total = r.gia > 0 && r.soluong > 0 ? Number(r.gia * r.soluong).toLocaleString('en-US') + 'đ' : '';
     return `
     <div id="hedit-row-${i}" style="border:1px solid #e8e8e8;border-radius:10px;padding:8px 10px;margin-bottom:12px;background: rgba(245, 250, 246, 0.5);margin-top: -3px;">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+      <div class="hedit-row-top" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
         <span style="font-size:11px;color:#aaa;font-weight:600;white-space:nowrap;">#${r._num || (i+1)}</span>
         <input type="text" id="hedit-ma-${i}" value="${_esc(r.ma)}" placeholder="Mã SP" oninput="heditMaChange(this,${i})"
-          style="width:70px;padding:6px 5px;border:1px solid #e8e8e8;border-radius:5px;font-size:13px;outline:none;background:#fafafa;text-align:center;box-sizing:border-box;">
-        <div id="hedit-hn-${i}" style="flex:1;font-size:13px;color:#555;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-height:18px;">
+          style="width:75px;padding:6px 5px;border:1px solid #e8e8e8;border-radius:5px;font-size:13px;outline:none;background:#fafafa;text-align:center;box-sizing:border-box;flex-shrink:0;">
+        <div id="hedit-hn-${i}" class="hedit-hn">
           ${_heditDisplayHtml(p, r)}
         </div>
         <button onclick="heditRemoveRow(${i})" title="Xóa sản phẩm" style="background:none;border:none;color:#f44336;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0;">
