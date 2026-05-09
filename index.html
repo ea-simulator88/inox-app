@@ -6248,7 +6248,7 @@ function _renderHistEditRows() {
     return `
     <div id="hedit-row-${i}" style="border:1px solid #e8e8e8;border-radius:10px;padding:8px 10px;margin-bottom:12px;background: rgba(245, 250, 246, 0.5);">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-        <span style="font-size:11px;color:#aaa;font-weight:600;white-space:nowrap;">#${i+1}</span>
+        <span style="font-size:11px;color:#aaa;font-weight:600;white-space:nowrap;">#${r._num || (i+1)}</span>
         <input type="text" id="hedit-ma-${i}" value="${_esc(r.ma)}" placeholder="Mã SP" oninput="heditMaChange(this,${i})"
           style="width:70px;padding:6px 5px;border:1px solid #e8e8e8;border-radius:5px;font-size:13px;outline:none;background:#fafafa;text-align:center;box-sizing:border-box;">
         <div id="hedit-hn-${i}" style="flex:1;font-size:13px;color:#555;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-height:18px;">
@@ -6281,7 +6281,9 @@ function _renderHistEditRows() {
 
 function heditAddRow() {
   _heditSyncRows();
-  _histEditRows.push(_heditBlankRow());
+  const blank = _heditBlankRow();
+  blank._num = _histEditRows.length + 1;
+  _histEditRows.unshift(blank);
   _renderHistEditRows();
 }
 
@@ -6338,8 +6340,9 @@ function histEditGroup(idx) {
     ixShow(ghichuEl);
   }
 
-  _histEditRows = g.rows.map(r => ({
+  _histEditRows = g.rows.map((r, i) => ({
     ...r,
+    _num: i + 1,
     _origMa: r.ma || '',
     _origSl: Number(r.soluong) || 0,
     _origGia: Number(r.gia) || 0
