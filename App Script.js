@@ -39,6 +39,17 @@ function _isDuplicateHistoryRequest_(requestId) {
   return false;
 }
 
+function _withoutFilter_(sheet, fn) {
+  const filter = sheet.getFilter();
+  const filterRange = filter ? filter.getRange().getA1Notation() : null;
+  if (filter) filter.remove();
+  try {
+    fn();
+  } finally {
+    if (filterRange) sheet.getRange(filterRange).createFilter();
+  }
+}
+
 function doPost(e) {
   if (e.parameter.token !== 'inox2026xK9m')
     return _json({ error: 'unauthorized' });
@@ -178,9 +189,11 @@ function doPost(e) {
           const adjRow = _adjIsX
             ? [data.ma, ts, data.row[1], data.row[2], data.row[3], data.row[4], data.row[7], Math.abs(delta), giaDieuChinh, '', '', '', '', '', note]
             : [data.ma, ts, data.row[1], data.row[2], data.row[3], data.row[4], data.row[7], Math.abs(delta), giaDieuChinh, '', '', '', note];
-          adjSheet.appendRow(adjRow);
-          const nr = adjSheet.getLastRow();
-          adjSheet.getRange(nr, _adjIsX ? 13 : 12).setFormula('=H' + nr + '*I' + nr + '+K' + nr + (_adjIsX ? '+L' + nr : ''));
+          _withoutFilter_(adjSheet, function() {
+            adjSheet.appendRow(adjRow);
+            const nr = adjSheet.getLastRow();
+            adjSheet.getRange(nr, _adjIsX ? 13 : 12).setFormula('=H' + nr + '*I' + nr + '+K' + nr + (_adjIsX ? '+L' + nr : ''));
+          });
         }
       }
       return ContentService.createTextOutput(JSON.stringify({
@@ -215,6 +228,9 @@ function doPost(e) {
 
       const lock = LockService.getScriptLock();
       lock.waitLock(20000);
+      const _f = sheet.getFilter();
+      const _fRange = _f ? _f.getRange().getA1Notation() : null;
+      if (_f) _f.remove();
       try {
       const targetTimeKey = _historyTimeKey(data.thoigian_key || data.thoigian);
       if (targetTimeKey && sheet) {
@@ -317,18 +333,21 @@ function doPost(e) {
           const maxCols = preparedRows.reduce(function(m, r) { return Math.max(m, r.length); }, 0);
           preparedRows.forEach(function(r) { while (r.length < maxCols) r.push(''); });
 
-          const startRow = sheet.getLastRow() + 1;
-          sheet.getRange(startRow, 1, preparedRows.length, maxCols).setValues(preparedRows);
+          _withoutFilter_(sheet, function() {
+            const startRow = sheet.getLastRow() + 1;
+            sheet.getRange(startRow, 1, preparedRows.length, maxCols).setValues(preparedRows);
 
-          const formulaCol = _isXuatUpd ? 13 : 12;
-          const formulas = preparedRows.map(function(_, i) {
-            const nr = startRow + i;
-            return ['=H' + nr + '*I' + nr + '+K' + nr + (_isXuatUpd ? '+L' + nr : '')];
+            const formulaCol = _isXuatUpd ? 13 : 12;
+            const formulas = preparedRows.map(function(_, i) {
+              const nr = startRow + i;
+              return ['=H' + nr + '*I' + nr + '+K' + nr + (_isXuatUpd ? '+L' + nr : '')];
+            });
+            sheet.getRange(startRow, formulaCol, formulas.length, 1).setFormulas(formulas);
           });
-          sheet.getRange(startRow, formulaCol, formulas.length, 1).setFormulas(formulas);
         }
       }
       } finally {
+        if (_fRange) sheet.getRange(_fRange).createFilter();
         lock.releaseLock();
       }
       return ContentService.createTextOutput(JSON.stringify({ success: true }))
@@ -355,13 +374,15 @@ function doPost(e) {
 
     // Ghi tất cả dòng 1 lần + set công thức 1 lần
     const formulaCol = _isXuatOrDraft ? 13 : 12;
-    const startRow = sheet.getLastRow() + 1;
-    sheet.getRange(startRow, 1, preparedRows.length, maxCols).setValues(preparedRows);
-    const formulas = preparedRows.map(function(_, i) {
-      const nr = startRow + i;
-      return ['=H' + nr + '*I' + nr + '+K' + nr + (_isXuatOrDraft ? '+L' + nr : '')];
+    _withoutFilter_(sheet, function() {
+      const startRow = sheet.getLastRow() + 1;
+      sheet.getRange(startRow, 1, preparedRows.length, maxCols).setValues(preparedRows);
+      const formulas = preparedRows.map(function(_, i) {
+        const nr = startRow + i;
+        return ['=H' + nr + '*I' + nr + '+K' + nr + (_isXuatOrDraft ? '+L' + nr : '')];
+      });
+      sheet.getRange(startRow, formulaCol, formulas.length, 1).setFormulas(formulas);
     });
-    sheet.getRange(startRow, formulaCol, formulas.length, 1).setFormulas(formulas);
 
     // Cập nhật Giá vốn (col F=6) từ max Nhập
     if (data.sheet === 'Nhập') {

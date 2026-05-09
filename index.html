@@ -3214,7 +3214,7 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra, xuatG
       if (col.value === 'form.phichanh')    return idx === 0 ? (phiChanh ? (mode === 'Xuất' ? -phiChanh : phiChanh) : '') : '';
       if (col.value === 'form.phikhachtra') return idx === 0 && mode === 'Xuất' ? (phiKhachTra || '') : '';
       if (col.value === 'form.ghichu')      return ghichu;
-      if (col.value === 'form.xuatghichu')  return idx === 0 && mode === 'Xuất' ? (xuatGhiChu || '') : '';
+      if (col.value === 'form.xuatghichu')  return mode === 'Xuất' ? (xuatGhiChu || '') : '';
       if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
       return '';
     });
@@ -4377,7 +4377,7 @@ async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra, xuatGhiChu) 
       if (col.value === 'form.phichanh')    return idx === 0 ? (phiChanh ? (dtMode === 'Xuất' ? -phiChanh : phiChanh) : '') : '';
       if (col.value === 'form.phikhachtra') return idx === 0 && dtMode === 'Xuất' ? (phiKhachTra || '') : '';
       if (col.value === 'form.ghichu')      return ghichu;
-      if (col.value === 'form.xuatghichu')  return idx === 0 && dtMode === 'Xuất' ? (xuatGhiChu || '') : '';
+      if (col.value === 'form.xuatghichu')  return dtMode === 'Xuất' ? (xuatGhiChu || '') : '';
       if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
       return '';
     });
@@ -6580,7 +6580,7 @@ async function dtSaveDraft() {
     if (col.value === 'form.phichanh')    return idx === 0 ? (phiChanh ? -phiChanh : '') : '';
     if (col.value === 'form.phikhachtra') return idx === 0 ? (phiKhachTra || '') : '';
     if (col.value === 'form.ghichu')      return ghichu;
-    if (col.value === 'form.xuatghichu')  return idx === 0 ? (xuatGhiChu || '') : '';
+    if (col.value === 'form.xuatghichu')  return xuatGhiChu || '';
     if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
     return '';
   }));
@@ -6644,7 +6644,7 @@ async function saveDraft() {
     if (col.value === 'form.phichanh')    return idx === 0 ? (phiChanh ? -phiChanh : '') : '';
     if (col.value === 'form.phikhachtra') return idx === 0 ? (phiKhachTra || '') : '';
     if (col.value === 'form.ghichu')      return ghichu;
-    if (col.value === 'form.xuatghichu')  return idx === 0 ? (xuatGhiChu || '') : '';
+    if (col.value === 'form.xuatghichu')  return xuatGhiChu || '';
     if (col.value.startsWith('product.')) return item.product[col.value.replace('product.','')] || '';
     return '';
   }));
