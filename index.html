@@ -6900,15 +6900,23 @@ function histDetailConfirmDraft() {
   var _acEl = null;
   var _acFocusIdx = -1;
 
+  function _acMatch(nameNormTokens, qTokens) {
+    return qTokens.every(function(qt) {
+      return nameNormTokens.some(function(nt) { return nt.indexOf(qt) === 0; });
+    });
+  }
+
   function _acRender(el, q) {
     var dd = document.getElementById('customer-ac-dropdown');
-    var qn = removeDiacritics(q);
+    var qTokens = removeDiacritics(q).split(/[\s.]+/).filter(Boolean);
+    if (!qTokens.length) { dd.style.display = 'none'; _acEl = null; return; }
     var names = [];
     var seen = {};
     customerData.forEach(function(r) {
       var name = (r[0] || '').trim();
       if (!name || seen[name]) return;
-      if (removeDiacritics(name).indexOf(qn) >= 0) { names.push(name); seen[name] = true; }
+      var nameNormTokens = removeDiacritics(name).split(/[\s.]+/).filter(Boolean);
+      if (_acMatch(nameNormTokens, qTokens)) { names.push(name); seen[name] = true; }
     });
     if (!names.length || el.value.trim() !== q) { dd.style.display = 'none'; _acEl = null; return; }
     _acEl = el;
