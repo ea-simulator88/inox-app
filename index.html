@@ -372,6 +372,10 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .st-btn { padding:4px 10px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; border:none; }
 .st-edit { background:#e3f2fd; color:#0d47a1; }
 .st-del { background:#ffebee; color:#c62828; margin-left:3px; }
+#customer-ac-dropdown { position:fixed; z-index:9999; background:#fff; border:1px solid #e0e0e0; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,0.13); max-height:240px; overflow-y:auto; display:none; }
+.customer-ac-item { padding:10px 14px; cursor:pointer; font-size:14px; color:#333; border-bottom:1px solid #f5f5f5; }
+.customer-ac-item:last-child { border-bottom:none; }
+.customer-ac-item:hover,.customer-ac-item.ac-focus { background:#fff3e0; color:#e65100; }
 </style>
 
 <!-- ====== CONFIG - ANH JAMES CHỈ SỬA TRONG KHỐI NÀY ====== -->
@@ -742,7 +746,7 @@ const CONFIG = {
 
         <label id="cart-ghichu-label">Ghi chú (không bắt buộc)</label>
         <div style="position:relative;">
-          <input type="text" id="cart-ghichu" placeholder="Tên khách, đơn hàng..." oninput="ixShow(this)" style="width:100%;box-sizing:border-box;padding-right:26px;" />
+          <input type="text" id="cart-ghichu" placeholder="Tên khách, đơn hàng..." oninput="_customerAC(this,cartMode)" onkeydown="_customerACKeydown(event)" onfocus="if(!customerData.length)fetchCustomerData()" style="width:100%;box-sizing:border-box;padding-right:26px;" autocomplete="off" />
           <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
         </div>
         <div id="cart-row-xuatghichu" style="display:none;margin-top:12px;">
@@ -1200,7 +1204,7 @@ const CONFIG = {
         <div style="margin-bottom:14px;">
           <label id="dt-ghichu-label" style="font-size:12px;color:#888;display:block;margin-bottom:6px;margin-top:0;">Ghi chú (không bắt buộc)</label>
           <div style="position:relative;">
-          <input type="text" id="dt-ghichu" placeholder="Tên khách, đơn hàng..." oninput="ixShow(this)"
+          <input type="text" id="dt-ghichu" placeholder="Tên khách, đơn hàng..." oninput="_customerAC(this,dtMode)" onkeydown="_customerACKeydown(event)" onfocus="if(!customerData.length)fetchCustomerData()" autocomplete="off"
             style="width:100%;padding:9px 36px 9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:14px;background:#fafafa;outline:none;box-sizing:border-box;" />
           <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;padding:3px 4px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
           </div>
@@ -6887,6 +6891,90 @@ function histDetailConfirmDraft() {
     sel.addEventListener('focus', function() { _open = true; wrap.classList.add('s-open'); });
     sel.addEventListener('blur',  function() { _open = false; wrap.classList.remove('s-open'); });
     sel.addEventListener('change',function() { _open = false; wrap.classList.remove('s-open'); });
+  });
+})();
+</script>
+<div id="customer-ac-dropdown"></div>
+<script>
+(function() {
+  var _acEl = null;
+  var _acFocusIdx = -1;
+
+  function _acRender(el, q) {
+    var dd = document.getElementById('customer-ac-dropdown');
+    var qn = removeDiacritics(q);
+    var names = [];
+    var seen = {};
+    customerData.forEach(function(r) {
+      var name = (r[0] || '').trim();
+      if (!name || seen[name]) return;
+      if (removeDiacritics(name).indexOf(qn) >= 0) { names.push(name); seen[name] = true; }
+    });
+    if (!names.length || el.value.trim() !== q) { dd.style.display = 'none'; _acEl = null; return; }
+    _acEl = el;
+    _acFocusIdx = -1;
+    dd.innerHTML = '';
+    names.slice(0, 8).forEach(function(name) {
+      var item = document.createElement('div');
+      item.className = 'customer-ac-item';
+      item.textContent = name;
+      item.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        el.value = name;
+        el.dispatchEvent(new Event('input', {bubbles: true}));
+        dd.style.display = 'none';
+        _acEl = null;
+        _acFocusIdx = -1;
+        el.focus();
+      });
+      dd.appendChild(item);
+    });
+    var rect = el.getBoundingClientRect();
+    dd.style.left = rect.left + 'px';
+    dd.style.top = (rect.bottom + 2) + 'px';
+    dd.style.width = rect.width + 'px';
+    dd.style.display = 'block';
+  }
+
+  window._customerAC = function(el, mode) {
+    ixShow(el);
+    var dd = document.getElementById('customer-ac-dropdown');
+    if (mode !== 'Xuất') { dd.style.display = 'none'; _acEl = null; return; }
+    var q = el.value.trim();
+    if (!q) { dd.style.display = 'none'; _acEl = null; return; }
+    if (!customerData.length) {
+      fetchCustomerData().then(function() { _acRender(el, q); });
+      return;
+    }
+    _acRender(el, q);
+  };
+
+  window._customerACKeydown = function(e) {
+    var dd = document.getElementById('customer-ac-dropdown');
+    if (!dd || dd.style.display === 'none') return;
+    var items = dd.querySelectorAll('.customer-ac-item');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      _acFocusIdx = Math.min(_acFocusIdx + 1, items.length - 1);
+      items.forEach(function(it, i) { it.classList.toggle('ac-focus', i === _acFocusIdx); });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      _acFocusIdx = Math.max(_acFocusIdx - 1, 0);
+      items.forEach(function(it, i) { it.classList.toggle('ac-focus', i === _acFocusIdx); });
+    } else if (e.key === 'Enter' && _acFocusIdx >= 0 && items[_acFocusIdx]) {
+      e.preventDefault();
+      items[_acFocusIdx].dispatchEvent(new MouseEvent('mousedown'));
+    } else if (e.key === 'Escape') {
+      dd.style.display = 'none'; _acEl = null; _acFocusIdx = -1;
+    }
+  };
+
+  document.addEventListener('click', function(e) {
+    var dd = document.getElementById('customer-ac-dropdown');
+    if (dd && e.target !== _acEl && !dd.contains(e.target)) {
+      dd.style.display = 'none'; _acEl = null; _acFocusIdx = -1;
+    }
   });
 })();
 </script>
