@@ -307,6 +307,8 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   #inv-print-root { display: block !important; }
   .inv-print-page { width: 148mm; margin-left: 0mm; padding: 7mm 9mm; font-family: 'Times New Roman', serif; font-size: 11.5px; line-height: 1.2; color: #d32f2f; break-inside: avoid; box-sizing: border-box;}
   .inv-print-page + .inv-print-page {  break-before: page; }
+  .inv-addr-select, .inv-sdt-select { -webkit-appearance:none; appearance:none; border-top:none !important; border-left:none !important; border-right:none !important; border-radius:0 !important; background:transparent !important; pointer-events:none; }
+  .inv-close-x { display: none !important; }
   @page { size: A5 portrait; margin: 0; }
 }
 /* Manage stats bar - responsive */
@@ -1051,7 +1053,8 @@ const CONFIG = {
 
 <!-- MODAL -->
 <div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:4000;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:16px;padding:24px 20px;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+  <div style="background:#fff;border-radius:16px;padding:24px 20px;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.18);position:relative;">
+    <button id="modal-close-x" style="position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:#999;padding:4px;line-height:1;" title="Đóng"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <div id="modal-icon" style="height:32px;display:flex;align-items:center;justify-content:center;margin-bottom:5px;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#lalala" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"></rect><line x1="8" y1="7" x2="16" y2="7"></line><line x1="8" y1="11" x2="16" y2="11"></line><line x1="8" y1="15" x2="12" y2="15"></line></svg></div>
     <div id="modal-msg" style="font-size:15px;font-weight:600;color:#1a1a1a;text-align:center;margin-bottom:6px;margin-top: 3px;"></div>
     <div id="modal-sub" style="font-size:11px;color:#888;text-align:center;margin-bottom:20px;margin-top: 15px;"></div>
@@ -1225,7 +1228,8 @@ const CONFIG = {
 
 <!-- INVOICE MODAL -->
 <div id="invoice-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:flex-start;justify-content:center;padding:10px;overflow-y:auto;">
-  <div id="invoice-print-area" style="background:#fff;width:148mm;min-height:210mm;padding:8mm 10mm;font-family:'Times New Roman',serif;font-size:12px;line-height:1.2;margin:auto;color:#d32f2f;">
+  <div id="invoice-print-area" style="background:#fff;width:148mm;min-height:210mm;padding:8mm 10mm;font-family:'Times New Roman',serif;font-size:12px;line-height:1.2;margin:auto;color:#d32f2f;position:relative;">
+    <button class="inv-close-x" onclick="document.getElementById('invoice-modal').style.display='none'" style="position:absolute;top:6px;right:6px;background:none;border:none;cursor:pointer;color:#999;padding:4px;line-height:1;z-index:10;" title="Đóng"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <div id="inv-content"></div>
     <div id="invoice-modal-btns" style="display:flex;gap:10px;margin-top:16px;padding-top:12px;border-top:1px solid #e0e0e0;">
       <button onclick="window.print()" style="flex:1;padding:11px;background:#d32f2f;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">In hóa đơn</button>
@@ -1236,19 +1240,20 @@ const CONFIG = {
 
 <!-- INVOICE PICKER MODAL -->
 <div id="invoice-picker-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3100;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:16px;padding:24px 20px;width:280px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.25);">
-    <div style="font-weight:700;font-size:15px;color:#333;margin-bottom:16px;">Chọn loại hóa đơn</div>
-    <label style="display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:14px;color:#333;cursor:pointer;">
+  <div style="background:#fff;border-radius:16px;padding:30px 20px;width:350px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.25);position:relative;">
+    <button onclick="document.getElementById('invoice-picker-modal').style.display='none'" style="position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:#999;padding:4px;line-height:1;" title="Đóng"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div style="font-weight:700;font-size:17px;color:#333;margin-bottom:16px;">Chọn loại hóa đơn</div>
+    <label style="display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:15px;color:#333;cursor:pointer;">
       <input type="checkbox" id="inv-pick-full" checked style="width:18px;height:18px;accent-color:#d32f2f;cursor:pointer;">
       Tờ đầy đủ (có giá &amp; tổng tiền)
     </label>
-    <label style="display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:14px;color:#333;cursor:pointer;">
+    <label style="display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:15px;color:#333;cursor:pointer;">
       <input type="checkbox" id="inv-pick-noprice" style="width:18px;height:18px;accent-color:#d32f2f;cursor:pointer;">
       Tờ không hiện giá
     </label>
     <div style="display:flex;gap:8px;">
       <button onclick="_doShowInvoice()" style="flex:1;padding:11px;background:#d32f2f;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Xem &amp; In</button>
-      <button onclick="document.getElementById('invoice-picker-modal').style.display='none'" style="flex:1;padding:11px;background:#f0f0f0;color:#555;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Hủy</button>
+      <button onclick="document.getElementById('invoice-picker-modal').style.display='none'" style="flex:1;padding:11px;background:#f0f0f0;color:#555;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;">Đóng</button>
     </div>
   </div>
 </div>
@@ -1448,6 +1453,45 @@ function stopInactivityWatch() {
   _inactivityTimer = null;
 }
 let products = [];
+let customerData = []; // rows: [0]=Tên KH, [1]=Địa chỉ KH, [2]=Địa chỉ Chành xe, [3]=Thời gian giao, [4]=SĐT
+
+async function fetchCustomerData() {
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=getCustomers&token=inox2026xK9m', { cache: 'no-store' });
+    const data = await res.json();
+    if (Array.isArray(data.rows)) customerData = data.rows;
+  } catch(e) {}
+}
+
+function syncInvAddrSelect(sel) {
+  const allInContent = document.getElementById('inv-content').querySelectorAll('.inv-addr-select');
+  let idx = -1;
+  allInContent.forEach(function(s, i) { if (s === sel) idx = i; });
+  if (idx === -1) return;
+  const allInPrint = document.getElementById('inv-print-root').querySelectorAll('.inv-addr-select');
+  if (allInPrint[idx]) allInPrint[idx].selectedIndex = sel.selectedIndex;
+}
+
+function syncInvSdtSelect(sel) {
+  const allInContent = document.getElementById('inv-content').querySelectorAll('.inv-sdt-select');
+  let idx = -1;
+  allInContent.forEach(function(s, i) { if (s === sel) idx = i; });
+  if (idx === -1) return;
+  const allInPrint = document.getElementById('inv-print-root').querySelectorAll('.inv-sdt-select');
+  if (allInPrint[idx]) allInPrint[idx].selectedIndex = sel.selectedIndex;
+}
+
+function _lookupCustomer(tenkhach) {
+  const norm = (tenkhach || '').trim().toLowerCase();
+  if (!norm || !customerData.length) return { addresses: [], sdts: [] };
+  const matches = customerData.filter(function(r) { return r[0].toLowerCase() === norm; });
+  const addresses = [];
+  matches.forEach(function(r) { if (r[2] && !addresses.includes(r[2])) addresses.push(r[2]); });
+  const sdts = [];
+  matches.forEach(function(r) { if (r[4] && !sdts.includes(r[4])) sdts.push(r[4]); });
+  return { addresses: addresses, sdts: sdts };
+}
+
 let scanning = false;
 let stream = null;
 let usingFallbackProducts = false;
@@ -1851,6 +1895,7 @@ const _BTN_LOGIN_LOADING = '<svg width="16" height="16" viewBox="0 0 24 24" fill
 function _applyLogin(r, name) {
   currentRole = r;
   currentUserName = name;
+  fetchCustomerData();
   document.getElementById('login-error').classList.remove('visible');
   try {
     const savedCart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -2429,10 +2474,13 @@ function showModal(msg, sub, onYes, highlightMas) {
   yes.onclick = () => { close(); onYes(); };
   no.onclick = close;
   overlay.onclick = (e) => { if (e.target === overlay) close(); };
+  const closeX = document.getElementById('modal-close-x');
+  if (closeX) closeX.onclick = close;
 }
 
 function showInfoModal(msg, sub, highlightMas) {
   showModal(msg, sub, () => {}, highlightMas || []);
+  document.getElementById('modal-overlay').onclick = null;
   const iconEl = document.getElementById('modal-icon');
   if (iconEl) {
     if (msg === 'Chi tiết lợi nhuận') {
@@ -5985,37 +6033,37 @@ function showInvoice(idx) {
   if (noPriceCb) noPriceCb.checked = false;
   const picker = document.getElementById('invoice-picker-modal');
   picker.style.display = 'flex';
-  picker.onclick = e => { if (e.target === picker) picker.style.display = 'none'; };
 }
 
-function _doShowInvoice() {
+async function _doShowInvoice() {
   const showFull = document.getElementById('inv-pick-full').checked;
   const showNoPrice = document.getElementById('inv-pick-noprice').checked;
   if (!showFull && !showNoPrice) return;
   document.getElementById('invoice-picker-modal').style.display = 'none';
   const g = _historyGroups[_invoicePickerIdx];
   if (!g) return;
+  if (customerData.length === 0) await fetchCustomerData();
+  const invOpts = _lookupCustomer(g.tenkhach);
   // Screen preview: both invoices stacked with dashed separator
   let screenHtml = '';
   let printHtml = '';
   if (showFull && showNoPrice) {
-    screenHtml = _buildInvoiceHTML(g, false) + '<div style="border-top:2px dashed #ccc;margin:8mm 0;"></div>' + _buildInvoiceHTML(g, true);
-    printHtml = '<div class="inv-print-page">' + _buildInvoiceHTML(g, false) + '</div><div class="inv-print-page">' + _buildInvoiceHTML(g, true) + '</div>';
+    screenHtml = _buildInvoiceHTML(g, false, invOpts) + '<div style="border-top:2px dashed #ccc;margin:8mm 0;"></div>' + _buildInvoiceHTML(g, true, invOpts);
+    printHtml = '<div class="inv-print-page">' + _buildInvoiceHTML(g, false, invOpts) + '</div><div class="inv-print-page">' + _buildInvoiceHTML(g, true, invOpts) + '</div>';
   } else if (showFull) {
-    screenHtml = _buildInvoiceHTML(g, false);
-    printHtml = '<div class="inv-print-page">' + _buildInvoiceHTML(g, false) + '</div>';
+    screenHtml = _buildInvoiceHTML(g, false, invOpts);
+    printHtml = '<div class="inv-print-page">' + _buildInvoiceHTML(g, false, invOpts) + '</div>';
   } else {
-    screenHtml = _buildInvoiceHTML(g, true);
-    printHtml = '<div class="inv-print-page">' + _buildInvoiceHTML(g, true) + '</div>';
+    screenHtml = _buildInvoiceHTML(g, true, invOpts);
+    printHtml = '<div class="inv-print-page">' + _buildInvoiceHTML(g, true, invOpts) + '</div>';
   }
   document.getElementById('inv-content').innerHTML = screenHtml;
   document.getElementById('inv-print-root').innerHTML = printHtml;
   const modal = document.getElementById('invoice-modal');
   modal.style.display = 'flex';
-  modal.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
 }
 
-function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, isLastPage) {
+function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, isLastPage, invOpts) {
   const fmtInvMoney = function(v) {
     return Math.round(Number(v) || 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 });
   };
@@ -6025,6 +6073,9 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
   const total = allRows.reduce((s, r) => s + r.soluong * r.gia, 0);
   const phiKT = Number((allRows[0] && allRows[0].phikhachtra) || 0);
   const tenkhach = g.tenkhach || '';
+  const _io = invOpts || {};
+  const _addresses = Array.isArray(_io.addresses) ? _io.addresses : [];
+  const _sdts = Array.isArray(_io.sdts) ? _io.sdts : [];
   const B = 'border:1px solid #d73c3c;';
   const thS = B + 'padding:1.6mm 1mm;text-align:center;font-size:3.9mm;font-weight:600;'; // chỉnh kích thước Hóa đơn các dòng đầu tiên
   const tdBase = 'border-left:1px solid #d73c3c;border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;height:6mm;font-size:3.9mm;'; // chỉnh kích thước Hóa đơn các dòng
@@ -6088,11 +6139,15 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
     <span style="white-space:nowrap;">Khách Hàng:</span>
     <span style="flex:1;border-bottom:1px dotted #d32f2f;height:6mm;padding-left:2mm;display:flex;align-items:flex-end;font-weight:700;">${tenkhach}</span>
     <span style="white-space:nowrap;margin-left:2mm;">ĐT:</span>
-    <span style="width:36mm;border-bottom:1px dotted #d32f2f;height:6mm;"></span>
+    ${_sdts.length > 0
+      ? `<select class="inv-sdt-select" onchange="syncInvSdtSelect(this)" style="width:36mm;border:none;border-bottom:1px dotted #d32f2f;border-radius:0;height:6mm;font-size:3.2mm;font-weight:700;background:transparent;outline:none;padding:1.3mm 1mm 0;color:#d32f2f;font-family:inherit;"><option value=""></option>${_sdts.map(function(s,i){return '<option'+(i===0?' selected':'')+'>'+_esc(s)+'</option>';}).join('')}</select>`
+      : '<span style="width:36mm;display:inline-block;border-bottom:1px dotted #d32f2f;height:6mm;"></span>'}
   </div>
   <div style="font-size:3.6mm;margin-bottom:1.8mm;display:flex;align-items:flex-end;">
     <span style="white-space:nowrap;">Địa chỉ:</span>
-    <span style="flex:1;border-bottom:1px dotted #d32f2f;height:6mm;"></span>
+    ${_addresses.length > 0
+      ? `<select class="inv-addr-select" onchange="syncInvAddrSelect(this)" style="flex:1;border:none;border-bottom:1px dotted #d32f2f;border-radius:0;height:6mm;font-size:3.2mm;font-weight:600;background:transparent;outline:none;padding:1.3mm 1mm 0;color:#d32f2f;font-family:inherit;"><option value=""></option>${_addresses.map(function(a,i){return '<option'+(i===0?' selected':'')+'>'+_esc(a)+'</option>';}).join('')}</select>`
+      : '<span style="flex:1;display:inline-block;border-bottom:1px dotted #d32f2f;height:6mm;"></span>'}
   </div>
   <table style="width:100%;border-collapse:collapse;table-layout:fixed;color:#d32f2f;">
     <thead><tr>${headerHTML}</tr></thead>
@@ -6118,7 +6173,7 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
   </div>`;
 }
 
-function _buildInvoiceHTML(g, hidePrice) {
+function _buildInvoiceHTML(g, hidePrice, invOpts) {
   const rows = g.rows;
   const chunks = [];
   if (rows.length === 0) {
@@ -6129,7 +6184,7 @@ function _buildInvoiceHTML(g, hidePrice) {
   const totalPages = chunks.length;
   return chunks.map(function(pageRows, pageIndex) {
     const isLastPage = pageIndex === totalPages - 1;
-    return '<div class="inv-print-page">' + _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, isLastPage) + '</div>';
+    return '<div class="inv-print-page">' + _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, isLastPage, invOpts) + '</div>';
   }).join('');
 }
 

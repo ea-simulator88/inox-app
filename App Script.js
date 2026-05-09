@@ -621,6 +621,23 @@ function doGet(e) {
     return _json({ items: items });
   }
 
+  // ── Lấy danh sách khách hàng (action=getCustomers) ──
+  if (e.parameter.action === 'getCustomers') {
+    const sh = ss.getSheetByName('Khách hàng');
+    if (!sh || sh.getLastRow() <= 1) return _json({ rows: [] });
+    const vals = sh.getDataRange().getValues().slice(1);
+    const rows = vals.map(function(r) {
+      return [
+        (r[0] || '').toString().trim(),
+        (r[1] || '').toString().trim(),
+        (r[2] || '').toString().trim(),
+        (r[3] || '').toString().trim(),
+        (r[4] || '').toString().trim()
+      ];
+    }).filter(function(r) { return r[0]; });
+    return _json({ rows: rows });
+  }
+
   // ── Lấy danh sách sản phẩm (action=get) ────────────
   const sheet = ss.getSheetByName('Sản phẩm');
   const data = sheet.getDataRange().getValues();
