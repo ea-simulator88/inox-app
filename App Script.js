@@ -1,7 +1,7 @@
 ﻿function _maxPriceByMa_(srcSheet, ma) {
   if (!srcSheet || srcSheet.getLastRow() <= 1) return 0;
   return srcSheet.getDataRange().getValues().slice(1).reduce(function(best, r) {
-    return (r[0] || '').toString().trim() === ma ? Math.max(best, Number(r[8]) || 0) : best;
+    return (r[0] || '').toString().trim() === ma ? Math.max(best, Number(r[7]) || 0) : best;
   }, 0);
 }
 
@@ -127,10 +127,13 @@ function doPost(e) {
     if (data.action === 'add') {
       sheet.appendRow(data.row);
       const newRow = sheet.getLastRow();
-      sheet.getRange(newRow, 9).setFormula(
-        `=SUMIFS('Nhập'!H:H;'Nhập'!A:A;A${newRow})-SUMIFS('Xuất'!H:H;'Xuất'!A:A;A${newRow})`
+      sheet.getRange(newRow, 1).setFormula(
+        `=MASP(C${newRow};$C$2:$C$3000;ROW()-1)`
       );
-      sheet.getRange(newRow, 10).setFormula(
+      sheet.getRange(newRow, 8).setFormula(
+        `=SUMIFS('Nhập'!G:G;'Nhập'!A:A;A${newRow})-SUMIFS('Xuất'!G:G;'Xuất'!A:A;A${newRow})`
+      );
+      sheet.getRange(newRow, 9).setFormula(
         `=IMAGE("https://api.qrserver.com/v1/create-qr-code/?size=300x300&data="&A${newRow})`
       );
       return ContentService.createTextOutput(JSON.stringify({ success: true }))
@@ -143,18 +146,18 @@ function doPost(e) {
       let adjustedGiaVon = 0;
       for (let i = 1; i < rows.length; i++) {
         if (rows[i][0].toString().trim() === data.ma.toString().trim()) {
-          const newGiaVon = Number(data.row && data.row[5]);
+          const newGiaVon = Number(data.row && data.row[4]);
           const oldGiaVon = Number(rows[i][5]);
           adjustedGiaVon = !isNaN(newGiaVon) ? newGiaVon : (!isNaN(oldGiaVon) ? oldGiaVon : 0);
           data.row.forEach((val, j) => {
-            // Bỏ qua cột Tồn kho (I=8) vì dùng công thức SUMIFS
-            if (j !== 8) {
+            // Bỏ qua cột H (j=7, Tồn kho - SUMIFS) và cột I (j=8, QR - IMAGE)
+            if (j !== 7 && j !== 8) {
               sheet.getRange(i + 1, j + 1).setValue(val);
             }
           });
           // Ghi ghi chú giá vào cột L (12) nếu có thay đổi
           if (data.ghichu_gia && data.ghichu_gia.toString().trim()) {
-            sheet.getRange(i + 1, 12).setValue(data.ghichu_gia);
+            sheet.getRange(i + 1, 11).setValue(data.ghichu_gia);
           }
           found = true;
           break;
@@ -169,7 +172,7 @@ function doPost(e) {
           for (let i = 1; i < spRows.length; i++) {
             if ((spRows[i][0] || '').toString().trim() !== maTrim) continue;
             const maxNhap = _maxPriceByMa_(ss.getSheetByName('Nhập'), maTrim);
-            if (maxNhap > (Number(spRows[i][5]) || 0)) spSh.getRange(i + 1, 6).setValue(maxNhap);
+            if (maxNhap > (Number(spRows[i][4]) || 0)) spSh.getRange(i + 1, 5).setValue(maxNhap);
             break;
           }
         }
@@ -187,12 +190,12 @@ function doPost(e) {
           // Xuất: A-K=data, L=phiKT(empty), M=formula, N=tenkhach(empty), O=note
           // Nhập: A-K=data, L=formula,       M=note
           const adjRow = _adjIsX
-            ? [data.ma, ts, data.row[1], data.row[2], data.row[3], data.row[4], data.row[7], Math.abs(delta), giaDieuChinh, '', '', '', '', '', note]
-            : [data.ma, ts, data.row[1], data.row[2], data.row[3], data.row[4], data.row[7], Math.abs(delta), giaDieuChinh, '', '', '', note];
+            ? [data.ma, ts, data.row[1], data.row[2], data.row[3], data.row[6], Math.abs(delta), giaDieuChinh, '', '', '', '', '', note]
+            : [data.ma, ts, data.row[1], data.row[2], data.row[3], data.row[6], Math.abs(delta), giaDieuChinh, '', '', '', note];
           _withoutFilter_(adjSheet, function() {
             adjSheet.appendRow(adjRow);
             const nr = adjSheet.getLastRow();
-            adjSheet.getRange(nr, _adjIsX ? 13 : 12).setFormula('=H' + nr + '*I' + nr + '+K' + nr + (_adjIsX ? '+L' + nr : ''));
+            adjSheet.getRange(nr, _adjIsX ? 12 : 11).setFormula('=G' + nr + '*H' + nr + '+J' + nr + (_adjIsX ? '+K' + nr : ''));
           });
         }
       }
@@ -276,7 +279,7 @@ function doPost(e) {
             if (_historyTimeKey(cv) !== targetTimeKey) continue;
 
             const rowParty = (data.sheet === 'Xuất' || data.sheet === 'Nháp')
-              ? String(vals[i][13] || '').trim().toLowerCase()
+              ? String(vals[i][12] || '').trim().toLowerCase()
               : String(vals[i][2] || '').trim().toLowerCase();
 
             if (expectedParty && rowParty !== expectedParty) continue;
@@ -314,12 +317,12 @@ function doPost(e) {
         }
       }
       if (data.action === 'updateHistoryRows' && Array.isArray(data.rows)) {
-        const noteCol = data.sheet === 'Nhập' ? 13 : 15;
+        const noteCol = data.sheet === 'Nhập' ? 12 : 14;
         const _isXuatUpd = data.sheet === 'Xuất' || data.sheet === 'Nháp';
         const preparedRows = data.rows.map(function(row, i) {
           const r = row.slice();
           if (data.sheet === 'Nhập') {
-            r.length = 13; // Cắt bỏ các cột thừa, chỉ giữ đúng 13 cột (A -> M) của sheet Nhập
+            r.length = 12; // Cắt bỏ các cột thừa, chỉ giữ đúng 12 cột (A -> L) của sheet Nhập
           }
           if (data.notes && data.notes[i]) {
             while (r.length < noteCol) r.push('');
@@ -337,10 +340,10 @@ function doPost(e) {
             const startRow = sheet.getLastRow() + 1;
             sheet.getRange(startRow, 1, preparedRows.length, maxCols).setValues(preparedRows);
 
-            const formulaCol = _isXuatUpd ? 13 : 12;
+            const formulaCol = _isXuatUpd ? 12 : 11;
             const formulas = preparedRows.map(function(_, i) {
               const nr = startRow + i;
-              return ['=H' + nr + '*I' + nr + '+K' + nr + (_isXuatUpd ? '+L' + nr : '')];
+              return ['=G' + nr + '*H' + nr + '+J' + nr + (_isXuatUpd ? '+K' + nr : '')];
             });
             sheet.getRange(startRow, formulaCol, formulas.length, 1).setFormulas(formulas);
           });
@@ -362,8 +365,8 @@ function doPost(e) {
     const preparedRows = rowsToWrite.map(function(row) {
       const r = row.slice();
       if (_isXuatOrDraft) {
-        while (r.length < 15) r.push('');
-        r[15] = data.user_name || '';
+        while (r.length < 14) r.push('');
+        r[14] = data.user_name || '';
       }
       return r;
     });
@@ -373,13 +376,13 @@ function doPost(e) {
     preparedRows.forEach(function(r) { while (r.length < maxCols) r.push(''); });
 
     // Ghi tất cả dòng 1 lần + set công thức 1 lần
-    const formulaCol = _isXuatOrDraft ? 13 : 12;
+    const formulaCol = _isXuatOrDraft ? 12 : 11;
     _withoutFilter_(sheet, function() {
       const startRow = sheet.getLastRow() + 1;
       sheet.getRange(startRow, 1, preparedRows.length, maxCols).setValues(preparedRows);
       const formulas = preparedRows.map(function(_, i) {
         const nr = startRow + i;
-        return ['=H' + nr + '*I' + nr + '+K' + nr + (_isXuatOrDraft ? '+L' + nr : '')];
+        return ['=G' + nr + '*H' + nr + '+J' + nr + (_isXuatOrDraft ? '+K' + nr : '')];
       });
       sheet.getRange(startRow, formulaCol, formulas.length, 1).setFormulas(formulas);
     });
@@ -395,14 +398,14 @@ function doPost(e) {
           for (let i = 1; i < spData.length; i++) {
             if ((spData[i][0] || '').toString().trim() !== ma) continue;
             const maxNhap = _maxPriceByMa_(sheet, ma);
-            const oldGiaVon = Number(spData[i][5]) || 0;
+            const oldGiaVon = Number(spData[i][4]) || 0;
             if (maxNhap > oldGiaVon) {
-              spSheet.getRange(i + 1, 6).setValue(maxNhap);
-              spData[i][5] = maxNhap;
+              spSheet.getRange(i + 1, 5).setValue(maxNhap);
+              spData[i][4] = maxNhap;
 
               const dateStr = Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'dd/MM/yyyy');
               const note = 'Giá vốn: ' + oldGiaVon + '→' + maxNhap + ' (' + dateStr + ')';
-              const noteCell = spSheet.getRange(i + 1, 12); // Cột L
+              const noteCell = spSheet.getRange(i + 1, 11); // Cột K
               const existing = (noteCell.getValue() || '').toString().trim();
               noteCell.setValue(existing ? (existing + ' | ' + note) : note);
             }
@@ -500,25 +503,24 @@ function _historyMatchSignature_(sheetName, row) {
     getVal(row, 2, 'ncc'),
     getVal(row, 3, 'hanghoa'),
     getVal(row, 4, 'kichthuoc'),
-    getVal(row, 5, 'mota'),
-    getVal(row, 6, 'dvt'),
-    Number(getVal(row, 7, 'soluong')) || 0,
-    Number(getVal(row, 8, 'gia')) || 0,
-    getVal(row, 9, 'giaodich')
+    getVal(row, 5, 'dvt'),
+    Number(getVal(row, 6, 'soluong')) || 0,
+    Number(getVal(row, 7, 'gia')) || 0,
+    getVal(row, 8, 'giaodich')
   ];
 
   if (sheetName === 'Xuất') {
-    // ghichu (col 14) excluded: updateHistoryRows appends edit notes into that cell → mismatch after edit. //
+    // ghichu (col 13) excluded: updateHistoryRows appends edit notes into that cell → mismatch after edit. //
     parts.push(
-      getVal(row, 13, 'tenkhach'),
-      getVal(row, 15, 'nguoighi')
+      getVal(row, 12, 'tenkhach'),
+      getVal(row, 14, 'nguoighi')
     );
   } else if (sheetName === 'Nháp') {
     // ghichu excluded: updateHistoryRows appends edit notes into that cell → mismatch after edit.
     // phichanh/phikhachtra excluded: sign/format differences cause mismatches in some flows.
     // tenkhach + 9 base fields + second-precision timestamp are unique enough
     parts.push(
-      getVal(row, 13, 'tenkhach')
+      getVal(row, 12, 'tenkhach')
     );
   } else {
     // Nhập: ghichu (col 12) excluded for same reason — notes appended there after edit.
@@ -591,7 +593,6 @@ function doGet(e) {
     const iTen = idxAny(['Tên SP', 'Tên hàng', 'Mặt hàng']);
     const iNcc = idxAny(['Nhà Cung Cấp', 'Nhà cung cấp']);
     const iKt = idxAny(['Kích thước']);
-    const iMoTa = idxAny(['Mô tả Sp', 'Mô tả SP']);
     const iDvt = idxAny(['Đơn vị tính', 'ĐVT']);
     const iGiaVon = idxAny(['Giá vốn']);
     const iGiaSi = idxAny(['Giá sỉ']);
@@ -608,7 +609,6 @@ function doGet(e) {
         ten: iTen !== -1 ? (r[iTen] || '') : '',
         ncc: iNcc !== -1 ? (r[iNcc] || '') : '',
         kichthuoc: iKt !== -1 ? (r[iKt] || '') : '',
-        motaSP: iMoTa !== -1 ? (r[iMoTa] || '') : '',
         dvt: iDvt !== -1 ? (r[iDvt] || 'Cái') : 'Cái',
         giavon: iGiaVon !== -1 ? (r[iGiaVon] || '') : '',
         giasi: iGiaSi !== -1 ? (r[iGiaSi] || '') : '',
