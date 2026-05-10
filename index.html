@@ -84,7 +84,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 
 /* Manual input */
 .divider { text-align: center; font-size: 12px; color: #bbb; margin: 5px 0; }
-.manual-row { display: flex; gap: 9px; }
+.manual-row { display: flex; gap: 7px; }
 .manual-row input { margin-bottom: 0; flex: 1; }
 .manual-row button { padding: 10px 20px; background: #1565c0; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 
@@ -532,7 +532,7 @@ const CONFIG = {
     Quét mã QR
   </button>
 
-  <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;margin-top:7px;margin-bottom:6px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 10px;margin-top:7px;margin-bottom:6px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;">
     <div style="font-size:12px;color:#666;">
       <span id="mobile-stats-count" style="font-weight:600;color:#1a1a1a;">0</span> SP
       <span style="color:#ddd;margin:0 2px;">|</span>
@@ -550,26 +550,42 @@ const CONFIG = {
     </div>
   </div>
   <div class="manual-row" style="margin-bottom:6px;">
+    <div style="position:relative;flex-shrink:0;">
+      <button id="mob-sf-btn" onclick="toggleMobSfPanel(event)"
+        style="height:31px;padding:0 8px 0 10px;background:#fafafa;border:1px solid #e0e0e0;border-radius:10px;font-size:11px;font-weight:600;color:#555;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:3px;min-width:62px;">
+        <span id="mob-sf-label">Tất cả</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div id="mob-sf-panel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:1001;overflow:hidden;min-width:110px;">
+        <div onclick="setMobSearchField('all')" id="mob-sf-opt-all" style="padding:8px 12px;font-size:12px;cursor:pointer;background:#e8f5e9;color:#2e7d32;font-weight:700;">Tất cả</div>
+        <div onclick="setMobSearchField('ma')" id="mob-sf-opt-ma" style="padding:8px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Mã SP</div>
+        <div onclick="setMobSearchField('ncc')" id="mob-sf-opt-ncc" style="padding:8px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Nhà Cung Cấp</div>
+        <div onclick="setMobSearchField('ten')" id="mob-sf-opt-ten" style="padding:8px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Tên SP</div>
+        <div onclick="setMobSearchField('giavon')" id="mob-sf-opt-giavon" style="padding:8px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Giá vốn</div>
+        <div onclick="setMobSearchField('giasi')" id="mob-sf-opt-giasi" style="padding:8px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Giá sỉ</div>
+        <div onclick="setMobSearchField('tonkho')" id="mob-sf-opt-tonkho" style="padding:8px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Tồn</div>
+      </div>
+    </div>
     <div style="position:relative;flex:1;;min-width:0;">
-      <input type="text" id="manual-code" placeholder="Tìm mã hoặc theo tên..." autocomplete="off" autocapitalize="characters"
+      <input type="text" id="manual-code" placeholder="Tìm kiếm..." autocomplete="off" autocapitalize="characters"
         oninput="filterProductList();updateFilterClearBtn()"
         onblur="saveSearchHistory()"
-        style="width:100%;box-sizing:border-box;padding-right:60px;" />
+        style="width:100%;box-sizing:border-box;padding: 9px;padding-bottom:6px;padding-right:60px;font-size:12px;" />
       <button id="btn-filter-clear" onclick="clearFilterInput()" tabindex="-1"
         style="display:none;position:absolute;right:30px;top:50%;transform:translateY(-50%);background:none;border:none;border-radius:0;padding:4px;cursor:pointer;color:#bbb;font-size:13px;line-height:1;font-weight:400;white-space:nowrap;min-width:0;">✕</button>
       <button id="btn-filter-history" onclick="toggleSearchHistory(event)" tabindex="-1"
         style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;border-radius:0;padding:4px;cursor:pointer;color:#bbb;line-height:1;display:flex;align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
       <div id="search-history-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:1000;overflow:hidden;"></div>
     </div>
-    <div style="position:relative;flex:0 0 78px;">
+    <div style="position:relative;flex:0 0 65px;">
       <input type="number" id="mob-tonkho-filter" placeholder="Tồn ≤" min="0"
-        style="width:100%;box-sizing:border-box;padding:11px 20px 11px 6px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;outline:none;text-align:center;"
+        style="width:100%;box-sizing:border-box;padding:8.5px 20px 6px 6px;border:1px solid #e0e0e0;border-radius:10px;font-size:12px;background:#fafafa;outline:none;text-align:center;"
         oninput="onMobTonkhoInput();tonkhoUpdateClearBtn('mob-tonkho-filter','mob-tonkho-clear')" />
       <button id="mob-tonkho-clear" onclick="tonkhoClear('mob-tonkho-filter','mob-tonkho-clear',onMobTonkhoInput)" tabindex="-1"
         style="display:none;position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px;cursor:pointer;color:#bbb;font-size:12px;line-height:1;">✕</button>
     </div>
     <button id="mob-ton-sort-btn" onclick="cycleMobTonSort()" tabindex="-1" title="Sắp xếp tồn kho"
-      style="flex:0 0 32px;height:38.5px;background:#fafafa;border:1px solid #e0e0e0;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#bbb;padding:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/></svg></button>
+      style="flex:0 0 32px;height:31px;background:#fafafa;border:1px solid #e0e0e0;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#bbb;padding:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/></svg></button>
   </div>
   <div id="product-list" style="overflow-y:auto;max-height:calc(100vh - 200px);"></div>
 </div>
@@ -654,6 +670,22 @@ const CONFIG = {
       </div>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <div style="position:relative;flex-shrink:0;">
+        <button id="mng-sf-btn" onclick="toggleMngSfPanel(event)"
+          style="height:31px;padding:0 7px 0 9px;background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;font-size:11px;font-weight:600;color:#555;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:3px;min-width:60px;">
+          <span id="mng-sf-label">Tất cả</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div id="mng-sf-panel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #e0e0e0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:1001;overflow:hidden;min-width:110px;">
+          <div onclick="setMngSearchField('all')" id="mng-sf-opt-all" style="padding:7px 12px;font-size:12px;cursor:pointer;background:#e8f5e9;color:#2e7d32;font-weight:700;">Tất cả</div>
+          <div onclick="setMngSearchField('ma')" id="mng-sf-opt-ma" style="padding:7px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Mã SP</div>
+          <div onclick="setMngSearchField('ncc')" id="mng-sf-opt-ncc" style="padding:7px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Nhà Cung Cấp</div>
+          <div onclick="setMngSearchField('ten')" id="mng-sf-opt-ten" style="padding:7px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Tên SP</div>
+          <div onclick="setMngSearchField('giavon')" id="mng-sf-opt-giavon" style="padding:7px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Giá vốn</div>
+          <div onclick="setMngSearchField('giasi')" id="mng-sf-opt-giasi" style="padding:7px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Giá sỉ</div>
+          <div onclick="setMngSearchField('tonkho')" id="mng-sf-opt-tonkho" style="padding:7px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Tồn</div>
+        </div>
+      </div>
       <div style="position:relative;flex:1;min-width:0;">
         <input type="text" id="manage-search" placeholder="Tìm mã, tên, kích thước, NCC..."
           style="width:100%;box-sizing:border-box;padding:7px 56px 7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;"
@@ -862,7 +894,22 @@ const CONFIG = {
         </div>
       </div>
       <div style="max-width:1000px;margin:0 auto;margin-top:7px;width:100%;padding:0 0 8px;">
-        <div style="position:relative;">
+        <div style="display:flex;gap:6px;align-items:center;">
+          <div style="position:relative;flex-shrink:0;">
+            <button id="hist-sf-btn" onclick="toggleHistSfPanel(event)"
+              style="height:35px;padding:0 8px 0 10px;background:#fafafa;border:1px solid #e0e0e0;border-radius:10px;font-size:11px;font-weight:600;color:#555;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:3px;min-width:62px;">
+              <span id="hist-sf-label">Tất cả</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div id="hist-sf-panel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:1001;overflow:hidden;min-width:120px;">
+              <div onclick="setHistSearchField('all')" id="hist-sf-opt-all" style="padding:8px 12px;font-size:12px;cursor:pointer;background:#e8f5e9;color:#2e7d32;font-weight:700;">Tất cả</div>
+              <div onclick="setHistSearchField('ma')" id="hist-sf-opt-ma" style="padding:8px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Mã SP</div>
+              <div onclick="setHistSearchField('ncc')" id="hist-sf-opt-ncc" style="padding:8px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Nhà Cung Cấp</div>
+              <div onclick="setHistSearchField('tenkhach')" id="hist-sf-opt-tenkhach" style="padding:8px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Tên khách</div>
+              <div onclick="setHistSearchField('hanghoa')" id="hist-sf-opt-hanghoa" style="padding:8px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Tên SP</div>
+            </div>
+          </div>
+          <div style="position:relative;flex:1;min-width:0;">
           <input type="text" id="hist-search" placeholder="Tìm tên SP, mã, NCC, khách hàng..."
             style="width:100%;box-sizing:border-box;padding:9px 56px 9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;outline:none;"
             oninput="_renderHistory();histUpdateFilterClearBtn()"
@@ -872,6 +919,7 @@ const CONFIG = {
           <button id="hist-btn-filter-history" onclick="histToggleSearchHistory(event)" tabindex="-1"
             style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;padding:4px;cursor:pointer;color:#bbb;line-height:1;display:flex;align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
           <div id="hist-search-history-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:1000;overflow:hidden;"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1017,7 +1065,22 @@ const CONFIG = {
         </div>
       </div>
         <div id="report-collapsible">
-        <div style="position:relative;margin-bottom:10px;">
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;">
+          <div style="position:relative;flex-shrink:0;">
+            <button id="rpt-sf-btn" onclick="toggleRptSfPanel(event)"
+              style="height:35px;padding:0 8px 0 10px;background:#fafafa;border:1px solid #e0e0e0;border-radius:10px;font-size:11px;font-weight:600;color:#555;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:3px;min-width:62px;">
+              <span id="rpt-sf-label">Tất cả</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div id="rpt-sf-panel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:1001;overflow:hidden;min-width:120px;">
+              <div onclick="setRptSearchField('all')" id="rpt-sf-opt-all" style="padding:8px 12px;font-size:12px;cursor:pointer;background:#e8f5e9;color:#2e7d32;font-weight:700;">Tất cả</div>
+              <div onclick="setRptSearchField('ma')" id="rpt-sf-opt-ma" style="padding:8px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Mã SP</div>
+              <div onclick="setRptSearchField('ncc')" id="rpt-sf-opt-ncc" style="padding:8px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Nhà Cung Cấp</div>
+              <div onclick="setRptSearchField('tenkhach')" id="rpt-sf-opt-tenkhach" style="padding:8px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Tên khách</div>
+              <div onclick="setRptSearchField('hanghoa')" id="rpt-sf-opt-hanghoa" style="padding:8px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Tên SP</div>
+            </div>
+          </div>
+          <div style="position:relative;flex:1;min-width:0;">
           <input type="text" id="report-search" placeholder="Tìm chung (tên SP, mã, NCC, khách...)"
             style="width:100%;box-sizing:border-box;padding:9px 56px 9px 12px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;outline:none;"
             oninput="renderReport();reportUpdateFilterClearBtn()"
@@ -1027,6 +1090,7 @@ const CONFIG = {
           <button id="report-btn-filter-history" onclick="reportToggleSearchHistory(event)" tabindex="-1"
             style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;padding:4px;cursor:pointer;color:#bbb;line-height:1;display:flex;align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
           <div id="report-search-history-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:1000;overflow:hidden;"></div>
+          </div>
         </div>
         <div id="report-summary" class="report-summary-grid"></div>
       </div>
@@ -1114,6 +1178,22 @@ const CONFIG = {
           </div>
         </div>
         <div style="display:flex;gap:6px;">
+          <div style="position:relative;flex-shrink:0;">
+            <button id="dt-sf-btn" onclick="toggleDtSfPanel(event)"
+              style="height:31px;padding:0 7px 0 9px;background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;font-size:11px;font-weight:600;color:#555;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:3px;min-width:60px;">
+              <span id="dt-sf-label">Tất cả</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div id="dt-sf-panel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #e0e0e0;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.12);z-index:1001;overflow:hidden;min-width:110px;">
+              <div onclick="setDtSearchField('all')" id="dt-sf-opt-all" style="padding:7px 12px;font-size:12px;cursor:pointer;background:#e8f5e9;color:#2e7d32;font-weight:700;">Tất cả</div>
+              <div onclick="setDtSearchField('ma')" id="dt-sf-opt-ma" style="padding:7px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Mã SP</div>
+              <div onclick="setDtSearchField('ncc')" id="dt-sf-opt-ncc" style="padding:7px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Nhà Cung Cấp</div>
+              <div onclick="setDtSearchField('ten')" id="dt-sf-opt-ten" style="padding:7px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Tên SP</div>
+              <div onclick="setDtSearchField('giavon')" id="dt-sf-opt-giavon" style="padding:7px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Giá vốn</div>
+              <div onclick="setDtSearchField('giasi')" id="dt-sf-opt-giasi" style="padding:7px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Giá sỉ</div>
+              <div onclick="setDtSearchField('tonkho')" id="dt-sf-opt-tonkho" style="padding:7px 12px;font-size:12px;cursor:pointer;color:#555;border-top:1px solid #f5f5f5;">Tồn</div>
+            </div>
+          </div>
           <div style="position:relative;flex:1;min-width:0;">
             <input type="text" id="dt-search" placeholder="Tìm mã hoặc tên..."
               style="width:100%;box-sizing:border-box;padding:7px 56px 7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;background:#fafafa;outline:none;"
@@ -1500,14 +1580,17 @@ let usingFallbackProducts = false;
 let html5QrCode = null;
 
 let mobileFilterLow = false;
+let mobSearchField = 'all';
 let mobTonSort = 'none'; // 'none' | 'desc' | 'asc'
 let dtTonSort = 'none';  // 'none' | 'desc' | 'asc'
 let mobileFilterHidden = false;
 let dtFilterLow = false;
 let dtFilterHidden = false;
+let dtSearchField = 'all';
 let manageFilterLow = false;
 let manageFilterHidden = false;
 let manageFilterVisible = false;
+let manageSearchField = 'all';
 // hidden products synced via Google Sheet column "Ẩn"
 // giữ optimistic updates trong 15s để tránh background fetch ghi đè
 const pendingHiddenUpdates = {};
@@ -1583,15 +1666,6 @@ function updateProductStats() {
   const visible = (products || []).filter(p => !isHidden(p.ma));
   const hiddenList = (products || []).filter(p => isHidden(p.ma));
   const count = visible.length;
-  const total = visible.reduce((s, p) => s + (Number(p.tonkho) || 0), 0);
-  ['mobile-stats-count','manage-stats-count','dt-stats-count'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = count;
-  });
-  ['mobile-stats-tonkho','manage-stats-tonkho','dt-stats-tonkho'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = fmt(total);
-  });
   ['mob-visible-count','dt-visible-count','manage-visible-count'].forEach(id => {
     const el = document.getElementById(id); if (el) el.textContent = count;
   });
@@ -1647,6 +1721,15 @@ function highlightText(text, kw) {
   }
   result += text.slice(lastEnd);
   return result;
+}
+
+function highlightMoney(rawVal, kw) {
+  const formatted = fmtMoney(rawVal);
+  if (!kw) return formatted;
+  const rawStr = String(rawVal || '').replace(/[^0-9]/g, '');
+  const kwStr = kw.trim().replace(/[^0-9]/g, '');
+  if (!kwStr || !rawStr.includes(kwStr)) return formatted;
+  return '<mark style="background:#FFF176;color:#5D4037;border-radius:2px;padding:0 1px">' + formatted + '</mark>';
 }
 
 function isHidden(ma) {
@@ -1772,6 +1855,44 @@ function onManageTonkhoInput() {
   filterManageProducts();
 }
 
+function toggleMngSfPanel(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const panel = document.getElementById('mng-sf-panel');
+  if (!panel) return;
+  if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  setTimeout(function() {
+    function close(ev) {
+      if (!panel.contains(ev.target) && !ev.target.closest('#mng-sf-btn')) {
+        panel.style.display = 'none';
+        document.removeEventListener('click', close, true);
+      }
+    }
+    document.addEventListener('click', close, true);
+  }, 0);
+}
+
+const MNG_SF_LABELS = { all: 'Tất cả', ma: 'Mã SP', ncc: 'NCC', ten: 'Tên SP', giavon: 'Giá vốn', giasi: 'Giá sỉ', tonkho: 'Tồn' };
+const MNG_SF_PLACEHOLDERS = { all: 'Tìm mã, tên, kích thước, NCC...', ma: 'Tìm theo mã SP...', ncc: 'Tìm theo nhà cung cấp...', ten: 'Tìm theo tên SP...', giavon: 'Tìm theo giá vốn...', giasi: 'Tìm theo giá sỉ...', tonkho: 'Tìm theo tồn kho...' };
+
+function setMngSearchField(field) {
+  manageSearchField = field;
+  const label = document.getElementById('mng-sf-label');
+  if (label) label.textContent = MNG_SF_LABELS[field] || 'Tất cả';
+  ['all','ma','ncc','ten','giavon','giasi','tonkho'].forEach(function(k) {
+    const el = document.getElementById('mng-sf-opt-' + k);
+    if (el) {
+      if (k === field) { el.style.background = '#e8f5e9'; el.style.color = '#2e7d32'; el.style.fontWeight = '700'; }
+      else { el.style.background = ''; el.style.color = '#555'; el.style.fontWeight = ''; }
+    }
+  });
+  const panel = document.getElementById('mng-sf-panel');
+  if (panel) panel.style.display = 'none';
+  const inp = document.getElementById('manage-search');
+  if (inp) inp.placeholder = MNG_SF_PLACEHOLDERS[field] || 'Tìm mã, tên, kích thước, NCC...';
+  filterManageProducts();
+}
+
 function filterManageProducts() {
   const rawQ = (document.getElementById('manage-search') ? document.getElementById('manage-search').value : '') || '';
   const q = removeDiacritics(rawQ).trim();
@@ -1782,8 +1903,16 @@ function filterManageProducts() {
   // manageFilterAll (default): hiện tất cả kể cả ẩn
   if (q) {
     const keywords = q.split(/\s+/);
+    const sf = manageSearchField || 'all';
     list = list.filter(p => {
-      const text = removeDiacritics([
+      let text;
+      if (sf === 'ma') text = removeDiacritics(p.ma || '');
+      else if (sf === 'ncc') text = removeDiacritics(p.ncc || '');
+      else if (sf === 'ten') text = removeDiacritics(p.ten || '');
+      else if (sf === 'giavon') text = String(p.giavon || '');
+      else if (sf === 'giasi') text = String(p.giasi || '');
+      else if (sf === 'tonkho') text = String(p.tonkho || '');
+      else text = removeDiacritics([
         p.ma || '', p.ten || '', p.kichthuoc || '', p.ncc || ''
       ].join(' '));
       return keywords.every(kw => text.includes(kw));
@@ -1794,6 +1923,8 @@ function filterManageProducts() {
     const maxTon = Number(tonkhoFilterEl.value);
     list = list.filter(p => (Number(p.tonkho) || 0) <= maxTon);
   }
+  { const sc = document.getElementById('manage-stats-count'); if (sc) sc.textContent = list.length; }
+  { const st = document.getElementById('manage-stats-tonkho'); if (st) st.textContent = fmt(list.reduce((s,p) => s + (Number(p.tonkho)||0), 0)); }
   renderManageProductList(list, rawQ.trim());
 }
 
@@ -1802,10 +1933,13 @@ function doRefreshProducts() {
   const clearIds = ['manual-code','mob-tonkho-filter','dt-search','dt-tonkho-filter','manage-search','manage-tonkho-filter'];
   clearIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   mobileFilterLow = false; mobileFilterHidden = false; _applyFilterStyle('mob', 'all');
+  setMobSearchField('all');
   mobTonSort = 'none'; _applyTonSortStyle('mob-ton-sort-btn', 'none');
   dtTonSort = 'none'; _applyTonSortStyle('dt-ton-sort-btn', 'none');
   dtFilterLow = false; dtFilterHidden = false; _applyFilterStyle('dt', 'all');
+  setDtSearchField('all');
   manageFilterLow = false; manageFilterHidden = false; manageFilterVisible = false; _applyFilterStyle('manage', 'all');
+  setMngSearchField('all');
 
   // Render ngay từ cache (tức thì, không chờ mạng)
   if (window.innerWidth >= 768) dtFilterProducts();
@@ -2708,6 +2842,44 @@ function cycleDtTonSort() {
   dtFilterProducts();
 }
 
+function toggleMobSfPanel(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const panel = document.getElementById('mob-sf-panel');
+  if (!panel) return;
+  if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  setTimeout(function() {
+    function close(ev) {
+      if (!panel.contains(ev.target) && !ev.target.closest('#mob-sf-btn')) {
+        panel.style.display = 'none';
+        document.removeEventListener('click', close, true);
+      }
+    }
+    document.addEventListener('click', close, true);
+  }, 0);
+}
+
+const MOB_SF_LABELS = { all: 'Tất cả', ma: 'Mã SP', ncc: 'NCC', ten: 'Tên SP', giavon: 'Giá vốn', giasi: 'Giá sỉ', tonkho: 'Tồn' };
+const MOB_SF_PLACEHOLDERS = { all: 'Tìm kiếm...', ma: 'Tìm theo mã SP...', ncc: 'Tìm theo nhà cung cấp...', ten: 'Tìm theo tên SP...', giavon: 'Tìm theo giá vốn...', giasi: 'Tìm theo giá sỉ...', tonkho: 'Tìm theo tồn kho...' };
+
+function setMobSearchField(field) {
+  mobSearchField = field;
+  const label = document.getElementById('mob-sf-label');
+  if (label) label.textContent = MOB_SF_LABELS[field] || 'Tất cả';
+  ['all','ma','ncc','ten','giavon','giasi','tonkho'].forEach(function(k) {
+    const el = document.getElementById('mob-sf-opt-' + k);
+    if (el) {
+      if (k === field) { el.style.background = '#e8f5e9'; el.style.color = '#2e7d32'; el.style.fontWeight = '700'; }
+      else { el.style.background = ''; el.style.color = '#555'; el.style.fontWeight = ''; }
+    }
+  });
+  const panel = document.getElementById('mob-sf-panel');
+  if (panel) panel.style.display = 'none';
+  const inp = document.getElementById('manual-code');
+  if (inp) inp.placeholder = MOB_SF_PLACEHOLDERS[field] || 'Tìm mã hoặc theo tên...';
+  filterProductList();
+}
+
 function filterProductList() {
   const rawQ = document.getElementById('manual-code').value || '';
   const q = removeDiacritics(rawQ).trim();
@@ -2717,8 +2889,16 @@ function filterProductList() {
   if (mobileFilterLow) list = list.filter(p => (p.tonkho || 0) <= LOW_STOCK_THRESHOLD);
   if (q) {
     const keywords = q.split(/\s+/);
+    const sf = mobSearchField || 'all';
     list = list.filter(p => {
-      const text = removeDiacritics([
+      let text;
+      if (sf === 'ma') text = removeDiacritics(p.ma || '');
+      else if (sf === 'ncc') text = removeDiacritics(p.ncc || '');
+      else if (sf === 'ten') text = removeDiacritics(p.ten || '');
+      else if (sf === 'giavon') text = String(p.giavon || '');
+      else if (sf === 'giasi') text = String(p.giasi || '');
+      else if (sf === 'tonkho') text = String(p.tonkho || '');
+      else text = removeDiacritics([
         p.ma || '', p.ten || '', p.kichthuoc || '',
         p.ncc || '', p.phanloai || '', p.nhanHieu || ''
       ].join(' '));
@@ -2730,6 +2910,8 @@ function filterProductList() {
   if (mobTonEl && mobTonEl.value !== '') list = list.filter(p => (Number(p.tonkho) || 0) <= Number(mobTonEl.value));
   if (mobTonSort === 'desc') list = [...list].sort((a,b) => (Number(b.tonkho)||0) - (Number(a.tonkho)||0));
   else if (mobTonSort === 'asc') list = [...list].sort((a,b) => (Number(a.tonkho)||0) - (Number(b.tonkho)||0));
+  { const sc = document.getElementById('mobile-stats-count'); if (sc) sc.textContent = list.length; }
+  { const st = document.getElementById('mobile-stats-tonkho'); if (st) st.textContent = fmt(list.reduce((s,p) => s + (Number(p.tonkho)||0), 0)); }
   renderProductList(list, rawQ.trim());
 }
 
@@ -2820,11 +3002,13 @@ function renderProductList(list, kw) {
     const gv = Number(p.giavon) || 0;
     const gs = Number(p.giasi) || 0;
     const priceParts = [];
-    if (currentRole === 'owner' && gv > 0) priceParts.push(`<span style="color:#2e7d32;">Giá vốn ${fmtMoney(gv)}</span>`);
-    if (gs > 0) priceParts.push(`<span style="color:#f44336;">Giá sỉ ${fmtMoney(gs)}</span>`);
+    const _msf = mobSearchField || 'all';
+    if (currentRole === 'owner' && gv > 0) priceParts.push(`<span style="color:#2e7d32;">Giá vốn ${_msf === 'giavon' ? highlightMoney(gv, kw) : fmtMoney(gv)}</span>`);
+    if (gs > 0) priceParts.push(`<span style="color:#f44336;">Giá sỉ ${_msf === 'giasi' ? highlightMoney(gs, kw) : fmtMoney(gs)}</span>`);
     const priceLine = priceParts.length
       ? `<div class="product-item-size" style="font-size: 11px;">${priceParts.join(' <span style="color:#1a1a1a;">|</span> ')}</div>`
       : '';
+    const tonDisplay = _msf === 'tonkho' ? highlightText('Tồn: ' + fmt(p.tonkho), kw) : 'Tồn: ' + fmt(p.tonkho);
     return `<div class="product-item">
       <div class="product-item-left" onclick="showForm(products.find(x=>x.ma==='${p.ma}'))">
         <div class="product-item-ma">${highlightText(maLine, kw)}</div>
@@ -2833,7 +3017,7 @@ function renderProductList(list, kw) {
         <div class="product-item-size">${highlightText(sizeLine, kw)}</div>
       </div>
       <div class="product-item-meta">
-        <div class="product-item-tonkho${low ? ' low' : ''}">Tồn: ${fmt(p.tonkho)}</div>
+        <div class="product-item-tonkho${low ? ' low' : ''}">${tonDisplay}</div>
         <div class="qty-stepper">
           <button class="btn-sub-cart" onclick="subFromCartMobile(products.find(x=>x.ma==='${p.ma}'))" ${cartSl <= 1 ? 'disabled' : ''}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <input class="qty-input" id="${qid}" data-ma="${p.ma}" type="text" inputmode="numeric" value="${cartSl}"
@@ -3627,22 +3811,24 @@ function renderManageProductList(list, kw) {
     const gv = Number(p.giavon) || 0;
     const gs = Number(p.giasi) || 0;
     const priceParts = [];
-    if (gv > 0) priceParts.push(`<span style="color:#2e7d32;">Giá vốn ${fmtMoney(gv)}</span>`);
-    if (gs > 0) priceParts.push(`<span style="color:#f44336;">Giá sỉ ${fmtMoney(gs)}</span>`);
+    const _mngsf = manageSearchField || 'all';
+    if (gv > 0) priceParts.push(`<span style="color:#2e7d32;">Giá vốn ${_mngsf === 'giavon' ? highlightMoney(gv, kw) : fmtMoney(gv)}</span>`);
+    if (gs > 0) priceParts.push(`<span style="color:#f44336;">Giá sỉ ${_mngsf === 'giasi' ? highlightMoney(gs, kw) : fmtMoney(gs)}</span>`);
     const priceLine = priceParts.length
       ? `<div style="font-size:12px;margin-top:3px;">${priceParts.join(' <span style="color:#1a1a1a;font-weight:normal;">|</span> ')}</div>`
       : '';
+    const mngTonDisplay = _mngsf === 'tonkho' ? highlightText('Tồn kho: ' + fmt(p.tonkho), kw) + ' ' + (p.dvt || '') : 'Tồn kho: ' + fmt(p.tonkho) + ' ' + (p.dvt || '');
     return `
     <div class="card" style="${cardStyle}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
         <div style="flex:1;min-width:0;">
           <div style="display:flex;align-items:center;gap:6px;">
-            <div style="font-size:12px;color:#888;">${highlightText(p.ma, kw)}</div>
+            <div style="font-size:12px;color:#1565c0;">${highlightText(p.ma, kw)}${p.ncc ? '<span style="color:#1565c0;font-weight:400;"> · ' + highlightText(p.ncc, kw) + '</span>' : ''}</div>
             ${hidden ? '<span style="font-size:10px;background:#e0e0e0;color:#888;border-radius:4px;padding:1px 5px;font-weight:600;">Ẩn</span>' : ''}
           </div>
           <div style="font-size:15px;font-weight:600;margin:2px 0;">${highlightText(p.ten, kw)}</div>
           <div style="font-size:12px;color:#aaa;">${highlightText(p.kichthuoc, kw)}</div>
-          <div style="font-size:12px;color:${low ? '#f44336' : '#7d1ae8'};margin-top:4px;">Tồn kho: ${fmt(p.tonkho)} ${p.dvt}</div>
+          <div style="font-size:12px;color:${low ? '#f44336' : '#7d1ae8'};margin-top:4px;">${mngTonDisplay}</div>
           ${priceLine}
         </div>
         <div style="flex-shrink:0;margin-left:8px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
@@ -3891,6 +4077,44 @@ function dtInitLayout() {
   dtRenderCart();
 }
 
+function toggleDtSfPanel(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const panel = document.getElementById('dt-sf-panel');
+  if (!panel) return;
+  if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  setTimeout(function() {
+    function close(ev) {
+      if (!panel.contains(ev.target) && !ev.target.closest('#dt-sf-btn')) {
+        panel.style.display = 'none';
+        document.removeEventListener('click', close, true);
+      }
+    }
+    document.addEventListener('click', close, true);
+  }, 0);
+}
+
+const DT_SF_LABELS = { all: 'Tất cả', ma: 'Mã SP', ncc: 'NCC', ten: 'Tên SP', giavon: 'Giá vốn', giasi: 'Giá sỉ', tonkho: 'Tồn' };
+const DT_SF_PLACEHOLDERS = { all: 'Tìm mã hoặc tên...', ma: 'Tìm theo mã SP...', ncc: 'Tìm theo nhà cung cấp...', ten: 'Tìm theo tên SP...', giavon: 'Tìm theo giá vốn...', giasi: 'Tìm theo giá sỉ...', tonkho: 'Tìm theo tồn kho...' };
+
+function setDtSearchField(field) {
+  dtSearchField = field;
+  const label = document.getElementById('dt-sf-label');
+  if (label) label.textContent = DT_SF_LABELS[field] || 'Tất cả';
+  ['all','ma','ncc','ten','giavon','giasi','tonkho'].forEach(function(k) {
+    const el = document.getElementById('dt-sf-opt-' + k);
+    if (el) {
+      if (k === field) { el.style.background = '#e8f5e9'; el.style.color = '#2e7d32'; el.style.fontWeight = '700'; }
+      else { el.style.background = ''; el.style.color = '#555'; el.style.fontWeight = ''; }
+    }
+  });
+  const panel = document.getElementById('dt-sf-panel');
+  if (panel) panel.style.display = 'none';
+  const inp = document.getElementById('dt-search');
+  if (inp) inp.placeholder = DT_SF_PLACEHOLDERS[field] || 'Tìm mã hoặc tên...';
+  dtFilterProducts();
+}
+
 function dtFilterProducts() {
   const rawQ = document.getElementById('dt-search') ? (document.getElementById('dt-search').value || '') : '';
   const q = removeDiacritics(rawQ).trim();
@@ -3900,8 +4124,16 @@ function dtFilterProducts() {
   if (dtFilterLow) list = list.filter(p => (p.tonkho || 0) <= LOW_STOCK_THRESHOLD);
   if (q) {
     const keywords = q.split(/\s+/);
+    const sf = dtSearchField || 'all';
     list = list.filter(p => {
-      const text = removeDiacritics([
+      let text;
+      if (sf === 'ma') text = removeDiacritics(p.ma || '');
+      else if (sf === 'ncc') text = removeDiacritics(p.ncc || '');
+      else if (sf === 'ten') text = removeDiacritics(p.ten || '');
+      else if (sf === 'giavon') text = String(p.giavon || '');
+      else if (sf === 'giasi') text = String(p.giasi || '');
+      else if (sf === 'tonkho') text = String(p.tonkho || '');
+      else text = removeDiacritics([
         p.ma || '', p.ten || '', p.kichthuoc || '',
         p.ncc || ''
       ].join(' '));
@@ -3912,6 +4144,8 @@ function dtFilterProducts() {
   if (dtTonEl && dtTonEl.value !== '') list = list.filter(p => (Number(p.tonkho) || 0) <= Number(dtTonEl.value));
   if (dtTonSort === 'desc') list = [...list].sort((a,b) => (Number(b.tonkho)||0) - (Number(a.tonkho)||0));
   else if (dtTonSort === 'asc') list = [...list].sort((a,b) => (Number(a.tonkho)||0) - (Number(b.tonkho)||0));
+  { const sc = document.getElementById('dt-stats-count'); if (sc) sc.textContent = list.length; }
+  { const st = document.getElementById('dt-stats-tonkho'); if (st) st.textContent = fmt(list.reduce((s,p) => s + (Number(p.tonkho)||0), 0)); }
   dtRenderProducts(list, rawQ.trim());
 }
 
@@ -4095,11 +4329,13 @@ function dtRenderProducts(list, kw) {
     const gv = Number(p.giavon) || 0;
     const gs = Number(p.giasi) || 0;
     const priceParts = [];
-    if (currentRole === 'owner' && gv > 0) priceParts.push(`<span style="color:#2e7d32;">Giá vốn ${fmtMoney(gv)}</span>`);
-    if (gs > 0) priceParts.push(`<span style="color:#f44336;">Giá sỉ ${fmtMoney(gs)}</span>`);
+    const _dsf = dtSearchField || 'all';
+    if (currentRole === 'owner' && gv > 0) priceParts.push(`<span style="color:#2e7d32;">Giá vốn ${_dsf === 'giavon' ? highlightMoney(gv, kw) : fmtMoney(gv)}</span>`);
+    if (gs > 0) priceParts.push(`<span style="color:#f44336;">Giá sỉ ${_dsf === 'giasi' ? highlightMoney(gs, kw) : fmtMoney(gs)}</span>`);
     const priceLine = priceParts.length
       ? `<div style="font-size:11px;">${priceParts.join(' <span style="color:#1a1a1a;">|</span> ')}</div>`
       : '';
+    const dtTonDisplay = _dsf === 'tonkho' ? highlightText('Tồn: ' + fmt(p.tonkho), kw) : 'Tồn: ' + fmt(p.tonkho);
     return `<div class="dt-product-item${inCart ? ' in-cart' : ''}"
       style="padding:8px 10px;border-radius:8px;border:1px solid ${inCart ? '#a5d6a7' : 'transparent'};
       margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;
@@ -4111,7 +4347,7 @@ function dtRenderProducts(list, kw) {
         <div style="font-size:11px;color:#555;">${highlightText(sizeLine, kw)}</div>
       </div>
       <div style="flex-shrink:0;margin-left:8px;text-align:right;">
-        <div style="font-size:12px;font-weight:600;color:${low ? '#f44336' : '#7d1ae8'};">Tồn: ${fmt(p.tonkho)}</div>
+        <div style="font-size:12px;font-weight:600;color:${low ? '#f44336' : '#7d1ae8'};">${dtTonDisplay}</div>
         <div style="display:flex;align-items:center;gap:4px;margin-top:5px;justify-content:flex-end;">
           <button class="dt-btn-sub-cart" onclick="event.stopPropagation();dtSubFromCart('${p.ma}')" ${cartItem && cartItem.sl > 1 ? '' : 'disabled'}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <input id="${slId}" data-ma="${p.ma}" type="text" inputmode="numeric" value="${currentSl}" placeholder="1"
@@ -4494,6 +4730,8 @@ function stopScan() {
 // ===== HISTORY =====
 let _historyData = [];
 let _historyFilter = 'all';
+let histSearchField = 'all';
+let reportSearchField = 'all';
 let _historyTimeFilter = 'today';
 let _histDateFrom = null;
 let _histDateTo   = null;
@@ -5070,6 +5308,64 @@ function reportApplySearchHistory(val) {
   renderReport();
 }
 
+const HIST_SF_LABELS = { all: 'Tất cả', ma: 'Mã SP', ncc: 'NCC', tenkhach: 'Tên khách', hanghoa: 'Tên SP' };
+const HIST_SF_PLACEHOLDERS = { all: 'Tìm tên SP, mã, NCC, khách hàng...', ma: 'Tìm theo mã SP...', ncc: 'Tìm theo nhà cung cấp...', tenkhach: 'Tìm theo tên khách...', hanghoa: 'Tìm theo tên SP...' };
+const RPT_SF_PLACEHOLDERS = { all: 'Tìm chung (tên SP, mã, NCC, khách...)', ma: 'Tìm theo mã SP...', ncc: 'Tìm theo nhà cung cấp...', tenkhach: 'Tìm theo tên khách...', hanghoa: 'Tìm theo tên SP...' };
+
+function _sfPanelToggle(panelId, btnSelector, e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  setTimeout(function() {
+    function close(ev) {
+      if (!panel.contains(ev.target) && !ev.target.closest(btnSelector)) {
+        panel.style.display = 'none';
+        document.removeEventListener('click', close, true);
+      }
+    }
+    document.addEventListener('click', close, true);
+  }, 0);
+}
+
+function _sfSetActive(prefix, field, keys) {
+  keys.forEach(function(k) {
+    const el = document.getElementById(prefix + k);
+    if (el) {
+      if (k === field) { el.style.background = '#e8f5e9'; el.style.color = '#2e7d32'; el.style.fontWeight = '700'; }
+      else { el.style.background = ''; el.style.color = '#555'; el.style.fontWeight = ''; }
+    }
+  });
+}
+
+function toggleHistSfPanel(e) { _sfPanelToggle('hist-sf-panel', '#hist-sf-btn', e); }
+function toggleRptSfPanel(e)  { _sfPanelToggle('rpt-sf-panel',  '#rpt-sf-btn',  e); }
+
+function setHistSearchField(field) {
+  histSearchField = field;
+  const label = document.getElementById('hist-sf-label');
+  if (label) label.textContent = HIST_SF_LABELS[field] || 'Tất cả';
+  _sfSetActive('hist-sf-opt-', field, ['all','ma','ncc','tenkhach','hanghoa']);
+  const panel = document.getElementById('hist-sf-panel');
+  if (panel) panel.style.display = 'none';
+  const inp = document.getElementById('hist-search');
+  if (inp) inp.placeholder = HIST_SF_PLACEHOLDERS[field] || HIST_SF_PLACEHOLDERS.all;
+  _renderHistory();
+}
+
+function setRptSearchField(field) {
+  reportSearchField = field;
+  const label = document.getElementById('rpt-sf-label');
+  if (label) label.textContent = HIST_SF_LABELS[field] || 'Tất cả';
+  _sfSetActive('rpt-sf-opt-', field, ['all','ma','ncc','tenkhach','hanghoa']);
+  const panel = document.getElementById('rpt-sf-panel');
+  if (panel) panel.style.display = 'none';
+  const inp = document.getElementById('report-search');
+  if (inp) inp.placeholder = RPT_SF_PLACEHOLDERS[field] || RPT_SF_PLACEHOLDERS.all;
+  renderReport();
+}
+
 function _reportFilterRows() {
   let rows = _historyData.filter(r => r.loai !== 'Nháp');
   if (_reportTypeFilter === 'nhap') rows = rows.filter(r => r.loai === 'Nhập');
@@ -5084,8 +5380,14 @@ function _reportFilterRows() {
   const reportQ = removeDiacritics(rawReportQ);
   if (reportQ) {
     const keywords = reportQ.split(/\s+/);
+    const rsf = reportSearchField || 'all';
     rows = rows.filter(r => {
-      const rowText = removeDiacritics([
+      let rowText;
+      if (rsf === 'ma') rowText = removeDiacritics(r.ma || '');
+      else if (rsf === 'ncc') rowText = removeDiacritics(r.ncc || '');
+      else if (rsf === 'tenkhach') rowText = removeDiacritics(r.tenkhach || '');
+      else if (rsf === 'hanghoa') rowText = removeDiacritics(r.hanghoa || '');
+      else rowText = removeDiacritics([
         r.hanghoa || '', r.ma || '', r.ncc || '', r.tenkhach || '',
         r.kichthuoc || '', r.giaodich || '', r.loai || ''
       ].join(' '));
@@ -5799,20 +6101,18 @@ function _renderHistory() {
   // Lọc theo text search thông minh (hỗ trợ nhiều từ khóa)
   const histQ = removeDiacritics(((document.getElementById('hist-search') || {}).value || '').trim());
   if (histQ) {
-    const keywords = histQ.split(/\s+/); // Tách câu tìm kiếm thành các từ khóa rời bằng dấu cách
+    const keywords = histQ.split(/\s+/);
+    const hsf = histSearchField || 'all';
     filtered = filtered.filter(r => {
-      // Gom toàn bộ thông tin của giao dịch thành 1 chuỗi dài
-      const rowText = removeDiacritics([
-        r.hanghoa || '',
-        r.ma || '',
-        r.ncc || '',
-        r.tenkhach || '',
-        r.kichthuoc || '',
-        r.giaodich || '', // Bổ sung cho phép tìm theo loại Giao dịch (Tiền mặt, CK...)
-        r.loai || ''
+      let rowText;
+      if (hsf === 'ma') rowText = removeDiacritics(r.ma || '');
+      else if (hsf === 'ncc') rowText = removeDiacritics(r.ncc || '');
+      else if (hsf === 'tenkhach') rowText = removeDiacritics(r.tenkhach || '');
+      else if (hsf === 'hanghoa') rowText = removeDiacritics(r.hanghoa || '');
+      else rowText = removeDiacritics([
+        r.hanghoa || '', r.ma || '', r.ncc || '', r.tenkhach || '',
+        r.kichthuoc || '', r.giaodich || '', r.loai || ''
       ].join(' '));
-
-      // Yêu cầu chuỗi thông tin phải chứa TẤT CẢ các từ khóa người dùng gõ vào
       return keywords.every(kw => rowText.includes(kw));
     });
   }
