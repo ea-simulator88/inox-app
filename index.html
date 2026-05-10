@@ -1468,21 +1468,19 @@ async function fetchCustomerData() {
 }
 
 function syncInvAddrSelect(sel) {
-  const allInContent = document.getElementById('inv-content').querySelectorAll('.inv-addr-select');
-  let idx = -1;
-  allInContent.forEach(function(s, i) { if (s === sel) idx = i; });
-  if (idx === -1) return;
-  const allInPrint = document.getElementById('inv-print-root').querySelectorAll('.inv-addr-select');
-  if (allInPrint[idx]) allInPrint[idx].selectedIndex = sel.selectedIndex;
+  const val = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
+  document.getElementById('inv-content').querySelectorAll('.inv-addr-follower').forEach(function(s) { s.textContent = val; });
+  const pSel = document.getElementById('inv-print-root').querySelector('.inv-addr-select');
+  if (pSel) { Array.from(pSel.options).forEach(function(o, i) { if (o.text === val) pSel.selectedIndex = i; }); }
+  document.getElementById('inv-print-root').querySelectorAll('.inv-addr-follower').forEach(function(s) { s.textContent = val; });
 }
 
 function syncInvSdtSelect(sel) {
-  const allInContent = document.getElementById('inv-content').querySelectorAll('.inv-sdt-select');
-  let idx = -1;
-  allInContent.forEach(function(s, i) { if (s === sel) idx = i; });
-  if (idx === -1) return;
-  const allInPrint = document.getElementById('inv-print-root').querySelectorAll('.inv-sdt-select');
-  if (allInPrint[idx]) allInPrint[idx].selectedIndex = sel.selectedIndex;
+  const val = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
+  document.getElementById('inv-content').querySelectorAll('.inv-sdt-follower').forEach(function(s) { s.textContent = val; });
+  const pSel = document.getElementById('inv-print-root').querySelector('.inv-sdt-select');
+  if (pSel) { Array.from(pSel.options).forEach(function(o, i) { if (o.text === val) pSel.selectedIndex = i; }); }
+  document.getElementById('inv-print-root').querySelectorAll('.inv-sdt-follower').forEach(function(s) { s.textContent = val; });
 }
 
 function _lookupCustomer(tenkhach) {
@@ -6050,8 +6048,8 @@ async function _doShowInvoice() {
   await new Promise(r => setTimeout(r, 10));
   if (customerData.length === 0) await fetchCustomerData();
   const invOpts = _lookupCustomer(g.tenkhach);
-  const fullHtml = showFull ? _buildInvoiceHTML(g, false, invOpts) : '';
-  const noPriceHtml = showNoPrice ? _buildInvoiceHTML(g, true, invOpts) : '';
+  const fullHtml = showFull ? _buildInvoiceHTML(g, false, invOpts, true) : '';
+  const noPriceHtml = showNoPrice ? _buildInvoiceHTML(g, true, invOpts, !showFull) : '';
   let screenHtml = '', printHtml = '';
   if (showFull && showNoPrice) {
     screenHtml = fullHtml + '<div style="border-top:2px dashed #ccc;margin:8mm 0;"></div>' + noPriceHtml;
@@ -6070,7 +6068,7 @@ async function _doShowInvoice() {
   document.getElementById('invoice-modal').style.display = 'flex';
 }
 
-function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, isLastPage, invOpts) {
+function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, isLastPage, invOpts, isFirstPage) {
   const fmtInvMoney = function(v) {
     return Math.round(Number(v) || 0).toLocaleString('vi-VN', { maximumFractionDigits: 0 });
   };
@@ -6147,15 +6145,19 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
     <span style="white-space:nowrap;">Khách Hàng:</span>
     <span style="flex:1;border-bottom:1px dotted #d32f2f;height:6mm;padding-left:2mm;display:flex;align-items:flex-end;font-weight:700;">${tenkhach}</span>
     <span style="white-space:nowrap;margin-left:2mm;">ĐT:</span>
-    ${_sdts.length > 0
-      ? `<select class="inv-sdt-select" onchange="syncInvSdtSelect(this)" style="width:36mm;border:none;border-bottom:1px dotted #d32f2f;border-radius:0;height:6mm;font-size:3.2mm;font-weight:700;background:transparent;outline:none;padding:1.3mm 1mm 0;color:#d32f2f;font-family:inherit;"><option value=""></option>${_sdts.map(function(s,i){return '<option'+(i===0?' selected':'')+'>'+_esc(s)+'</option>';}).join('')}</select>`
-      : '<span style="width:36mm;display:inline-block;border-bottom:1px dotted #d32f2f;height:6mm;"></span>'}
+    ${isFirstPage
+      ? (_sdts.length > 0
+        ? `<select class="inv-sdt-select" onchange="syncInvSdtSelect(this)" style="width:36mm;border:none;border-bottom:1px dotted #d32f2f;border-radius:0;height:6mm;font-size:3.2mm;font-weight:700;background:transparent;outline:none;padding:1.3mm 1mm 0;color:#d32f2f;font-family:inherit;"><option value=""></option>${_sdts.map(function(s){return '<option>'+_esc(s)+'</option>';}).join('')}</select>`
+        : '<span style="width:36mm;display:inline-block;border-bottom:1px dotted #d32f2f;height:6mm;"></span>')
+      : '<span class="inv-sdt-follower" style="width:36mm;display:inline-block;border-bottom:1px dotted #d32f2f;height:6mm;font-size:3.2mm;font-weight:700;color:#d32f2f;padding:1.3mm 1mm 0;box-sizing:border-box;"></span>'}
   </div>
   <div style="font-size:3.6mm;margin-bottom:1.8mm;display:flex;align-items:flex-end;">
     <span style="white-space:nowrap;">Địa chỉ:</span>
-    ${_addresses.length > 0
-      ? `<select class="inv-addr-select" onchange="syncInvAddrSelect(this)" style="flex:1;border:none;border-bottom:1px dotted #d32f2f;border-radius:0;height:6mm;font-size:3.2mm;font-weight:600;background:transparent;outline:none;padding:1.3mm 1mm 0;color:#d32f2f;font-family:inherit;"><option value=""></option>${_addresses.map(function(a,i){return '<option'+(i===0?' selected':'')+'>'+_esc(a)+'</option>';}).join('')}</select>`
-      : '<span style="flex:1;display:inline-block;border-bottom:1px dotted #d32f2f;height:6mm;"></span>'}
+    ${isFirstPage
+      ? (_addresses.length > 0
+        ? `<select class="inv-addr-select" onchange="syncInvAddrSelect(this)" style="flex:1;border:none;border-bottom:1px dotted #d32f2f;border-radius:0;height:6mm;font-size:3.2mm;font-weight:600;background:transparent;outline:none;padding:1.3mm 1mm 0;color:#d32f2f;font-family:inherit;"><option value=""></option>${_addresses.map(function(a){return '<option>'+_esc(a)+'</option>';}).join('')}</select>`
+        : '<span style="flex:1;display:inline-block;border-bottom:1px dotted #d32f2f;height:6mm;"></span>')
+      : '<span class="inv-addr-follower" style="flex:1;display:inline-block;border-bottom:1px dotted #d32f2f;height:6mm;font-size:3.2mm;font-weight:600;color:#d32f2f;padding:1.3mm 1mm 0;box-sizing:border-box;"></span>'}
   </div>
   <table style="width:100%;border-collapse:collapse;table-layout:fixed;color:#d32f2f;">
     <thead><tr>${headerHTML}</tr></thead>
@@ -6181,7 +6183,7 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
   </div>`;
 }
 
-function _buildInvoiceHTML(g, hidePrice, invOpts) {
+function _buildInvoiceHTML(g, hidePrice, invOpts, isFirstVariant) {
   const rows = g.rows;
   const chunks = [];
   if (rows.length === 0) {
@@ -6192,7 +6194,8 @@ function _buildInvoiceHTML(g, hidePrice, invOpts) {
   const totalPages = chunks.length;
   return chunks.map(function(pageRows, pageIndex) {
     const isLastPage = pageIndex === totalPages - 1;
-    return '<div class="inv-print-page">' + _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, isLastPage, invOpts) + '</div>';
+    const isFirstPage = !!isFirstVariant && pageIndex === 0;
+    return '<div class="inv-print-page">' + _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, isLastPage, invOpts, isFirstPage) + '</div>';
   }).join('');
 }
 
