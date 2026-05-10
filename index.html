@@ -3287,8 +3287,8 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra, xuatG
   document.getElementById('success-title').innerHTML = isXuat ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Xuất hàng thành công!' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4"/><polyline points="17 14 12 9 7 14"/><line x1="12" y1="9" x2="12" y2="21"/></svg> Nhập hàng thành công!';
   document.getElementById('success-sub').textContent = thoiGian;
   document.getElementById('success-detail').innerHTML = `
-    <div class="info-row"><span class="info-label">Số loại sản phẩm</span><span class="info-value">${totalItems}</span></div>
-    <div class="info-row"><span class="info-label">Số lượng SP</span><span class="info-value">${totalQty}</span></div>
+    <div class="info-row"><span class="info-label">Sản phẩm</span><span class="info-value">${totalItems}</span></div>
+    <div class="info-row"><span class="info-label">Tổng số lượng</span><span class="info-value">${totalQty}</span></div>
     <div class="info-row"><span class="info-label">Tổng tiền</span><span class="info-value green">${fmt(totalAmount)} đ</span></div>
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
     ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
@@ -4463,8 +4463,8 @@ async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra, xuatGhiChu) 
   document.getElementById('dt-success-title').innerHTML = isXuat ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Xuất hàng thành công!' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4"/><polyline points="17 14 12 9 7 14"/><line x1="12" y1="9" x2="12" y2="21"/></svg> Nhập hàng thành công!';
   document.getElementById('dt-success-sub').textContent = thoiGian;
   document.getElementById('dt-success-detail').innerHTML = `
-    <div class="info-row"><span class="info-label">Số loại sản phẩm</span><span class="info-value">${count}</span></div>
-    <div class="info-row"><span class="info-label">Số lượng SP</span><span class="info-value">${totalQty}</span></div>
+    <div class="info-row"><span class="info-label">Sản phẩm</span><span class="info-value">${count}</span></div>
+    <div class="info-row"><span class="info-label">Tổng số lượng</span><span class="info-value">${totalQty}</span></div>
     <div class="info-row"><span class="info-label">Tổng tiền</span><span class="info-value green">${fmt(totalAmount)} đ</span></div>
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
     ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
@@ -6672,8 +6672,8 @@ async function dtSaveDraft() {
   document.getElementById('dt-success-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" "><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/></svg>Lưu nháp thành công!';
   document.getElementById('dt-success-sub').textContent = thoiGian;
   document.getElementById('dt-success-detail').innerHTML = `
-    <div class="info-row"><span class="info-label">Số loại sản phẩm</span><span class="info-value">${totalItems}</span></div>
-    <div class="info-row"><span class="info-label">Số lượng SP</span><span class="info-value">${totalQty}</span></div>
+    <div class="info-row"><span class="info-label">Sản phẩm</span><span class="info-value">${totalItems}</span></div>
+    <div class="info-row"><span class="info-label">Tổng số lượng</span><span class="info-value">${totalQty}</span></div>
     <div class="info-row"><span class="info-label">Tổng tiền</span><span class="info-value green">${fmt(totalAmount)} đ</span></div>
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
     ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
@@ -6735,8 +6735,8 @@ async function saveDraft() {
   document.getElementById('success-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" "><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 4H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/></svg>Lưu nháp thành công!';
   document.getElementById('success-sub').textContent = thoiGian;
   document.getElementById('success-detail').innerHTML = `
-    <div class="info-row"><span class="info-label">Số loại sản phẩm</span><span class="info-value">${totalItems}</span></div>
-    <div class="info-row"><span class="info-label">Số lượng SP</span><span class="info-value">${totalQty}</span></div>
+    <div class="info-row"><span class="info-label">Sản phẩm</span><span class="info-value">${totalItems}</span></div>
+    <div class="info-row"><span class="info-label">Tổng số lượng</span><span class="info-value">${totalQty}</span></div>
     <div class="info-row"><span class="info-label">Tổng tiền</span><span class="info-value green">${fmt(totalAmount)} đ</span></div>
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
     ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
