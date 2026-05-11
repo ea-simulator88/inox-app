@@ -4772,10 +4772,17 @@ async function _fetchHistoryData(force = false) {
       }
     } catch(e) {}
   }
-  const controller = new AbortController();
-  const tid = setTimeout(() => controller.abort(), 10000);
-  const res = await fetch(SCRIPT_URL + '?action=history&token=inox2026xK9m', { signal: controller.signal, cache: 'no-store' });
-  clearTimeout(tid);
+  const _histFetch = async () => {
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), 25000);
+    try {
+      const r = await fetch(SCRIPT_URL + '?action=history&token=inox2026xK9m', { signal: controller.signal, cache: 'no-store' });
+      clearTimeout(tid); return r;
+    } catch(e) { clearTimeout(tid); throw e; }
+  };
+  let res;
+  try { res = await _histFetch(); }
+  catch(e) { await new Promise(r => setTimeout(r, 2000)); res = await _histFetch(); }
   const data = await res.json();
   const xuat  = (data.xuat  || []).map(r => _mapHistRow(r, 'Xuất'));
   const nhap  = (data.nhap  || []).map(r => _mapHistRow(r, 'Nhập'));
