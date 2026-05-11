@@ -1539,12 +1539,15 @@ function stopInactivityWatch() {
 }
 let products = [];
 let customerData = []; // rows: [0]=Tên KH, [1]=Địa chỉ KH, [2]=Địa chỉ Chành xe, [3]=Thời gian giao, [4]=SĐT
+let _customerDataTs = 0;
+const _CUSTOMER_CACHE_MS = 10 * 60 * 1000; // 10 phút
 
 async function fetchCustomerData() {
+  if (customerData.length > 0 && Date.now() - _customerDataTs < _CUSTOMER_CACHE_MS) return;
   try {
     const res = await fetch(SCRIPT_URL + '?action=getCustomers&token=inox2026xK9m', { cache: 'no-store' });
     const data = await res.json();
-    if (Array.isArray(data.rows)) customerData = data.rows;
+    if (Array.isArray(data.rows)) { customerData = data.rows; _customerDataTs = Date.now(); }
   } catch(e) {}
 }
 
