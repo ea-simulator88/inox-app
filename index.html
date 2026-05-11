@@ -376,6 +376,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .customer-ac-item { padding:10px 14px; cursor:pointer; font-size:14px; color:#333; border-bottom:1px solid #f5f5f5; }
 .customer-ac-item:last-child { border-bottom:none; }
 .customer-ac-item:hover,.customer-ac-item.ac-focus { background:#fff3e0; color:#e65100; }
+#pf-ac-dropdown { position:fixed; z-index:9999; background:#fff; border:1px solid #e0e0e0; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,0.13); max-height:200px; overflow-y:auto; display:none; }
 </style>
 
 <!-- ====== CONFIG - ANH JAMES CHỈ SỬA TRONG KHỐI NÀY ====== -->
@@ -3889,6 +3890,7 @@ async function openProductForm(mode, product, skipFetch = false) {
     }
   }
 
+  _pfACAttach();
   showScreen('screen-product-form');
 }
 
@@ -7199,6 +7201,7 @@ function histDetailConfirmDraft() {
 })();
 </script>
 <div id="customer-ac-dropdown"></div>
+<div id="pf-ac-dropdown"></div>
 <script>
 (function() {
   var _acEl = null;
@@ -7290,6 +7293,92 @@ function histDetailConfirmDraft() {
     if (dd && e.target !== _acEl && !dd.contains(e.target)) {
       dd.style.display = 'none'; _acEl = null; _acFocusIdx = -1;
     }
+  });
+})();
+
+(function() {
+  var _pfEl = null, _pfFocusIdx = -1;
+
+  function _pfACHide() {
+    var dd = document.getElementById('pf-ac-dropdown');
+    if (dd) dd.style.display = 'none';
+    _pfEl = null; _pfFocusIdx = -1;
+  }
+
+  function _pfGetUnique(field) {
+    var seen = {}, vals = [];
+    (typeof products !== 'undefined' ? products : []).forEach(function(p) {
+      var v = (p[field] || '').toString().trim();
+      if (v && !seen[v]) { seen[v] = true; vals.push(v); }
+    });
+    return vals;
+  }
+
+  function _pfACRender(el, field) {
+    var dd = document.getElementById('pf-ac-dropdown');
+    if (!dd) return;
+    var q = removeDiacritics(el.value.trim());
+    if (!q) { _pfACHide(); return; }
+    var matched = _pfGetUnique(field).filter(function(v) {
+      return removeDiacritics(v).indexOf(q) !== -1;
+    });
+    if (!matched.length) { _pfACHide(); return; }
+    _pfEl = el; _pfFocusIdx = -1;
+    dd.innerHTML = '';
+    matched.slice(0, 8).forEach(function(v) {
+      var item = document.createElement('div');
+      item.className = 'customer-ac-item';
+      item.textContent = v;
+      item.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        el.value = v;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        _pfACHide();
+        el.focus();
+      });
+      dd.appendChild(item);
+    });
+    var rect = el.getBoundingClientRect();
+    var vvTop = (window.innerWidth <= 768 && window.visualViewport) ? window.visualViewport.offsetTop : 0;
+    dd.style.left = rect.left + 'px';
+    dd.style.top = (rect.bottom + 2 + vvTop) + 'px';
+    dd.style.width = rect.width + 'px';
+    dd.style.display = 'block';
+  }
+
+  window._pfACAttach = function() {
+    ['ncc', 'ten', 'dvt'].forEach(function(field) {
+      var el = document.getElementById('pf_' + field);
+      if (!el) return;
+      el.setAttribute('autocomplete', 'off');
+      el.addEventListener('input', function() { _pfACRender(el, field); });
+      el.addEventListener('keydown', function(e) {
+        var dd = document.getElementById('pf-ac-dropdown');
+        if (!dd || dd.style.display === 'none') return;
+        var items = dd.querySelectorAll('.customer-ac-item');
+        if (!items.length) return;
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          _pfFocusIdx = Math.min(_pfFocusIdx + 1, items.length - 1);
+          items.forEach(function(it, i) { it.classList.toggle('ac-focus', i === _pfFocusIdx); });
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          _pfFocusIdx = Math.max(_pfFocusIdx - 1, 0);
+          items.forEach(function(it, i) { it.classList.toggle('ac-focus', i === _pfFocusIdx); });
+        } else if (e.key === 'Enter' && _pfFocusIdx >= 0 && items[_pfFocusIdx]) {
+          e.preventDefault();
+          items[_pfFocusIdx].dispatchEvent(new MouseEvent('mousedown'));
+        } else if (e.key === 'Escape') {
+          _pfACHide();
+        }
+      });
+      el.addEventListener('blur', function() { setTimeout(_pfACHide, 150); });
+    });
+  };
+
+  document.addEventListener('click', function(e) {
+    var dd = document.getElementById('pf-ac-dropdown');
+    if (dd && e.target !== _pfEl && !dd.contains(e.target)) _pfACHide();
   });
 })();
 </script>
