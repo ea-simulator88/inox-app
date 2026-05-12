@@ -305,7 +305,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body > *:not(#inv-print-root) { display: none !important; }
   #inv-print-root { display: block !important; }
-  .inv-print-page { width: 148mm; margin-left: 0mm; padding: 7mm 9mm; font-family: 'Times New Roman', serif; font-size: 11.5px; line-height: 1.2; color: #d32f2f; break-inside: avoid; box-sizing: border-box;}
+  .inv-print-page { width: 100%; margin: 0mm; padding: 7mm 3mm; font-family: 'Times New Roman', serif; font-size: 11.5px; line-height: 1.2; color: #d32f2f; break-inside: avoid; box-sizing: border-box;} /* padding:8mm 6mm;sửa mép in trái phải */
   .inv-print-page + .inv-print-page {  break-before: page; }
   .inv-addr-select, .inv-sdt-select { -webkit-appearance:none; appearance:none; border-top:none !important; border-left:none !important; border-right:none !important; border-radius:0 !important; background:transparent !important; pointer-events:none; }
   .inv-close-x { display: none !important; }
@@ -1366,7 +1366,7 @@ const CONFIG = {
 
 <!-- INVOICE MODAL -->
 <div id="invoice-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:flex-start;justify-content:center;padding:10px;overflow-y:auto;">
-  <div id="invoice-print-area" style="background:#fff;width:148mm;min-height:210mm;padding:8mm 10mm;font-family:'Times New Roman',serif;font-size:12px;line-height:1.2;margin:auto;color:#d32f2f;position:relative;">
+  <div id="invoice-print-area" style="background:#fff;width:148mm;min-height:210mm;padding:8mm 6mm;font-family:'Times New Roman',serif;font-size:12px;line-height:1.2;margin:auto;color:#d32f2f;position:relative;">  <!-- padding:8mm 6mm;sửa mép in trái phải -->
     <button class="inv-close-x" onclick="document.getElementById('invoice-modal').style.display='none'" style="position:absolute;top:6px;right:6px;background:none;border:none;cursor:pointer;color:#999;padding:4px;line-height:1;z-index:10;" title="Đóng"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     <div id="inv-content"></div>
     <div id="invoice-modal-btns" style="display:flex;gap:10px;margin-top:16px;padding-top:12px;border-top:1px solid #e0e0e0;">
@@ -6691,8 +6691,8 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
   const B = 'border:1px solid #d73c3c;';
   const thS = B + 'padding:1.6mm 1mm;text-align:center;font-size:3.9mm;font-weight:600;'; // chỉnh kích thước Hóa đơn các dòng đầu tiên
   const tdBase = 'border-left:1px solid #d73c3c;border-right:1px solid #d73c3c;border-bottom:1px dotted #d73c3c;height:6mm;font-size:3.9mm;'; // chỉnh kích thước Hóa đơn các dòng
-  const paddedRows = Array.from({ length: 14 }, (_, i) => pageRows[i] || null); // chỉnh Hóa đơn các dòng
-  const rowOffset = pageIndex * 14; // chỉnh Hóa đơn các dòng
+  const paddedRows = Array.from({ length: 13 }, (_, i) => pageRows[i] || null); // chỉnh Hóa đơn các dòng
+  const rowOffset = pageIndex * 13; // chỉnh Hóa đơn các dòng
 
   const headerHTML = hidePrice
     ? `<th style="${thS}width:6%;">TT</th><th style="${thS}width:60%;">Tên Hàng</th><th style="${thS}width:13%;">ĐVT</th><th style="${thS}width:23%;">SL</th>`
@@ -6796,7 +6796,7 @@ function _buildInvoiceHTML(g, hidePrice, invOpts, isFirstVariant) {
   if (rows.length === 0) {
     chunks.push([]);
   } else {
-    for (let i = 0; i < rows.length; i += 14) chunks.push(rows.slice(i, i + 14)); // chỉnh Hóa đơn các dòng
+    for (let i = 0; i < rows.length; i += 13) chunks.push(rows.slice(i, i + 13)); // chỉnh Hóa đơn các dòng
   }
   const totalPages = chunks.length;
   return chunks.map(function(pageRows, pageIndex) {
