@@ -7027,11 +7027,6 @@ async function _doHistSaveEdit() {
   _renderHistory();
   showToast('\u2705 \u0110\u00E3 l\u01B0u thay \u0111\u1ED5i.');
   _historyStale = true;
-  setTimeout(function() {
-    _fetchHistoryData(true, _getCurrentFilterRange()).then(function() {
-      if (document.getElementById('screen-history').classList.contains('active')) _renderHistory();
-    }).catch(function() {});
-  }, 1500);
   if (document.getElementById('screen-history-detail').classList.contains('active') && _histDetailIdx >= 0) {
     const g = _historyGroups[_histDetailIdx];
     if (g) { showHistoryDetail(_histDetailIdx); } else { showHistory(); }
@@ -7061,11 +7056,6 @@ async function histDeleteGroup(idx) {
   _renderHistory();
   showToast('🗑︎ Đã xóa giao dịch.');
   _historyStale = true;
-  setTimeout(function() {
-    _fetchHistoryData(true, _getCurrentFilterRange()).then(function() {
-      if (document.getElementById('screen-history').classList.contains('active')) _renderHistory();
-    }).catch(function() {});
-  }, 1500);
 }
 
 // ===== NHÁP =====
@@ -7279,11 +7269,6 @@ async function _doDraftConfirm(idx, giaodich) {
   _renderHistory();
   showToast('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Đã xác nhận Xuất.');
   _historyStale = true;
-  setTimeout(function() {
-    _fetchHistoryData(true, _getCurrentFilterRange()).then(function() {
-      if (document.getElementById('screen-history').classList.contains('active')) _renderHistory();
-    }).catch(function() {});
-  }, 2000);
   if (document.getElementById('screen-history-detail').classList.contains('active')) showHistory();
 
   // 2. ÂM THẦM XỬ LÝ TRÊN GOOGLE SHEET Ở BACKGROUND (Đã xóa chữ await)
