@@ -377,6 +377,23 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
 .customer-ac-item:last-child { border-bottom:none; }
 .customer-ac-item:hover,.customer-ac-item.ac-focus { background:#fff3e0; color:#e65100; }
 #pf-ac-dropdown { position:fixed; z-index:9999; background:#fff; border:1px solid #e0e0e0; border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,0.13); max-height:200px; overflow-y:auto; display:none; }
+.analytics-modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1500;align-items:center;justify-content:center;padding:16px; }
+.analytics-modal-overlay.active { display:flex; }
+.analytics-modal-box { background:#fff;border-radius:16px;width:100%;max-width:700px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:hidden; }
+.analytics-modal-header { padding:16px 20px 12px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0; }
+.analytics-modal-title { font-size:16px;font-weight:700;color:#1a1a1a; }
+.analytics-modal-close { background:none;border:none;cursor:pointer;color:#aaa;font-size:20px;line-height:1;padding:4px; }
+.analytics-modal-body { flex:1;overflow-y:auto;padding:16px 20px; }
+.analytics-table { width:100%;border-collapse:collapse;font-size:13px; }
+.analytics-table th { padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:#888;border-bottom:2px solid #f0f0f0;white-space:nowrap; }
+.analytics-table td { padding:9px 10px;border-bottom:1px solid #f5f5f5;vertical-align:middle; }
+.analytics-table tr:last-child td { border-bottom:none; }
+.analytics-table tr:hover td { background:#fafafa; }
+.analytics-rank { display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;background:#f0f0f0;color:#888; }
+.analytics-rank.r1 { background:#FFD700;color:#7a5c00; }
+.analytics-rank.r2 { background:#C0C0C0;color:#444; }
+.analytics-rank.r3 { background:#CD7F32;color:#fff; }
+.analytics-showmore { width:100%;margin-top:12px;padding:9px;background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;font-size:12px;font-weight:600;color:#555;cursor:pointer; }
 </style>
 
 <!-- ====== CONFIG - ANH JAMES CHỈ SỬA TRONG KHỐI NÀY ====== -->
@@ -1102,7 +1119,43 @@ const CONFIG = {
       </div>
     </div>
   </div>
-  <div style="max-width:1000px;margin:0 auto;width:100%;padding:10px 0 12px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;margin-top: -15px;">
+  <div id="rpt-scroll" style="max-width:1000px;margin:0 auto;width:100%;padding:10px 0 12px;overflow-y:auto;overflow-x:hidden;flex:1;-webkit-overflow-scrolling:touch;margin-top: -15px;">
+    <!-- PHÂN TÍCH CHI TIẾT ACCORDION -->
+    <div id="report-analytics-wrap" style="padding:0 0 6px;">
+      <button id="report-analytics-toggle" onclick="toggleReportAnalytics()"
+        style="width:100%;display:flex;justify-content:space-between;align-items:center;
+        padding:12px 16px;background:#fff;border:1px solid #e0e0e0;border-radius:12px;
+        font-size:14px;font-weight:600;color:#1a1a1a;cursor:pointer;text-align:left;">
+        <span>📊 Phân tích chi tiết</span>
+        <svg id="report-analytics-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+          style="transition:transform 0.25s;transform:rotate(0deg);">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div id="report-analytics-body" style="display:none;margin-top:8px;flex-direction:column;gap:8px;">
+        <button onclick="showAnalyticsModal('chart7')"
+          style="width:100%;padding:13px 16px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;
+          font-size:13px;font-weight:600;color:#1a1a1a;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;">
+          <span>📅</span><span>Biểu đồ 7 ngày Nhập / Xuất</span>
+        </button>
+        <button onclick="showAnalyticsModal('topsp')"
+          style="width:100%;padding:13px 16px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;
+          font-size:13px;font-weight:600;color:#1a1a1a;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;">
+          <span>📦</span><span>Sản phẩm bán chạy nhất</span>
+        </button>
+        <button onclick="showAnalyticsModal('topln')"
+          style="width:100%;padding:13px 16px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;
+          font-size:13px;font-weight:600;color:#1a1a1a;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;">
+          <span>💰</span><span>Sản phẩm lợi nhuận cao nhất</span>
+        </button>
+        <button onclick="showAnalyticsModal('topkhach')"
+          style="width:100%;padding:13px 16px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;
+          font-size:13px;font-weight:600;color:#1a1a1a;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;">
+          <span>👤</span><span>Khách hàng mua nhiều nhất</span>
+        </button>
+      </div>
+    </div>
     <div id="report-list"></div>
   </div>
 </div>
@@ -5930,6 +5983,7 @@ function showReportDetail(idx) {
 let _rptNhapRows = [], _rptXuatRows = [];
 let _pfHide = { nhapVC: false, xuatVC: false, xuatKT: false };
 let _gdHide = { nhap_vc: false, xuat_vc: false, xuat_kt: false };
+let _rptSecOpen = { ncc: true, khach: true, sp: true };
 
 function showRptGdDetail(loai) {
   const rows = loai === 'nhap' ? _rptNhapRows : _rptXuatRows;
@@ -6110,6 +6164,33 @@ function showProfitDetail() {
   showInfoModal('Chi tiết lợi nhuận', html, ['_']);
 }
 
+function _toggleRptSec(id) {
+  _rptSecOpen[id] = !_rptSecOpen[id];
+  const body = document.getElementById('rpt-sec-body-' + id);
+  const arrow = document.getElementById('rpt-sec-arrow-' + id);
+  if (body) body.style.display = _rptSecOpen[id] ? 'block' : 'none';
+  if (arrow) arrow.style.transform = _rptSecOpen[id] ? 'rotate(0deg)' : 'rotate(-90deg)';
+}
+
+function _rptSecBlock(id, title, color, count, bodyHtml) {
+  const open = _rptSecOpen[id] !== false;
+  const arrowSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;transition:transform .25s;transform:${open ? 'rotate(0deg)' : 'rotate(-90deg)'}" id="rpt-sec-arrow-${id}"><polyline points="6 9 12 15 18 9"/></svg>`;
+  return `<div style="margin-bottom:10px;">
+    <div onclick="_toggleRptSec('${id}')" style="position:sticky;top:0;z-index:5;width:100%;display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fff;border:1px solid #e0e0e0;border-radius:12px;cursor:pointer;user-select:none;box-sizing:border-box;">
+      <span style="font-size:14px;font-weight:700;color:${color};">${title}</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span id="rpt-sec-cnt-${id}" style="font-size:12px;color:#999;font-weight:400;">${count} mục</span>
+        <span style="color:#aaa;">${arrowSvg}</span>
+      </div>
+    </div>
+    <div id="rpt-sec-body-${id}" style="display:${open ? 'block' : 'none'};">
+      <div class="report-detail-section" style="margin-top:6px;margin-bottom:0;">
+        ${bodyHtml}
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderReport() {
   _rptDetailData = [];
   _rptDetailOrderData = [];
@@ -6168,10 +6249,42 @@ function renderReport() {
   const customers = _sortReportItems(_groupReportEntries(rows, r => r.tenkhach.trim(), r => r.tenkhach.trim(), r => r.loai === 'Xuất' && r.tenkhach.trim()).map(item => ({ ...item, extra: item.count + ' đơn xuất' })));
   const rawReportQ = ((document.getElementById('report-search') || {}).value || '').trim();
 
+  const nccBodyHtml = suppliers.length
+    ? `<div class="report-detail-list">${suppliers.map(item => { const idx = _rptDetailData.push({ type: 'ncc', key: item.key, name: item.name }) - 1; return `<div class="report-detail-item" onclick="showReportDetail(${idx})" style="cursor:pointer;"><div style="min-width:0;"><div class="report-detail-name">${hlField(item.name, rawReportQ, 'ncc', reportSearchField)}</div><div class="report-detail-meta">${item.extra || (item.count + ' đơn')}</div></div><div class="report-detail-value"><div class="report-detail-qty">${fmt(item.qty)} SL</div><div class="report-detail-amount">${fmt(item.amount)} đ</div></div></div>`; }).join('')}</div>`
+    : `<div style="font-size:13px;color:#999;padding:6px 0;">Không có dữ liệu nhà cung cấp trong bộ lọc này.</div>`;
+
+  const khachBodyHtml = customers.length
+    ? `<div class="report-detail-list">${customers.map(item => { const idx = _rptDetailData.push({ type: 'khach', key: item.key, name: item.name }) - 1; return `<div class="report-detail-item" onclick="showReportDetail(${idx})" style="cursor:pointer;"><div style="min-width:0;"><div class="report-detail-name">${hlField(item.name, rawReportQ, 'tenkhach', reportSearchField)}</div><div class="report-detail-meta">${item.extra || (item.count + ' đơn')}</div></div><div class="report-detail-value"><div class="report-detail-qty">${fmt(item.qty)} SL</div><div class="report-detail-amount">${fmt(item.amount)} đ</div></div></div>`; }).join('')}</div>`
+    : `<div style="font-size:13px;color:#999;padding:6px 0;">Không có dữ liệu khách hàng trong bộ lọc này.</div>`;
+
+  const spBodyHtml = (() => {
+    const spMap = new Map();
+    rows.forEach(r => {
+      const key = [r.ma, r.hanghoa, r.kichthuoc].join('||');
+      if (!r.ma && !r.hanghoa) return;
+      if (!spMap.has(key)) spMap.set(key, { key, name: r.hanghoa || r.ma || 'Không tên', ma: r.ma, kichthuoc: r.kichthuoc, ncc: r.ncc || '', nhapQty: 0, nhapAmount: 0, xuatQty: 0, xuatAmount: 0, latestTs: 0 });
+      const item = spMap.get(key);
+      if (!item.ncc && r.ncc) item.ncc = r.ncc;
+      if (r.loai === 'Nhập') { item.nhapQty += r.soluong; item.nhapAmount += r.soluong * r.gia; }
+      else                   { item.xuatQty += r.soluong; item.xuatAmount += r.soluong * r.gia; }
+      if ((r.thoigian_raw || 0) > item.latestTs) item.latestTs = r.thoigian_raw || 0;
+    });
+    const spItems = _sortReportItems([...spMap.values()]);
+    if (!spItems.length) return `<div style="font-size:13px;color:#999;padding:6px 0;">Không có dữ liệu sản phẩm trong bộ lọc này.</div>`;
+    return `<div class="report-detail-list">${spItems.map(item => {
+      const _rsf = reportSearchField || 'all';
+      const metaHtml = [item.ma ? hlField(item.ma, rawReportQ, 'ma', _rsf) : '', item.kichthuoc ? (_rsf === 'all' ? highlightText(item.kichthuoc, rawReportQ) : item.kichthuoc) : ''].filter(Boolean).join(' · ');
+      const nhapLine = item.nhapQty > 0 ? `<div style="font-size:13px;color:#388e3c;white-space:nowrap;">Nhập: ${fmt(item.nhapQty)} | ${fmt(item.nhapAmount)}đ</div>` : '';
+      const xuatLine = item.xuatQty > 0 ? `<div style="font-size:13px;color:#c62828;white-space:nowrap;">Xuất: ${fmt(item.xuatQty)} | ${fmt(item.xuatAmount)}đ</div>` : '';
+      const idx = _rptDetailData.push({ type: 'sp', key: item.key, name: item.name, ma: item.ma, ncc: item.ncc, kichthuoc: item.kichthuoc }) - 1;
+      return `<div class="report-detail-item" onclick="showReportDetail(${idx})" style="cursor:pointer;"><div style="min-width:0;flex:1;"><div class="report-detail-name">${hlField(item.name, rawReportQ, 'hanghoa', _rsf)}${item.ncc ? ` <span style="color:#1565c0;font-weight:500;">· ${hlField(item.ncc, rawReportQ, 'ncc', _rsf)}</span>` : ''}</div>${metaHtml ? `<div class="report-detail-meta">${metaHtml}</div>` : ''}</div><div style="text-align:right;flex-shrink:0;">${nhapLine}${xuatLine}</div></div>`;
+    }).join('')}</div>`;
+  })();
+
   list.innerHTML = [
-    _renderReportSection('Nhà cung cấp', '#1976d2', suppliers, 'Không có dữ liệu nhà cung cấp trong bộ lọc này.', 'ncc', rawReportQ),
-    _renderReportSection('Khách hàng', '#8e24aa', customers, 'Không có dữ liệu khách hàng trong bộ lọc này.', 'khach', rawReportQ),
-    _renderProductReportSection(rows, rawReportQ)
+    _rptSecBlock('ncc', 'Nhà cung cấp', '#1976d2', suppliers.length, nccBodyHtml),
+    _rptSecBlock('khach', 'Khách hàng', '#8e24aa', customers.length, khachBodyHtml),
+    _rptSecBlock('sp', 'Sản phẩm', '#2e7d32', (() => { const m = new Map(); rows.forEach(r => { if (r.ma || r.hanghoa) m.set([r.ma, r.hanghoa, r.kichthuoc].join('||'), 1); }); return m.size; })(), spBodyHtml)
   ].join('');
 }
 
@@ -7394,6 +7507,263 @@ function histDetailConfirmDraft() {
     sel.addEventListener('change',function() { _open = false; wrap.classList.remove('s-open'); });
   });
 })();
+
+// ===== PHÂN TÍCH CHI TIẾT =====
+let _analyticsOpen = false;
+function toggleReportAnalytics() {
+  _analyticsOpen = !_analyticsOpen;
+  const body = document.getElementById('report-analytics-body');
+  const arrow = document.getElementById('report-analytics-arrow');
+  if (body) body.style.display = _analyticsOpen ? 'flex' : 'none';
+  if (arrow) arrow.style.transform = _analyticsOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function showAnalyticsModal(type) {
+  let overlay = document.getElementById('analytics-modal-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'analytics-modal-overlay';
+    overlay.className = 'analytics-modal-overlay';
+    overlay.innerHTML = `
+      <div class="analytics-modal-box">
+        <div class="analytics-modal-header">
+          <div class="analytics-modal-title" id="analytics-modal-title"></div>
+          <button class="analytics-modal-close" onclick="closeAnalyticsModal()">✕</button>
+        </div>
+        <div class="analytics-modal-body" id="analytics-modal-body"></div>
+      </div>`;
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) closeAnalyticsModal();
+    });
+    document.body.appendChild(overlay);
+  }
+  const titleEl = document.getElementById('analytics-modal-title');
+  const bodyEl  = document.getElementById('analytics-modal-body');
+  let title = '', html = '';
+  if (type === 'chart7') {
+    title = '📅 Biểu đồ 7 ngày Nhập / Xuất';
+    html  = _buildChart7Html();
+  } else if (type === 'topsp') {
+    title = '📦 Sản phẩm bán chạy nhất';
+    html  = _buildTopSpHtml();
+  } else if (type === 'topln') {
+    title = '💰 Sản phẩm lợi nhuận cao nhất';
+    html  = _buildTopLnHtml();
+  } else if (type === 'topkhach') {
+    title = '👤 Khách hàng mua nhiều nhất';
+    html  = _buildTopKhachHtml();
+  }
+  if (titleEl) titleEl.textContent = title;
+  if (bodyEl)  bodyEl.innerHTML    = html;
+  overlay.classList.add('active');
+}
+
+function closeAnalyticsModal() {
+  const overlay = document.getElementById('analytics-modal-overlay');
+  if (overlay) overlay.classList.remove('active');
+}
+
+function _buildChart7Html() {
+  const now = new Date();
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    days.push(d);
+  }
+  const nhapByDay = {}, xuatByDay = {};
+  days.forEach(d => { const key = d.toDateString(); nhapByDay[key] = 0; xuatByDay[key] = 0; });
+  (_historyData || []).forEach(r => {
+    if (!r.thoigian_raw) return;
+    const d = new Date(r.thoigian_raw);
+    const key = d.toDateString();
+    if (!(key in nhapByDay)) return;
+    if (r.loai === 'Nhập') nhapByDay[key] += (Number(r.soluong)||0) * (Number(r.gia)||0);
+    else if (r.loai === 'Xuất') xuatByDay[key] += (Number(r.soluong)||0) * (Number(r.gia)||0);
+  });
+  const nhapVals = days.map(d => nhapByDay[d.toDateString()]);
+  const xuatVals = days.map(d => xuatByDay[d.toDateString()]);
+  const maxVal   = Math.max(...nhapVals, ...xuatVals, 1);
+  const W = 640, H = 220, padL = 60, padR = 16, padT = 16, padB = 40;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const colW   = chartW / days.length;
+  const barW   = Math.floor(colW * 0.28);
+  const gap    = 4;
+  const scaleY = v => padT + chartH - (v / maxVal) * chartH;
+  let yLines = '';
+  for (let i = 0; i <= 4; i++) {
+    const v = (maxVal / 4) * i;
+    const y = scaleY(v);
+    const label = v >= 1000000 ? (v/1000000).toFixed(1) + 'M' : v >= 1000 ? (v/1000).toFixed(0) + 'K' : v.toFixed(0);
+    yLines += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#f0f0f0" stroke-width="1"/>`;
+    yLines += `<text x="${padL - 6}" y="${y + 4}" font-size="10" fill="#aaa" text-anchor="end">${label}</text>`;
+  }
+  let bars = '';
+  days.forEach((d, i) => {
+    const x = padL + i * colW + colW / 2;
+    const nVal = nhapVals[i], xVal = xuatVals[i];
+    const nH = nVal > 0 ? Math.max(2, (nVal / maxVal) * chartH) : 0;
+    const xH = xVal > 0 ? Math.max(2, (xVal / maxVal) * chartH) : 0;
+    bars += `<rect x="${x - barW - gap/2}" y="${padT + chartH - nH}" width="${barW}" height="${nH}" fill="#4CAF50" rx="3" opacity="0.85"/>`;
+    bars += `<rect x="${x + gap/2}" y="${padT + chartH - xH}" width="${barW}" height="${xH}" fill="#f44336" rx="3" opacity="0.85"/>`;
+    bars += `<text x="${x}" y="${H - padB + 14}" font-size="10" fill="#888" text-anchor="middle">${d.getDate()}/${d.getMonth()+1}</text>`;
+  });
+  const legend = `<g transform="translate(${padL}, ${H - 8})"><rect x="0" y="-8" width="10" height="10" fill="#4CAF50" rx="2"/><text x="13" y="1" font-size="11" fill="#555">Nhập</text><rect x="52" y="-8" width="10" height="10" fill="#f44336" rx="2"/><text x="65" y="1" font-size="11" fill="#555">Xuất</text></g>`;
+  const svg = `<svg width="100%" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%;">
+    ${yLines}
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + chartH}" stroke="#e0e0e0" stroke-width="1"/>
+    <line x1="${padL}" y1="${padT + chartH}" x2="${W - padR}" y2="${padT + chartH}" stroke="#e0e0e0" stroke-width="1"/>
+    ${bars}${legend}
+  </svg>`;
+  const totalNhap7 = nhapVals.reduce((a,b)=>a+b,0);
+  const totalXuat7 = xuatVals.reduce((a,b)=>a+b,0);
+  const fmtM = v => v >= 1000000 ? (v/1000000).toFixed(2) + 'M đ' : fmt(v) + ' đ';
+  return `<div style="margin-bottom:4px;font-size:12px;color:#888;">7 ngày gần nhất (${days[0].getDate()}/${days[0].getMonth()+1} – ${days[6].getDate()}/${days[6].getMonth()+1})</div>
+    ${svg}
+    <div style="display:flex;gap:12px;margin-top:12px;">
+      <div style="flex:1;background:#e8f5e9;border-radius:10px;padding:10px 14px;">
+        <div style="font-size:11px;color:#2e7d32;font-weight:700;">Tổng Nhập 7 ngày</div>
+        <div style="font-size:15px;font-weight:700;color:#2e7d32;margin-top:3px;">${fmtM(totalNhap7)}</div>
+      </div>
+      <div style="flex:1;background:#ffebee;border-radius:10px;padding:10px 14px;">
+        <div style="font-size:11px;color:#c62828;font-weight:700;">Tổng Xuất 7 ngày</div>
+        <div style="font-size:15px;font-weight:700;color:#c62828;margin-top:3px;">${fmtM(totalXuat7)}</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#bbb;margin-top:10px;text-align:center;">* Dữ liệu từ cache hiện tại. Nếu chưa đủ 7 ngày hãy bấm 🔄 Làm mới ở bộ lọc "Tất cả".</div>`;
+}
+
+function _buildTopSpHtml(showAll) {
+  const xuatRows = _reportFilterRows().filter(r => r.loai === 'Xuất');
+  if (!xuatRows.length) return '<div style="text-align:center;padding:32px;color:#aaa;">Không có dữ liệu xuất trong khoảng thời gian này.</div>';
+  const map = new Map();
+  xuatRows.forEach(r => {
+    const rawMa = (r.ma || '').trim();
+    const validMa = rawMa && !rawMa.startsWith('#') ? rawMa : '';
+    const key = validMa || (r.hanghoa || '').trim();
+    if (!key) return;
+    if (!map.has(key)) map.set(key, { ma: validMa, ten: r.hanghoa, kichthuoc: r.kichthuoc, sl: 0, amount: 0, orders: new Set() });
+    const item = map.get(key);
+    item.sl     += Number(r.soluong) || 0;
+    item.amount += (Number(r.soluong)||0) * (Number(r.gia)||0);
+    item.orders.add(_orderKey(r));
+  });
+  let list = [...map.values()].sort((a, b) => b.sl - a.sl || b.amount - a.amount);
+  const total = list.length;
+  if (!showAll) list = list.slice(0, 5);
+  const rows = list.map((item, i) => {
+    const prod = (products || []).find(p => p.ma === item.ma);
+    const giavon = prod ? (Number(prod.giavon) || 0) : 0;
+    const avgGia = item.sl > 0 ? item.amount / item.sl : 0;
+    const ln = giavon > 0 ? (avgGia - giavon) * item.sl : null;
+    const rankClass = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : '';
+    return `<tr>
+      <td><span class="analytics-rank ${rankClass}">${i+1}</span></td>
+      <td><div style="font-size:13px;font-weight:600;">${item.ten || '—'}</div><div style="font-size:11px;color:#aaa;">${item.ma}${item.kichthuoc ? ' · ' + item.kichthuoc : ''}</div></td>
+      <td style="text-align:right;font-weight:600;color:#1976d2;">${fmt(item.sl)}</td>
+      <td style="text-align:right;font-weight:600;">${fmt(item.amount)} đ</td>
+      <td style="text-align:right;font-size:12px;color:${ln === null ? '#ccc' : ln >= 0 ? '#4CAF50' : '#f44336'};">${ln === null ? '—' : (ln >= 0 ? '+' : '') + fmt(ln) + ' đ'}</td>
+      <td style="text-align:right;font-size:12px;color:#888;">${item.orders.size} đơn</td>
+    </tr>`;
+  }).join('');
+  const showMoreBtn = (!showAll && total > 5)
+    ? `<button class="analytics-showmore" onclick="document.getElementById('analytics-modal-body').innerHTML=_buildTopSpHtml(true)">Xem thêm (${total} sản phẩm)</button>`
+    : '';
+  return `<table class="analytics-table"><thead><tr><th>#</th><th>Sản phẩm</th><th style="text-align:right;">SL bán</th><th style="text-align:right;">Doanh thu</th><th style="text-align:right;">Lợi nhuận</th><th style="text-align:right;">Đơn</th></tr></thead><tbody>${rows}</tbody></table>${showMoreBtn}
+  <div style="font-size:11px;color:#bbb;margin-top:8px;">* Lợi nhuận = (giá bán TB - giá vốn hiện tại) × SL. Cột LN hiển thị "—" nếu chưa có giá vốn.</div>`;
+}
+
+function _buildTopLnHtml(showAll) {
+  const xuatRows = _reportFilterRows().filter(r => r.loai === 'Xuất');
+  if (!xuatRows.length) return '<div style="text-align:center;padding:32px;color:#aaa;">Không có dữ liệu xuất trong khoảng thời gian này.</div>';
+  const map = new Map();
+  xuatRows.forEach(r => {
+    const rawMa = (r.ma || '').trim();
+    const validMa = rawMa && !rawMa.startsWith('#') ? rawMa : '';
+    const key = validMa || (r.hanghoa || '').trim();
+    if (!key) return;
+    const prod = (products || []).find(p => p.ma === validMa);
+    const giavon = prod ? (Number(prod.giavon) || 0) : 0;
+    if (!map.has(key)) map.set(key, { ma: validMa, ten: r.hanghoa, kichthuoc: r.kichthuoc, sl: 0, amount: 0, giavon });
+    const item = map.get(key);
+    item.sl     += Number(r.soluong) || 0;
+    item.amount += (Number(r.soluong)||0) * (Number(r.gia)||0);
+  });
+  let list = [...map.values()].map(item => {
+    const avgGia = item.sl > 0 ? item.amount / item.sl : 0;
+    const ln = item.giavon > 0 ? (avgGia - item.giavon) * item.sl : null;
+    const bien = (item.giavon > 0 && item.amount > 0) ? ((avgGia - item.giavon) / avgGia * 100) : null;
+    return { ...item, ln, bien };
+  }).filter(item => item.ln !== null).sort((a, b) => b.ln - a.ln);
+  if (!list.length) return '<div style="text-align:center;padding:32px;color:#aaa;">Không đủ dữ liệu giá vốn để tính lợi nhuận.</div>';
+  const total = list.length;
+  if (!showAll) list = list.slice(0, 5);
+  const rows = list.map((item, i) => {
+    const rankClass = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : '';
+    const lnColor = item.ln >= 0 ? '#4CAF50' : '#f44336';
+    const bienColor = item.bien !== null ? (item.bien >= 0 ? '#4CAF50' : '#f44336') : '#ccc';
+    return `<tr>
+      <td><span class="analytics-rank ${rankClass}">${i+1}</span></td>
+      <td><div style="font-size:13px;font-weight:600;">${item.ten || '—'}</div><div style="font-size:11px;color:#aaa;">${item.ma}${item.kichthuoc ? ' · ' + item.kichthuoc : ''}</div></td>
+      <td style="text-align:right;font-weight:700;color:${lnColor};">${item.ln >= 0 ? '+' : ''}${fmt(item.ln)} đ</td>
+      <td style="text-align:right;font-weight:600;color:${bienColor};">${item.bien !== null ? item.bien.toFixed(1) + '%' : '—'}</td>
+      <td style="text-align:right;font-size:12px;color:#888;">${fmt(item.sl)}</td>
+    </tr>`;
+  }).join('');
+  const showMoreBtn = (!showAll && total > 5)
+    ? `<button class="analytics-showmore" onclick="document.getElementById('analytics-modal-body').innerHTML=_buildTopLnHtml(true)">Xem thêm (${total} sản phẩm)</button>`
+    : '';
+  return `<table class="analytics-table"><thead><tr><th>#</th><th>Sản phẩm</th><th style="text-align:right;">Lợi nhuận</th><th style="text-align:right;">Biên LN</th><th style="text-align:right;">SL bán</th></tr></thead><tbody>${rows}</tbody></table>${showMoreBtn}
+  <div style="font-size:11px;color:#bbb;margin-top:8px;">* Biên LN = (Giá bán TB - Giá vốn) / Giá bán TB × 100%</div>`;
+}
+
+function _buildTopKhachHtml(showAll) {
+  const xuatRows = _reportFilterRows().filter(r => r.loai === 'Xuất' && (r.tenkhach || '').trim());
+  if (!xuatRows.length) return '<div style="text-align:center;padding:32px;color:#aaa;">Không có dữ liệu khách hàng trong khoảng thời gian này.</div>';
+  const KHACH_LE_KEY = '__khach_le__';
+  const map = new Map();
+  xuatRows.forEach(r => {
+    const norm = removeDiacritics(r.tenkhach.trim()).toLowerCase();
+    if (!norm) return;
+    const isKhachLe = norm === 'khach le' || norm.startsWith('khach le ');
+    const key = isKhachLe ? KHACH_LE_KEY : norm;
+    if (!map.has(key)) map.set(key, { ten: isKhachLe ? 'Khách lẻ' : r.tenkhach.trim(), sl: 0, amount: 0, orders: new Set(), spCount: new Map() });
+    const item = map.get(key);
+    item.sl     += Number(r.soluong) || 0;
+    item.amount += (Number(r.soluong)||0) * (Number(r.gia)||0);
+    item.orders.add(_orderKey(r));
+    const rawSpMa = (r.ma || '').trim();
+    const spKey = (rawSpMa && !rawSpMa.startsWith('#')) ? rawSpMa : (r.hanghoa || '').trim();
+    if (spKey) item.spCount.set(spKey, (item.spCount.get(spKey) || 0) + (Number(r.soluong)||0));
+  });
+  let list = [...map.values()].map(item => {
+    let topSp = '—';
+    if (item.spCount.size) {
+      const maxKey = [...item.spCount.entries()].sort((a,b)=>b[1]-a[1])[0][0];
+      const prod = (products || []).find(p => p.ma === maxKey);
+      topSp = prod ? prod.ten : maxKey;
+    }
+    return { ...item, donSo: item.orders.size, topSp };
+  }).sort((a, b) => b.amount - a.amount || b.donSo - a.donSo);
+  const total = list.length;
+  if (!showAll) list = list.slice(0, 5);
+  const rows = list.map((item, i) => {
+    const rankClass = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : '';
+    const isKL = item.ten === 'Khách lẻ';
+    return `<tr>
+      <td><span class="analytics-rank ${rankClass}">${i+1}</span></td>
+      <td style="font-size:13px;font-weight:600;color:${isKL?'#888':'inherit'};">${item.ten}${isKL ? ' <span style="font-size:11px;font-weight:400;color:#bbb;">(tổng hợp)</span>' : ''}</td>
+      <td style="text-align:right;font-weight:600;color:#1976d2;">${item.donSo} đơn</td>
+      <td style="text-align:right;font-weight:600;">${fmt(item.amount)} đ</td>
+      <td style="font-size:12px;color:#555;">${item.topSp}</td>
+    </tr>`;
+  }).join('');
+  const showMoreBtn = (!showAll && total > 5)
+    ? `<button class="analytics-showmore" onclick="document.getElementById('analytics-modal-body').innerHTML=_buildTopKhachHtml(true)">Xem thêm (${total} khách)</button>`
+    : '';
+  return `<table class="analytics-table"><thead><tr><th>#</th><th>Khách hàng</th><th style="text-align:right;">Số đơn</th><th style="text-align:right;">Doanh thu</th><th>SP hay mua nhất</th></tr></thead><tbody>${rows}</tbody></table>${showMoreBtn}
+  <div style="font-size:11px;color:#bbb;margin-top:8px;">* "Khách lẻ", "Khách lẻ 1", "Khách lẻ 2"... được gộp thành 1 dòng.</div>`;
+}
 </script>
 <div id="customer-ac-dropdown"></div>
 <div id="pf-ac-dropdown"></div>
