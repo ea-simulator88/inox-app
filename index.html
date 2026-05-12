@@ -5928,10 +5928,14 @@ function showReportDetail(idx) {
 }
 
 let _rptNhapRows = [], _rptXuatRows = [];
+let _pfHide = { nhapVC: false, xuatVC: false, xuatKT: false };
+let _gdHide = { nhap_vc: false, xuat_vc: false, xuat_kt: false };
 
 function showRptGdDetail(loai) {
   const rows = loai === 'nhap' ? _rptNhapRows : _rptXuatRows;
   const title = loai === 'nhap' ? 'Chi tiết Nhập theo giao dịch' : 'Chi tiết Xuất theo giao dịch';
+  const hideVC = loai === 'nhap' ? _gdHide.nhap_vc : _gdHide.xuat_vc;
+  const hideKT = loai === 'xuat' && _gdHide.xuat_kt;
   const gdMap = {};
   const total = { qty: 0, count: 0, amount: 0 };
   const totalOrderSet = new Set();
@@ -5940,7 +5944,9 @@ function showRptGdDetail(loai) {
     const amount = qty * (Number(r.gia) || 0);
     const phiVC = Math.abs(Number(r.phichanh) || 0);
     const phiKT = Math.abs(Number(r.phikhachtra) || 0);
-    const amountWithFee = loai === 'nhap' ? (amount + phiVC) : (amount - (phiVC - phiKT));
+    const effVC = hideVC ? 0 : phiVC;
+    const effKT = hideKT ? 0 : phiKT;
+    const amountWithFee = loai === 'nhap' ? (amount + effVC) : (amount - (effVC - effKT));
     const gd = (r.giaodich || '').trim() || 'Không rõ';
     if (!gdMap[gd]) gdMap[gd] = { qty: 0, count: 0, amount: 0, phiVC: 0, phiKT: 0, phiVCDon: 0, phiKTDon: 0, orderSet: new Set() };
     gdMap[gd].qty += qty;
@@ -5959,18 +5965,24 @@ function showRptGdDetail(loai) {
   Object.values(gdMap).forEach(v => { v.count = v.orderSet.size; delete v.orderSet; });
   const color = loai === 'nhap' ? '#2e7d32' : '#e53935';
   const entries = Object.entries(gdMap).sort((a, b) => b[1].amount - a[1].amount);
+  const _eOpen = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  const _eOff = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+  const vcAct = loai === 'nhap' ? `_gdHide.nhap_vc=!_gdHide.nhap_vc;showRptGdDetail('nhap')` : `_gdHide.xuat_vc=!_gdHide.xuat_vc;showRptGdDetail('xuat')`;
+  const ktAct = `_gdHide.xuat_kt=!_gdHide.xuat_kt;showRptGdDetail('xuat')`;
+  const eyeVC = `<button onclick="${vcAct}" style="background:none;border:none;cursor:pointer;padding:0 0 0 7px;display:inline-flex;align-items:center;color:${hideVC ? '#bbb' : '#aaa'};">${hideVC ? _eOff : _eOpen}</button>`;
+  const eyeKT = `<button onclick="${ktAct}" style="background:none;border:none;cursor:pointer;padding:0 0 0 7px;display:inline-flex;align-items:center;color:${hideKT ? '#bbb' : '#aaa'};">${hideKT ? _eOff : _eOpen}</button>`;
   const html = '<div style="display:flex;flex-direction:column;margin-top:10px;text-align:left;">' +
     entries.map(([gd, v]) =>
       `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f0f0f0;gap:6px;">
         <div style="min-width:0;flex:1;">
           <div style="font-size:clamp(11px,3.35vw,13px);font-weight:600;color:#333;white-space:nowrap;">${_esc(gd)} (${fmt(v.qty)} SL · ${v.count} đơn)</div>
-          ${v.phiVC > 0 ? `<div style="font-size:12px;color:#666;line-height:1.35;margin-top:2px;">Phí vận chuyển | ${v.phiVCDon} đơn</div>` : ''}
-          ${v.phiKT > 0 ? `<div style="font-size:12px;color:#666;line-height:1.35;">Phí KT | ${v.phiKTDon} đơn</div>` : ''}
+          ${v.phiVC > 0 ? `<div style="font-size:12px;color:${hideVC ? '#bbb' : '#666'};line-height:1.35;margin-top:2px;display:flex;align-items:center;">Phí vận chuyển | ${v.phiVCDon} đơn${eyeVC}</div>` : ''}
+          ${v.phiKT > 0 ? `<div style="font-size:12px;color:${hideKT ? '#bbb' : '#666'};line-height:1.35;display:flex;align-items:center;">Phí KT | ${v.phiKTDon} đơn${eyeKT}</div>` : ''}
         </div>
         <div style="text-align:right;flex-shrink:0;">
           <div style="font-size:12px;font-weight:600;color:${color};white-space:nowrap;">${fmt(v.amount)} đ</div>
-          ${v.phiVC > 0 ? `<div style="font-size:12px;color:${color};line-height:1.35;margin-top:2px;white-space:nowrap;">${loai === 'xuat' ? '-' : '+'}${fmt(v.phiVC)} đ</div>` : ''}
-          ${v.phiKT > 0 ? `<div style="font-size:12px;color:${color};line-height:1.35;white-space:nowrap;">+${fmt(v.phiKT)} đ</div>` : ''}
+          ${v.phiVC > 0 ? `<div style="font-size:12px;color:${hideVC ? '#bbb' : color};line-height:1.35;margin-top:2px;white-space:nowrap;${hideVC ? 'text-decoration:line-through;' : ''}">${loai === 'xuat' ? '-' : '+'}${fmt(v.phiVC)} đ</div>` : ''}
+          ${v.phiKT > 0 ? `<div style="font-size:12px;color:${hideKT ? '#bbb' : color};line-height:1.35;white-space:nowrap;${hideKT ? 'text-decoration:line-through;' : ''}">+${fmt(v.phiKT)} đ</div>` : ''}
         </div>
       </div>`
     ).join('') +
@@ -5992,8 +6004,9 @@ function showProfitDetail() {
   const nhapDon = _countOrders(nhap);
   const nhapPhi = sum(nhap, r => Math.abs(Number(r.phichanh)||0));
   const nhapPhiDon = nhap.filter(r => Math.abs(Number(r.phichanh) || 0) > 0).length;
-  const nhapTien = sum(nhap, r => (Number(r.soluong)||0)*(Number(r.gia)||0)) + nhapPhi;
   const nhapTienHang = sum(nhap, r => (Number(r.soluong)||0)*(Number(r.gia)||0));
+  const nhapPhiEff = _pfHide.nhapVC ? 0 : nhapPhi;
+  const nhapTien = nhapTienHang + nhapPhiEff;
   const nhapTM = sum(nhap, r => r.giaodich === 'Tiền mặt' ? (Number(r.soluong)||0)*(Number(r.gia)||0) : 0);
   const nhapCK = sum(nhap, r => r.giaodich === 'Chuyển khoản' ? (Number(r.soluong)||0)*(Number(r.gia)||0) : 0);
   const nhapBoth = sum(nhap, r => r.giaodich?.includes('Tiền mặt + Chuyển khoản') ? (Number(r.soluong)||0)*(Number(r.gia)||0) : 0);
@@ -6016,8 +6029,10 @@ function showProfitDetail() {
   const xuatPhiKT = sum(xuat, r => Number(r.phikhachtra)||0);
   const xuatPhiVCDon = xuat.filter(r => Math.abs(Number(r.phichanh) || 0) > 0).length;
   const xuatPhiKTDon = xuat.filter(r => Math.abs(Number(r.phikhachtra) || 0) > 0).length;
-  const xuatPhi = xuatPhiVC - xuatPhiKT;
-  const xuatTien = sum(xuat, r => (Number(r.soluong)||0)*(Number(r.gia)||0)) - xuatPhi;
+  const xuatPhiVCEff = _pfHide.xuatVC ? 0 : xuatPhiVC;
+  const xuatPhiKTEff = _pfHide.xuatKT ? 0 : xuatPhiKT;
+  const xuatPhi = xuatPhiVCEff - xuatPhiKTEff;
+  const xuatTien = xuatTienHang - xuatPhi;
   const xuatTM = sum(xuat, r => r.giaodich === 'Tiền mặt' ? (Number(r.soluong)||0)*(Number(r.gia)||0) : 0);
   const xuatCK = sum(xuat, r => r.giaodich === 'Chuyển khoản' ? (Number(r.soluong)||0)*(Number(r.gia)||0) : 0);
   const xuatBoth = sum(xuat, r => r.giaodich?.includes('Tiền mặt + Chuyển khoản') ? (Number(r.soluong)||0)*(Number(r.gia)||0) : 0);
@@ -6035,25 +6050,34 @@ function showProfitDetail() {
   const totalProfit = xuatTien - nhapTien;
 
   // ===== BUILD HTML (chỉ hiện cái có dữ liệu) =====
-    const hasData = (...vals) => vals.some(v => Math.abs(Number(v) || 0) > 0.000001);
-    const row = (label, val, bold=false, ...dataVals) => hasData(val, ...dataVals) ? `<div style="display:flex;justify-content:space-between;padding:2px 0;"><span style="${bold?'font-size:12.5px;font-weight:700;color:#555;':'color:#888;'}">${label}</span><span style="${bold?'font-size:12.5px;font-weight:700;color:#555;':(val<0?'color:#e53935;font-weight:600;':'color:#666;font-weight:600;')}">${fmt(val)} đ</span></div>` : '';
-    const nhapRowsHtml = [
-      row(`Tổng nhập (${fmt(nhapQty)} SL · ${nhapDon} đơn)`, nhapTien, true, nhapQty, nhapDon),
-      row(`Phí vận chuyển | ${nhapPhiDon} đơn`, nhapPhi, false, nhapPhiDon),
-      row(`Tiền mặt | ${fmt(nhapTMQty)} SL · ${nhapTMDon} đơn`, nhapTM, false, nhapTMQty, nhapTMDon),
-      row(`Chuyển khoản | ${fmt(nhapCKQty)} SL · ${nhapCKDon} đơn`, nhapCK, false, nhapCKQty, nhapCKDon),
-      row(`TM + CK | ${fmt(nhapBothQty)} SL · ${nhapBothDon} đơn`, nhapBoth, false, nhapBothQty, nhapBothDon),
-      row(`Không rõ | ${fmt(nhapKhacQty)} SL · ${nhapKhacDon} đơn`, nhapKhac, false, nhapKhacQty, nhapKhacDon)
-    ].join('');
-    const xuatRowsHtml = [
-      row(`Tổng xuất (${fmt(xuatQty)} SL · ${xuatDon} đơn)`, xuatTien, true, xuatQty, xuatDon),
-      row(`Phí vận chuyển | ${xuatPhiVCDon} đơn`, -xuatPhiVC, false, xuatPhiVC, xuatPhiVCDon),
-      row(`Phí KT | ${xuatPhiKTDon} đơn`, xuatPhiKT, false, xuatPhiKT, xuatPhiKTDon),
-      row(`Tiền mặt | ${fmt(xuatTMQty)} SL · ${xuatTMDon} đơn`, xuatTM, false, xuatTMQty, xuatTMDon),
-      row(`Chuyển khoản | ${fmt(xuatCKQty)} SL · ${xuatCKDon} đơn`, xuatCK, false, xuatCKQty, xuatCKDon),
-      row(`TM + CK | ${fmt(xuatBothQty)} SL · ${xuatBothDon} đơn`, xuatBoth, false, xuatBothQty, xuatBothDon),
-      row(`Không rõ | ${fmt(xuatKhacQty)} SL · ${xuatKhacDon} đơn`, xuatKhac, false, xuatKhacQty, xuatKhacDon)
-    ].join('');
+  const hasData = (...vals) => vals.some(v => Math.abs(Number(v) || 0) > 0.000001);
+  const _eOpen = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  const _eOff = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+  const row = (label, val, bold=false, ...dataVals) => hasData(val, ...dataVals) ? `<div style="display:flex;justify-content:space-between;padding:2px 0;"><span style="${bold?'font-size:12.5px;font-weight:700;color:#555;':'color:#888;'}">${label}</span><span style="${bold?'font-size:12.5px;font-weight:700;color:#555;':(val<0?'color:#e53935;font-weight:600;':'color:#666;font-weight:600;')}">${fmt(val)} đ</span></div>` : '';
+  const feeRow = (label, rawVal, hidden, act, ...dataVals) => {
+    if (!hasData(rawVal, ...dataVals)) return '';
+    const eye = `<button onclick="${act}" style="background:none;border:none;cursor:pointer;padding:0 0 0 7px;display:inline-flex;align-items:center;color:${hidden ? '#bbb' : '#aaa'};">${hidden ? _eOff : _eOpen}</button>`;
+    const lStyle = `color:${hidden ? '#bbb' : '#888'};display:flex;align-items:center;`;
+    const vStyle = hidden ? 'color:#bbb;font-weight:600;text-decoration:line-through;' : (rawVal < 0 ? 'color:#e53935;font-weight:600;' : 'color:#666;font-weight:600;');
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0;"><span style="${lStyle}">${label}${eye}</span><span style="${vStyle}">${fmt(rawVal)} đ</span></div>`;
+  };
+  const nhapRowsHtml = [
+    row(`Tổng nhập (${fmt(nhapQty)} SL · ${nhapDon} đơn)`, nhapTien, true, nhapQty, nhapDon),
+    feeRow(`Phí vận chuyển | ${nhapPhiDon} đơn`, nhapPhi, _pfHide.nhapVC, "_pfHide.nhapVC=!_pfHide.nhapVC;showProfitDetail()", nhapPhiDon),
+    row(`Tiền mặt | ${fmt(nhapTMQty)} SL · ${nhapTMDon} đơn`, nhapTM, false, nhapTMQty, nhapTMDon),
+    row(`Chuyển khoản | ${fmt(nhapCKQty)} SL · ${nhapCKDon} đơn`, nhapCK, false, nhapCKQty, nhapCKDon),
+    row(`TM + CK | ${fmt(nhapBothQty)} SL · ${nhapBothDon} đơn`, nhapBoth, false, nhapBothQty, nhapBothDon),
+    row(`Không rõ | ${fmt(nhapKhacQty)} SL · ${nhapKhacDon} đơn`, nhapKhac, false, nhapKhacQty, nhapKhacDon)
+  ].join('');
+  const xuatRowsHtml = [
+    row(`Tổng xuất (${fmt(xuatQty)} SL · ${xuatDon} đơn)`, xuatTien, true, xuatQty, xuatDon),
+    feeRow(`Phí vận chuyển | ${xuatPhiVCDon} đơn`, -xuatPhiVC, _pfHide.xuatVC, "_pfHide.xuatVC=!_pfHide.xuatVC;showProfitDetail()", xuatPhiVC, xuatPhiVCDon),
+    feeRow(`Phí KT | ${xuatPhiKTDon} đơn`, xuatPhiKT, _pfHide.xuatKT, "_pfHide.xuatKT=!_pfHide.xuatKT;showProfitDetail()", xuatPhiKT, xuatPhiKTDon),
+    row(`Tiền mặt | ${fmt(xuatTMQty)} SL · ${xuatTMDon} đơn`, xuatTM, false, xuatTMQty, xuatTMDon),
+    row(`Chuyển khoản | ${fmt(xuatCKQty)} SL · ${xuatCKDon} đơn`, xuatCK, false, xuatCKQty, xuatCKDon),
+    row(`TM + CK | ${fmt(xuatBothQty)} SL · ${xuatBothDon} đơn`, xuatBoth, false, xuatBothQty, xuatBothDon),
+    row(`Không rõ | ${fmt(xuatKhacQty)} SL · ${xuatKhacDon} đơn`, xuatKhac, false, xuatKhacQty, xuatKhacDon)
+  ].join('');
 
     const html = `
     <div style="display:flex;flex-direction:column;gap:14px;text-align:left;">
