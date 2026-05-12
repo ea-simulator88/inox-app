@@ -2008,7 +2008,7 @@ let _loadedRange = null;
 let _historyStale = false;
 
 function showScreen(id) {
-  const _histScreens = ['screen-history', 'screen-history-detail', 'screen-report', 'screen-report-detail'];
+  const _histScreens = ['screen-history', 'screen-history-detail', 'screen-report', 'screen-report-detail', 'screen-success'];
   if (!_histScreens.includes(id)) {
     _loadedRange = null;
     _historyStale = false;
@@ -3511,7 +3511,14 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra, xuatG
         ? '<svg width="16" height="18" viewBox="0 0 24 26" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path d="M20 6L9 17l-5-5"/></svg> Xác nhận Xuất'
         : '<svg width="16" height="18" viewBox="0 0 24 26" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:6px;"><path d="M20 6L9 17l-5-5"/></svg> Xác nhận Nhập';
   }
-  _markHistoryStale();
+  rows.forEach(r => _historyData.push(_mapHistRow(r, mode)));
+  _historyData.sort((a, b) => b.thoigian_raw - a.thoigian_raw);
+  const _now2 = new Date(), _todayTs2 = new Date(_now2.getFullYear(), _now2.getMonth(), _now2.getDate()).getTime();
+  _loadedRange = _loadedRange
+    ? { from: Math.min(_loadedRange.from, _todayTs2), to: Math.max(_loadedRange.to, _todayTs2 + 86400000) }
+    : { from: _todayTs2, to: _todayTs2 + 86400000 };
+  _historyStale = false;
+  _saveHistoryCache();
   showScreen('screen-success');
 }
 
@@ -3735,7 +3742,14 @@ async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
     ${isXuat && phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
     ${ghichu ? `<div class="info-row"><span class="info-label">Ghi chú</span><span class="info-value">${ghichu}</span></div>` : ''}
   `;
-  _markHistoryStale();
+  _historyData.push(_mapHistRow(row, sheetName));
+  _historyData.sort((a, b) => b.thoigian_raw - a.thoigian_raw);
+  const _now3 = new Date(), _todayTs3 = new Date(_now3.getFullYear(), _now3.getMonth(), _now3.getDate()).getTime();
+  _loadedRange = _loadedRange
+    ? { from: Math.min(_loadedRange.from, _todayTs3), to: Math.max(_loadedRange.to, _todayTs3 + 86400000) }
+    : { from: _todayTs3, to: _todayTs3 + 86400000 };
+  _historyStale = false;
+  _saveHistoryCache();
   showScreen('screen-success');
 }
 
