@@ -530,10 +530,25 @@ function _historyMatchSignature_(sheetName, row) {
   return parts.map(function(v) { return (v || '').toString().trim(); }).join('||');
 }
 
-function _historyRowsFromSheet_(sheet) {
+function _historyRowsFromSheet_(sheet, fromDate, toDate) {
   if (!sheet || sheet.getLastRow() <= 1) return [];
   const values = sheet.getDataRange().getValues().slice(1);
-  return values.map(function(r) {
+
+  let filtered = values;
+  if (fromDate || toDate) {
+    const fromTs = fromDate ? fromDate.getTime() : 0;
+    const toTs = toDate ? toDate.getTime() : Date.now() + 86400000;
+    filtered = values.filter(function(r) {
+      const t = r[1];
+      if (!t) return false;
+      const d = (t instanceof Date) ? t : new Date(t);
+      if (isNaN(d.getTime())) return false;
+      const ts = d.getTime();
+      return ts >= fromTs && ts < toTs;
+    });
+  }
+
+  return filtered.map(function(r) {
     const out = r.slice();
     out[1] = fmtDateTime(r[1]) || _historyTimeKey(r[1]) || r[1];
     return out;
@@ -565,12 +580,14 @@ function doGet(e) {
 
   // ── Lấy lịch sử xuất / nhập / nháp (action=history) ───────
   if (e.parameter.action === 'history') {
-    const xuatSheet  = ss.getSheetByName('Xuất');
-    const nhapSheet  = ss.getSheetByName('Nhập');
+    const fromDate = e.parameter.fromDate ? new Date(e.parameter.fromDate) : null;
+    const toDate = e.parameter.toDate ? new Date(e.parameter.toDate) : null;
+    const xuatSheet = ss.getSheetByName('Xuất');
+    const nhapSheet = ss.getSheetByName('Nhập');
     const nhapDraftSheet = ss.getSheetByName('Nháp');
-    const xuatData = _historyRowsFromSheet_(xuatSheet);
-    const nhapData = _historyRowsFromSheet_(nhapSheet);
-    const draftData = _historyRowsFromSheet_(nhapDraftSheet);
+    const xuatData = _historyRowsFromSheet_(xuatSheet, fromDate, toDate);
+    const nhapData = _historyRowsFromSheet_(nhapSheet, fromDate, toDate);
+    const draftData = _historyRowsFromSheet_(nhapDraftSheet, fromDate, toDate);
     return ContentService.createTextOutput(JSON.stringify({ xuat: xuatData, nhap: nhapData, draft: draftData }))
       .setMimeType(ContentService.MimeType.JSON);
   }

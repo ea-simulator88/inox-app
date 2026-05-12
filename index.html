@@ -2004,7 +2004,15 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
+let _loadedRange = null;
+let _historyStale = false;
+
 function showScreen(id) {
+  const _histScreens = ['screen-history', 'screen-history-detail', 'screen-report', 'screen-report-detail'];
+  if (!_histScreens.includes(id)) {
+    _loadedRange = null;
+    _historyStale = false;
+  }
   sessionStorage.setItem('lastScreen', id);
   const isDesktop = window.innerWidth >= 768;
 
@@ -2361,6 +2369,8 @@ function doLogout() {
   localStorage.removeItem('cart');
   localStorage.removeItem('dtCart');
   localStorage.removeItem('history_cache');
+  localStorage.removeItem(_HISTORY_CACHE_KEY);
+  _historyData = []; _loadedRange = null; _historyStale = false;
   document.getElementById('login-pass').value = '';
   document.getElementById('desktop-layout').style.display = 'none';
   updateCartBadge();
@@ -4751,62 +4761,142 @@ let _reportTimeFilter = 'today';
 let _reportDateFrom = null;
 let _reportDateTo   = null;
 let _reportSortMode = 'newest';
+const _DEFAULT_DAYS = 3;
+const _HISTORY_CACHE_KEY = 'history_cache_v2';
 
 function _markHistoryStale() {
-  setTimeout(function() { _fetchHistoryData(true).catch(function() {}); }, 2000);
+  _historyStale = true;
+  setTimeout(function() {
+    const currentRange = _getCurrentFilterRange();
+    _fetchHistoryData(true, currentRange).then(function() {
+      if (document.getElementById('screen-history').classList.contains('active')) _renderHistory();
+      if (document.getElementById('screen-report').classList.contains('active')) renderReport();
+    }).catch(function() {});
+  }, 2000);
 }
 
 function _saveHistoryCache() {
-  try { localStorage.setItem('history_cache', JSON.stringify({ data: _historyData, ts: Date.now() })); } catch(e) {}
+  try { localStorage.setItem(_HISTORY_CACHE_KEY, JSON.stringify({ data: _historyData, ts: Date.now(), range: _loadedRange })); } catch(e) {}
 }
 
-async function _fetchHistoryData(force = false) {
-  if (!force && _historyData.length) return _historyData;
-  if (!force) {
-    try {
-      const cached = JSON.parse(localStorage.getItem('history_cache') || 'null');
-      if (cached && cached.data && (Date.now() - cached.ts) < 300000) {
-        _historyData = cached.data;
-        _fetchHistoryData(true).catch(function() {});
-        return _historyData;
-      }
-    } catch(e) {}
-  }
+async function _fetchHistoryData(force = false, customRange = null) {
+  if (!force && _historyData.length && !_historyStale) return _historyData;
+
+  const range = customRange || (function() {
+    const now = new Date();
+    return { from: new Date(now.getTime() - _DEFAULT_DAYS * 86400000), to: new Date(now.getTime() + 86400000) };
+  })();
+
+  const fromISO = range.from.toISOString();
+  const toISO = range.to.toISOString();
+
   const _histFetch = async () => {
     const controller = new AbortController();
     const tid = setTimeout(() => controller.abort(), 25000);
     try {
-      const r = await fetch(SCRIPT_URL + '?action=history&token=inox2026xK9m', { signal: controller.signal, cache: 'no-store' });
+      const r = await fetch(SCRIPT_URL + '?action=history&token=inox2026xK9m&fromDate=' + fromISO + '&toDate=' + toISO, { signal: controller.signal, cache: 'no-store' });
       clearTimeout(tid); return r;
     } catch(e) { clearTimeout(tid); throw e; }
   };
   let res;
   try { res = await _histFetch(); }
   catch(e) { await new Promise(r => setTimeout(r, 2000)); res = await _histFetch(); }
+
   const data = await res.json();
   const xuat  = (data.xuat  || []).map(r => _mapHistRow(r, 'Xuất'));
   const nhap  = (data.nhap  || []).map(r => _mapHistRow(r, 'Nhập'));
   const draft = (data.draft || []).map(r => _mapHistRow(r, 'Nháp'));
   _historyData = [...xuat, ...nhap, ...draft].sort((a, b) => b.thoigian_raw - a.thoigian_raw);
+  _loadedRange = { from: range.from.getTime(), to: range.to.getTime() };
+  _historyStale = false;
   _saveHistoryCache();
   return _historyData;
+}
+
+function _getCurrentFilterRange() {
+  const isReport = document.getElementById('screen-report').classList.contains('active')
+                || document.getElementById('screen-report-detail').classList.contains('active');
+  const tf = isReport ? _reportTimeFilter : _historyTimeFilter;
+  const df = isReport ? _reportDateFrom   : _histDateFrom;
+  const dt = isReport ? _reportDateTo     : _histDateTo;
+  const now = new Date();
+  let from, to;
+  if (tf === 'all') {
+    return { from: new Date(0), to: new Date(now.getTime() + 86400000) };
+  } else if (tf === 'today') {
+    from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    to   = new Date(from.getTime() + 86400000);
+  } else if (tf === 'yesterday') {
+    to   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    from = new Date(to.getTime() - 86400000);
+  } else if (tf === 'week') {
+    const dow = now.getDay() === 0 ? 6 : now.getDay() - 1;
+    from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow);
+    to   = new Date(from.getTime() + 7 * 86400000);
+  } else if (tf === 'month') {
+    from = new Date(now.getFullYear(), now.getMonth(), 1);
+    to   = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  } else if (tf === 'year') {
+    from = new Date(now.getFullYear(), 0, 1);
+    to   = new Date(now.getFullYear() + 1, 0, 1);
+  } else if (tf === 'custom') {
+    from = df || new Date(now.getTime() - _DEFAULT_DAYS * 86400000);
+    to   = dt ? new Date(dt.getTime() + 86400000) : new Date(now.getTime() + 86400000);
+  } else {
+    from = new Date(now.getTime() - _DEFAULT_DAYS * 86400000);
+    to   = new Date(now.getTime() + 86400000);
+  }
+  return { from, to };
+}
+
+async function _ensureHistoryDataForFilter() {
+  const needed    = _getCurrentFilterRange();
+  const neededFrom = needed.from.getTime();
+  const neededTo   = needed.to.getTime();
+  if (_historyStale) {
+    await _fetchHistoryData(true, needed);
+    return;
+  }
+  if (!_loadedRange) {
+    await _fetchHistoryData(true, needed);
+    return;
+  }
+  if (neededFrom >= _loadedRange.from && neededTo <= _loadedRange.to) {
+    return;
+  }
+  const unionRange = {
+    from: new Date(Math.min(neededFrom, _loadedRange.from)),
+    to:   new Date(Math.max(neededTo,   _loadedRange.to))
+  };
+  await _fetchHistoryData(true, unionRange);
 }
 
 async function showHistory() {
   showScreen('screen-history');
   _historyFilter = 'all';
   _updateHistDateLabel();
-  if (_historyData.length) {
-    histFilter('all');
-  } else {
-    const list = document.getElementById('history-list');
-    list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+  const list = document.getElementById('history-list');
+
+  if (!_historyData.length) {
     try {
-      await _fetchHistoryData();
-      histFilter('all');
-    } catch(e) {
-      list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được lịch sử.</div>';
-    }
+      const cached = JSON.parse(localStorage.getItem(_HISTORY_CACHE_KEY) || 'null');
+      if (cached && cached.data && cached.range && (Date.now() - cached.ts < 5 * 60 * 1000)) {
+        _historyData = cached.data;
+        _loadedRange = cached.range;
+        _historyStale = false;
+      }
+    } catch(e) {}
+  }
+
+  if (!_historyData.length) {
+    if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+  }
+
+  try {
+    await _ensureHistoryDataForFilter();
+    histFilter('all');
+  } catch(e) {
+    if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được lịch sử.</div>';
   }
 }
 
@@ -4823,7 +4913,8 @@ async function refreshHistoryData() {
   if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
   _setRefreshLoading('hist-refresh-btn', true);
   try {
-    await _fetchHistoryData(true);
+    const currentRange = _getCurrentFilterRange();
+    await _fetchHistoryData(true, currentRange);
     _renderHistory();
     showToast('Đã làm mới lịch sử');
   } catch (e) {
@@ -4995,7 +5086,7 @@ function _updateHistDateLabel() {
   }
 }
 
-function histTimeFilter(f) {
+async function histTimeFilter(f) {
   _historyTimeFilter = f;
   _histDateFrom = null;
   _histDateTo   = null;
@@ -5009,10 +5100,15 @@ function histTimeFilter(f) {
   });
   _updateHistDateLabel();
   _closeHistDatePanel();
+  const list = document.getElementById('history-list');
+  if (list && (_historyStale || !_loadedRange)) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+  }
+  try { await _ensureHistoryDataForFilter(); } catch(e) {}
   _renderHistory();
 }
 
-function histApplyDateRange() {
+async function histApplyDateRange() {
   const fromVal = document.getElementById('hist-from-date')?.value;
   const toVal   = document.getElementById('hist-to-date')?.value;
   if (!fromVal && !toVal) { histTimeFilter('all'); return; }
@@ -5028,6 +5124,9 @@ function histApplyDateRange() {
   });
   _updateHistDateLabel();
   _closeHistDatePanel();
+  const list = document.getElementById('history-list');
+  if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+  try { await _ensureHistoryDataForFilter(); } catch(e) {}
   _renderHistory();
 }
 
@@ -5058,7 +5157,7 @@ function _getTimeRange(filter, fromDate, toDate) {
   return { startTs, endTs };
 }
 
-function showReport() {
+async function showReport() {
   if (currentRole !== 'owner') { showToast('Không có quyền truy cập.'); return; }
   showScreen('screen-report');
   _reportTypeFilter = 'all';
@@ -5072,16 +5171,30 @@ function showReport() {
   _syncReportTypeButtons();
   _syncReportTimeButtons();
   _updateReportDateLabel();
-  if (_historyData.length) {
-    renderReport();
-  } else {
-    const list = document.getElementById('report-list');
-    const summary = document.getElementById('report-summary');
+
+  if (!_historyData.length) {
+    try {
+      const cached = JSON.parse(localStorage.getItem(_HISTORY_CACHE_KEY) || 'null');
+      if (cached && cached.data && cached.range && (Date.now() - cached.ts < 5 * 60 * 1000)) {
+        _historyData = cached.data;
+        _loadedRange = cached.range;
+        _historyStale = false;
+      }
+    } catch(e) {}
+  }
+
+  const list = document.getElementById('report-list');
+  const summary = document.getElementById('report-summary');
+  if (!_historyData.length) {
     if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
     if (summary) summary.innerHTML = '';
-    _fetchHistoryData().then(() => renderReport()).catch(() => {
-      if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được báo cáo.</div>';
-    });
+  }
+
+  try {
+    await _ensureHistoryDataForFilter();
+    renderReport();
+  } catch(e) {
+    if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được báo cáo.</div>';
   }
 }
 
@@ -5092,7 +5205,8 @@ async function refreshReportData() {
   if (summary) summary.innerHTML = '';
   _setRefreshLoading('report-refresh-btn', true);
   try {
-    await _fetchHistoryData(true);
+    const currentRange = _getCurrentFilterRange();
+    await _fetchHistoryData(true, currentRange);
     renderReport();
     showToast('Đã làm mới báo cáo');
   } catch (e) {
@@ -5219,7 +5333,7 @@ function _syncReportTimeButtons() {
   });
 }
 
-function reportTimeFilter(filter) {
+async function reportTimeFilter(filter) {
   _reportTimeFilter = filter;
   _reportDateFrom = null;
   _reportDateTo = null;
@@ -5230,10 +5344,15 @@ function reportTimeFilter(filter) {
   _syncReportTimeButtons();
   _updateReportDateLabel();
   _closeReportDatePanel();
+  const list = document.getElementById('report-list');
+  if (list && (_historyStale || !_loadedRange)) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+  }
+  try { await _ensureHistoryDataForFilter(); } catch(e) {}
   renderReport();
 }
 
-function reportApplyDateRange() {
+async function reportApplyDateRange() {
   const fromVal = document.getElementById('report-from-date')?.value;
   const toVal = document.getElementById('report-to-date')?.value;
   if (!fromVal && !toVal) { reportTimeFilter('all'); return; }
@@ -5250,6 +5369,9 @@ function reportApplyDateRange() {
   });
   _updateReportDateLabel();
   _closeReportDatePanel();
+  const list = document.getElementById('report-list');
+  if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+  try { await _ensureHistoryDataForFilter(); } catch(e) {}
   renderReport();
 }
 
@@ -6904,6 +7026,12 @@ async function _doHistSaveEdit() {
   document.getElementById('hist-edit-modal').style.display = 'none';
   _renderHistory();
   showToast('\u2705 \u0110\u00E3 l\u01B0u thay \u0111\u1ED5i.');
+  _historyStale = true;
+  setTimeout(function() {
+    _fetchHistoryData(true, _getCurrentFilterRange()).then(function() {
+      if (document.getElementById('screen-history').classList.contains('active')) _renderHistory();
+    }).catch(function() {});
+  }, 1500);
   if (document.getElementById('screen-history-detail').classList.contains('active') && _histDetailIdx >= 0) {
     const g = _historyGroups[_histDetailIdx];
     if (g) { showHistoryDetail(_histDetailIdx); } else { showHistory(); }
@@ -6932,6 +7060,12 @@ async function histDeleteGroup(idx) {
   _saveHistoryCache();
   _renderHistory();
   showToast('🗑︎ Đã xóa giao dịch.');
+  _historyStale = true;
+  setTimeout(function() {
+    _fetchHistoryData(true, _getCurrentFilterRange()).then(function() {
+      if (document.getElementById('screen-history').classList.contains('active')) _renderHistory();
+    }).catch(function() {});
+  }, 1500);
 }
 
 // ===== NHÁP =====
@@ -6973,6 +7107,7 @@ async function dtSaveDraft() {
   const totalQty = dtCart.reduce((s, x) => s + (Number(x.sl) || 0), 0);
   const totalAmount = dtCart.reduce((s, x) => s + (Number(x.sl) || 0) * (Number(x.gia) || 0), 0);
   rows.forEach(row => _historyData.push(_mapHistRow(row, 'Nháp')));
+  _historyStale = true;
   _saveHistoryCache();
   dtCart = [];
   document.getElementById('dt-giaodich').value = '';
@@ -7037,6 +7172,7 @@ async function saveDraft() {
   const totalQty = cart.reduce((s, x) => s + (Number(x.sl) || 0), 0);
   const totalAmount = cart.reduce((s, x) => s + (Number(x.sl) || 0) * (Number(x.gia) || 0), 0);
   rows.forEach(row => _historyData.push(_mapHistRow(row, 'Nháp')));
+  _historyStale = true;
   _saveHistoryCache();
   cart = []; cartGiaodich = '';
   document.getElementById('cart-ghichu').value = '';
@@ -7142,6 +7278,12 @@ async function _doDraftConfirm(idx, giaodich) {
   _saveHistoryCache();
   _renderHistory();
   showToast('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Đã xác nhận Xuất.');
+  _historyStale = true;
+  setTimeout(function() {
+    _fetchHistoryData(true, _getCurrentFilterRange()).then(function() {
+      if (document.getElementById('screen-history').classList.contains('active')) _renderHistory();
+    }).catch(function() {});
+  }, 2000);
   if (document.getElementById('screen-history-detail').classList.contains('active')) showHistory();
 
   // 2. ÂM THẦM XỬ LÝ TRÊN GOOGLE SHEET Ở BACKGROUND (Đã xóa chữ await)
