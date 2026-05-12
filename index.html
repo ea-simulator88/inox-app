@@ -1736,6 +1736,12 @@ function highlightMoney(rawVal, kw) {
   return '<mark style="background:#FFF176;color:#5D4037;border-radius:2px;padding:0 1px">' + formatted + '</mark>';
 }
 
+function hlField(text, kw, field, activeField) {
+  if (!kw || !text) return text || '';
+  if (activeField === 'all' || activeField === field) return highlightText(text, kw);
+  return text || '';
+}
+
 function isHidden(ma) {
   const p = (products || []).find(x => x.ma === ma);
   return p ? (p.an || '').trim() === 'Đang Ẩn' : false;
@@ -3011,12 +3017,16 @@ function renderProductList(list, kw) {
     const qid = 'q_' + p.ma.replace(/[^a-zA-Z0-9]/g, '_');
     const cartItem = cart.find(i => i.product.ma === p.ma);
     const cartSl = cartItem ? cartItem.sl : '';
-    const maLine = [p.ma, p.ncc, p.phanloai].filter(Boolean).join(' · ');
     const sizeLine = p.kichthuoc || '';
     const gv = Number(p.giavon) || 0;
     const gs = Number(p.giasi) || 0;
     const priceParts = [];
     const _msf = mobSearchField || 'all';
+    const maLineHtml = [
+      hlField(p.ma, kw, 'ma', _msf),
+      p.ncc ? hlField(p.ncc, kw, 'ncc', _msf) : '',
+      p.phanloai ? (_msf === 'all' ? highlightText(p.phanloai, kw) : p.phanloai) : ''
+    ].filter(Boolean).join(' · ');
     if (currentRole === 'owner' && gv > 0) priceParts.push(`<span style="color:#2e7d32;">Giá vốn ${_msf === 'giavon' ? highlightMoney(gv, kw) : fmtMoney(gv)}</span>`);
     if (gs > 0) priceParts.push(`<span style="color:#f44336;">Giá sỉ ${_msf === 'giasi' ? highlightMoney(gs, kw) : fmtMoney(gs)}</span>`);
     const priceLine = priceParts.length
@@ -3025,10 +3035,10 @@ function renderProductList(list, kw) {
     const tonDisplay = _msf === 'tonkho' ? highlightText('Tồn: ' + fmt(p.tonkho), kw) : 'Tồn: ' + fmt(p.tonkho);
     return `<div class="product-item">
       <div class="product-item-left" onclick="showForm(products.find(x=>x.ma==='${p.ma}'))">
-        <div class="product-item-ma">${highlightText(maLine, kw)}</div>
-        <div class="product-item-ten">${highlightText(p.ten, kw)}</div>
+        <div class="product-item-ma">${maLineHtml}</div>
+        <div class="product-item-ten">${hlField(p.ten, kw, 'ten', _msf)}</div>
         ${priceLine}
-        <div class="product-item-size">${highlightText(sizeLine, kw)}</div>
+        <div class="product-item-size">${_msf === 'all' ? highlightText(sizeLine, kw) : sizeLine}</div>
       </div>
       <div class="product-item-meta">
         <div class="product-item-tonkho${low ? ' low' : ''}">${tonDisplay}</div>
@@ -3837,11 +3847,11 @@ function renderManageProductList(list, kw) {
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
         <div style="flex:1;min-width:0;">
           <div style="display:flex;align-items:center;gap:6px;">
-            <div style="font-size:12px;color:#1565c0;">${highlightText(p.ma, kw)}${p.ncc ? '<span style="color:#1565c0;font-weight:400;"> · ' + highlightText(p.ncc, kw) + '</span>' : ''}</div>
+            <div style="font-size:12px;color:#1565c0;">${hlField(p.ma, kw, 'ma', _mngsf)}${p.ncc ? '<span style="color:#1565c0;font-weight:400;"> · ' + hlField(p.ncc, kw, 'ncc', _mngsf) + '</span>' : ''}</div>
             ${hidden ? '<span style="font-size:10px;background:#e0e0e0;color:#888;border-radius:4px;padding:1px 5px;font-weight:600;">Ẩn</span>' : ''}
           </div>
-          <div style="font-size:15px;font-weight:600;margin:2px 0;">${highlightText(p.ten, kw)}</div>
-          <div style="font-size:12px;color:#aaa;">${highlightText(p.kichthuoc, kw)}</div>
+          <div style="font-size:15px;font-weight:600;margin:2px 0;">${hlField(p.ten, kw, 'ten', _mngsf)}</div>
+          <div style="font-size:12px;color:#aaa;">${_mngsf === 'all' ? highlightText(p.kichthuoc || '', kw) : (p.kichthuoc || '')}</div>
           <div style="font-size:12px;color:${low ? '#f44336' : '#7d1ae8'};margin-top:4px;">${mngTonDisplay}</div>
           ${priceLine}
         </div>
@@ -4339,12 +4349,15 @@ function dtRenderProducts(list, kw) {
     const currentSl = cartItem ? cartItem.sl : '';
     const low = (p.tonkho || 0) <= LOW_STOCK_THRESHOLD;
     const slId = 'dt-sl-' + p.ma;
-    const maLine = p.ma + (p.ncc ? ' · ' + p.ncc : '');
     const sizeLine = p.kichthuoc || '';
     const gv = Number(p.giavon) || 0;
     const gs = Number(p.giasi) || 0;
     const priceParts = [];
     const _dsf = dtSearchField || 'all';
+    const dtMaLineHtml = [
+      hlField(p.ma, kw, 'ma', _dsf),
+      p.ncc ? hlField(p.ncc, kw, 'ncc', _dsf) : ''
+    ].filter(Boolean).join(' · ');
     if (currentRole === 'owner' && gv > 0) priceParts.push(`<span style="color:#2e7d32;">Giá vốn ${_dsf === 'giavon' ? highlightMoney(gv, kw) : fmtMoney(gv)}</span>`);
     if (gs > 0) priceParts.push(`<span style="color:#f44336;">Giá sỉ ${_dsf === 'giasi' ? highlightMoney(gs, kw) : fmtMoney(gs)}</span>`);
     const priceLine = priceParts.length
@@ -4356,10 +4369,10 @@ function dtRenderProducts(list, kw) {
       margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;
       background:${inCart ? '#e8f5e9' : '#fff'};">
       <div style="flex:1;min-width:0;">
-        <div style="font-size:11px;color:#1565c0;">${highlightText(maLine, kw)}</div>
-        <div style="font-size:13px;font-weight:600;margin:1px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${highlightText(p.ten, kw)}</div>
+        <div style="font-size:11px;color:#1565c0;">${dtMaLineHtml}</div>
+        <div style="font-size:13px;font-weight:600;margin:1px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${hlField(p.ten, kw, 'ten', _dsf)}</div>
         ${priceLine}
-        <div style="font-size:11px;color:#555;">${highlightText(sizeLine, kw)}</div>
+        <div style="font-size:11px;color:#555;">${_dsf === 'all' ? highlightText(sizeLine, kw) : sizeLine}</div>
       </div>
       <div style="flex-shrink:0;margin-left:8px;text-align:right;">
         <div style="font-size:12px;font-weight:600;color:${low ? '#f44336' : '#7d1ae8'};">${dtTonDisplay}</div>
@@ -5594,9 +5607,10 @@ function _renderReportSection(title, color, items, emptyText, type, kw) {
     <div class="report-detail-list">
       ${items.map(item => {
         const idx = _rptDetailData.push({ type, key: item.key, name: item.name }) - 1;
+        const _rptTypeField = type === 'ncc' ? 'ncc' : 'tenkhach';
         return `<div class="report-detail-item" onclick="showReportDetail(${idx})" style="cursor:pointer;">
           <div style="min-width:0;">
-            <div class="report-detail-name">${highlightText(item.name, kw)}</div>
+            <div class="report-detail-name">${hlField(item.name, kw, _rptTypeField, reportSearchField)}</div>
             <div class="report-detail-meta">${item.extra || (item.count + ' đơn')}</div>
           </div>
           <div class="report-detail-value">
@@ -5635,14 +5649,18 @@ function _renderProductReportSection(rows, kw) {
     </div>
     <div class="report-detail-list">
       ${items.map(item => {
-        const meta = [item.ma, item.kichthuoc].filter(Boolean).join(' · ');
+        const _rsf = reportSearchField || 'all';
+        const metaHtml = [
+          item.ma ? hlField(item.ma, kw, 'ma', _rsf) : '',
+          item.kichthuoc ? (_rsf === 'all' ? highlightText(item.kichthuoc, kw) : item.kichthuoc) : ''
+        ].filter(Boolean).join(' · ');
         const nhapLine = item.nhapQty > 0 ? `<div style="font-size:13px;color:#388e3c;white-space:nowrap;">Nhập: ${fmt(item.nhapQty)} | ${fmt(item.nhapAmount)}đ</div>` : '';
         const xuatLine = item.xuatQty > 0 ? `<div style="font-size:13px;color:#c62828;white-space:nowrap;">Xuất: ${fmt(item.xuatQty)} | ${fmt(item.xuatAmount)}đ</div>` : '';
         const idx = _rptDetailData.push({ type: 'sp', key: item.key, name: item.name, ma: item.ma, ncc: item.ncc, kichthuoc: item.kichthuoc }) - 1;
         return `<div class="report-detail-item" onclick="showReportDetail(${idx})" style="cursor:pointer;">
           <div style="min-width:0;flex:1;">
-            <div class="report-detail-name">${highlightText(item.name, kw)}${item.ncc ? ` <span style="color:#1565c0;font-weight:500;">· ${highlightText(item.ncc, kw)}</span>` : ''}</div>
-            ${meta ? `<div class="report-detail-meta">${highlightText(meta, kw)}</div>` : ''}
+            <div class="report-detail-name">${hlField(item.name, kw, 'hanghoa', _rsf)}${item.ncc ? ` <span style="color:#1565c0;font-weight:500;">· ${hlField(item.ncc, kw, 'ncc', _rsf)}</span>` : ''}</div>
+            ${metaHtml ? `<div class="report-detail-meta">${metaHtml}</div>` : ''}
           </div>
           <div style="text-align:right;flex-shrink:0;">${nhapLine}${xuatLine}</div>
         </div>`;
@@ -6343,6 +6361,7 @@ function _renderHistory() {
     return;
   }
   const rawHistQ = ((document.getElementById('hist-search') || {}).value || '').trim();
+  const _hsf = histSearchField || 'all';
 
   list.innerHTML = _historyGroups.map((g, i) => {
     const total = g.rows.reduce((s, r) => s + r.soluong * r.gia, 0);
@@ -6361,14 +6380,14 @@ function _renderHistory() {
           <div class="history-card-time">${formatHistoryTimeText(g)}</div>
             <div class="history-card-meta">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-              <span style="font-size:12px;padding:2px 8px;border-radius:10px;background:${loaiBg};color:${loaiColor};font-weight:600;">${highlightText(g.loai, rawHistQ)}</span>
+              <span style="font-size:12px;padding:2px 8px;border-radius:10px;background:${loaiBg};color:${loaiColor};font-weight:600;">${_hsf === 'all' ? highlightText(g.loai, rawHistQ) : g.loai}</span>
               <span style="font-size:13px;color:#555;">${g.rows.length} SP</span>
               <span style="font-size:13px;font-weight:600;color:#1a1a1a;">${total.toLocaleString('en-US')} đ</span>
-              ${g.giaodich ? `<span style="font-size:12px;color:#888;">· ${highlightText(g.giaodich.replace('Tiền mặt + Chuyển khoản','TM + CK'), rawHistQ)}</span>` : ''}
+              ${g.giaodich ? `<span style="font-size:12px;color:#888;">· ${_hsf === 'all' ? highlightText(g.giaodich.replace('Tiền mặt + Chuyển khoản','TM + CK'), rawHistQ) : g.giaodich.replace('Tiền mặt + Chuyển khoản','TM + CK')}</span>` : ''}
             </div>
             ${(g.tenkhach || (g.loai === 'Nhập' && g.rows[0]?.ncc)) ? `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-              ${g.tenkhach ? `<span style="font-size:12px;color:#555;">· ${highlightText(g.tenkhach, rawHistQ)}</span>` : ''}
-              ${g.loai === 'Nhập' && g.rows[0]?.ncc ? `<span style="font-size:12px;color:#1976d2;">· ${highlightText(g.rows[0].ncc, rawHistQ)}</span>` : ''}
+              ${g.tenkhach ? `<span style="font-size:12px;color:#555;">· ${hlField(g.tenkhach, rawHistQ, 'tenkhach', _hsf)}</span>` : ''}
+              ${g.loai === 'Nhập' && g.rows[0]?.ncc ? `<span style="font-size:12px;color:#1976d2;">· ${hlField(g.rows[0].ncc, rawHistQ, 'ncc', _hsf)}</span>` : ''}
             </div>` : ''}
           </div>
         </div>
