@@ -6695,7 +6695,7 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
   const rowOffset = pageIndex * 14; // chỉnh Hóa đơn các dòng
 
   const headerHTML = hidePrice
-    ? `<th style="${thS}width:6%;">TT</th><th style="${thS}width:60%;">Tên Hàng</th><th style="${thS}width:17%;">ĐVT</th><th style="${thS}width:17%;">SL</th>`
+    ? `<th style="${thS}width:6%;">TT</th><th style="${thS}width:60%;">Tên Hàng</th><th style="${thS}width:13%;">ĐVT</th><th style="${thS}width:23%;">SL</th>`
     : `<th style="${thS}width:6%;">TT</th><th style="${thS}width:50%;">Tên Hàng</th><th style="${thS}width:9.5%;">ĐVT</th><th style="${thS}width:6.5%;">SL</th><th style="${thS}width:16%;">Đơn Giá</th><th style="${thS}width:21%;">Thành Tiền</th>`;
 
   const bodyHTML = paddedRows.map((r, i) => {
@@ -6727,9 +6727,9 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
       ? `<tr><td colspan="6" style="${B}padding:1.6mm 2mm;text-align:left;font-size:3.5mm;font-weight:600;">Ghi chú: ${_esc(noteText)}</td></tr>`
       : '';
     if (hidePrice) {
-      footerHTML = `<tfoot><tr><td colspan="3" style="${B}padding:1.6mm 1mm;text-align:center;font-size:3.9mm;font-weight:700;">Tổng Cộng${giaodichLabel}</td><td style="${B}padding:1.6mm 1mm;text-align:right;font-size:3.9mm;font-weight:700;">${fmtInvMoney(grandTotal)} đ</td></tr></tfoot>`;
+      footerHTML = `<tfoot><tr><td colspan="3" style="${B}padding:1.6mm 1mm;text-align:center;font-size:4.5mm;font-weight:700;">Tổng Cộng${giaodichLabel}</td><td style="${B}padding:1.6mm 1mm;text-align:right;font-size:4.5mm;font-weight:700;">${fmtInvMoney(grandTotal)} đ</td></tr></tfoot>`;
     } else {
-      footerHTML = `<tfoot>${phiKTRow}${noteRow}<tr><td colspan="5" style="${B}padding:1.6mm 1mm;text-align:center;font-size:3.9mm;font-weight:700;">Tổng Cộng${giaodichLabel}</td><td style="${B}padding:1.6mm 1mm;text-align:right;font-size:3.9mm;font-weight:700;">${fmtInvMoney(grandTotal)} đ</td></tr></tfoot>`;
+      footerHTML = `<tfoot>${phiKTRow}${noteRow}<tr><td colspan="5" style="${B}padding:1.6mm 1mm;text-align:center;font-size:4.5mm;font-weight:700;">Tổng Cộng${giaodichLabel}</td><td style="${B}padding:1.6mm 1mm;text-align:right;font-size:4.5mm;font-weight:700;">${fmtInvMoney(grandTotal)} đ</td></tr></tfoot>`;
     }
   } else {
     const cs = hidePrice ? 4 : 6;
@@ -6762,9 +6762,9 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
     <span style="white-space:nowrap;">Địa chỉ:</span>
     ${isFirstPage
       ? (_addresses.length > 0
-        ? `<select class="inv-addr-select" onchange="syncInvAddrSelect(this)" style="flex:1;border:none;border-bottom:1px dotted #d32f2f;border-radius:0;height:6mm;font-size:3.2mm;font-weight:600;background:transparent;outline:none;padding:1.3mm 1mm 0;color:#d32f2f;font-family:inherit;"><option value=""></option>${_addresses.map(function(a){return '<option>'+_esc(a)+'</option>';}).join('')}</select>`
+        ? `<select class="inv-addr-select" onchange="syncInvAddrSelect(this)" style="flex:1;border:none;border-bottom:1px dotted #d32f2f;border-radius:0;height:6mm;font-size:3.9mm;font-weight:600;background:transparent;outline:none;padding:1.3mm 1mm 0;color:#d32f2f;font-family:inherit;"><option value=""></option>${_addresses.map(function(a){return '<option>'+_esc(a)+'</option>';}).join('')}</select>`
         : '<span style="flex:1;display:inline-block;border-bottom:1px dotted #d32f2f;height:6mm;"></span>')
-      : '<span class="inv-addr-follower" style="flex:1;display:inline-block;border-bottom:1px dotted #d32f2f;height:6mm;font-size:3.2mm;font-weight:600;color:#d32f2f;padding:1.3mm 1mm 0;box-sizing:border-box;"></span>'}
+      : '<span class="inv-addr-follower" style="flex:1;display:inline-block;border-bottom:1px dotted #d32f2f;height:6mm;font-size:3.9mm;font-weight:600;color:#d32f2f;padding:1.3mm 1mm 0;box-sizing:border-box;"></span>'}
   </div>
   <table style="width:100%;border-collapse:collapse;table-layout:fixed;color:#d32f2f;">
     <thead><tr>${headerHTML}</tr></thead>
