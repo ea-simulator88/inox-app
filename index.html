@@ -5977,7 +5977,7 @@ function showRptGdDetail(loai) {
         <div style="min-width:0;flex:1;">
           <div style="font-size:clamp(11px,3.35vw,13px);font-weight:600;color:#333;white-space:nowrap;">${_esc(gd)} (${fmt(v.qty)} SL · ${v.count} đơn)</div>
           ${v.phiVC > 0 ? `<div style="font-size:12px;color:${hideVC ? '#bbb' : '#666'};line-height:1.35;margin-top:2px;display:flex;align-items:center;">Phí vận chuyển | ${v.phiVCDon} đơn${eyeVC}</div>` : ''}
-          ${v.phiKT > 0 ? `<div style="font-size:12px;color:${hideKT ? '#bbb' : '#666'};line-height:1.35;display:flex;align-items:center;">Phí KT | ${v.phiKTDon} đơn${eyeKT}</div>` : ''}
+          ${v.phiKT > 0 ? `<div style="font-size:12px;color:${hideKT ? '#bbb' : '#666'};line-height:1.35;display:flex;align-items:center;">Phí khách trả | ${v.phiKTDon} đơn${eyeKT}</div>` : ''}
         </div>
         <div style="text-align:right;flex-shrink:0;">
           <div style="font-size:12px;font-weight:600;color:${color};white-space:nowrap;">${fmt(v.amount)} đ</div>
@@ -6072,7 +6072,7 @@ function showProfitDetail() {
   const xuatRowsHtml = [
     row(`Tổng xuất (${fmt(xuatQty)} SL · ${xuatDon} đơn)`, xuatTien, true, xuatQty, xuatDon),
     feeRow(`Phí vận chuyển | ${xuatPhiVCDon} đơn`, -xuatPhiVC, _pfHide.xuatVC, "_pfHide.xuatVC=!_pfHide.xuatVC;showProfitDetail()", xuatPhiVC, xuatPhiVCDon),
-    feeRow(`Phí KT | ${xuatPhiKTDon} đơn`, xuatPhiKT, _pfHide.xuatKT, "_pfHide.xuatKT=!_pfHide.xuatKT;showProfitDetail()", xuatPhiKT, xuatPhiKTDon),
+    feeRow(`Phí khách trả | ${xuatPhiKTDon} đơn`, xuatPhiKT, _pfHide.xuatKT, "_pfHide.xuatKT=!_pfHide.xuatKT;showProfitDetail()", xuatPhiKT, xuatPhiKTDon),
     row(`Tiền mặt | ${fmt(xuatTMQty)} SL · ${xuatTMDon} đơn`, xuatTM, false, xuatTMQty, xuatTMDon),
     row(`Chuyển khoản | ${fmt(xuatCKQty)} SL · ${xuatCKDon} đơn`, xuatCK, false, xuatCKQty, xuatCKDon),
     row(`TM + CK | ${fmt(xuatBothQty)} SL · ${xuatBothDon} đơn`, xuatBoth, false, xuatBothQty, xuatBothDon),
@@ -6153,7 +6153,7 @@ function renderReport() {
     </div>
 
     <div onclick="showProfitDetail()" style="grid-column: span 2; position:relative; background: #EFF6FF; border-radius: 12px; padding: 10px 20px; border: 1px solid #FFF7ED; margin-top: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); display: flex; align-items: center; justify-content: space-between;margin-top: -3px; cursor:pointer;">
-        <div style="font-size:14px; font-weight:700; color: #1D4ED8; letter-spacing: 0.5px; line-height: 1;">Lợi nhuận thực tế </div>
+        <div style="font-size:14px; font-weight:700; color: #1D4ED8; letter-spacing: 0.5px; line-height: 1;">Lợi Nhuận </div>
         <div style="font-size:14px; font-weight:700; color: #1D4ED8; line-height: 1;margin-right:40px;">${totalProfit >= 0 ? '+' : ''}${fmt(totalProfit)} đ</div>
         <div style="position:absolute;bottom:8px;right:10px;font-size:10px;color:#1D4ED8;">chi tiết ›</div>
     </div>
