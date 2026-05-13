@@ -443,7 +443,7 @@ const CONFIG = {
 };
 </script>
 <!-- ======================================================== -->
-
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 </head>
 <body>
 <div id="app">
@@ -1011,7 +1011,16 @@ const CONFIG = {
       <div style="max-width:1000px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between;position:relative;">
         <button class="btn-back" onclick="goMain()" style="flex-shrink:0;position:relative;z-index:1;">← Quay lại</button>
         <div class="header-title" style="position:absolute;left:0;right:0;text-align:center;pointer-events:none;">Báo cáo</div>
-        <div style="flex-shrink:0;position:relative;z-index:1;">
+        <div style="flex-shrink:0;position:relative;z-index:1;display:flex;align-items:center;gap:4px;">
+          <button id="btn-export-sodoanhthu" onclick="openSoDoanThuModal()" title="Xuất Sổ Doanh Thu" style="background:none;border:none;cursor:pointer;padding:4px 2px;line-height:1;display:none;">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 1H4a2 2 0 00-2 2v12a2 2 0 002 2h11a2 2 0 002-2V6z" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1.5"/>
+              <path d="M12 1v5h5" stroke="#7b1fa2" stroke-width="1.5" stroke-linejoin="round"/>
+              <text x="5" y="13" fill="#7b1fa2" font-size="5" font-weight="700" font-family="Arial,sans-serif">XLS</text>
+              <line x1="11" y1="17" x2="11" y2="21" stroke="#7b1fa2" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M8.5 19 11 21.5 13.5 19" fill="none" stroke="#7b1fa2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
           <button onclick="goMain()" title="Trang chính" style="background:none;border:none;cursor:pointer;padding:4px 2px;line-height:1;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
           </button>
@@ -1183,6 +1192,34 @@ const CONFIG = {
     <div style="display:flex;gap:10px;margin-top: -5px;">
       <button id="modal-no" style="flex:1;padding:13px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;font-weight:600;background:#fff;color:#555;cursor:pointer;">Không</button>
       <button id="modal-yes" style="flex:1;padding:13px;border:none;border-radius:10px;font-size:15px;font-weight:600;background:#f44336;color:#fff;cursor:pointer;">Vẫn xuất</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL XUẤT SỔ DOANH THU -->
+<div id="sdt-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:4500;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:24px 20px;width:min(340px,calc(100% - 32px));box-shadow:0 8px 32px rgba(0,0,0,0.18);position:relative;">
+    <button onclick="closeSoDoanThuModal()" style="position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:#999;padding:4px;line-height:1;" title="Đóng">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div style="font-size:16px;font-weight:700;color:#1a1a1a;margin-bottom:18px;padding-right:24px;">Xuất Sổ Doanh Thu</div>
+    <label style="font-size:13px;color:#888;margin-bottom:6px;display:block;margin-top:0;">Quý</label>
+    <div class="select-wrap" style="margin-bottom:14px;">
+      <select id="sdt-quy">
+        <option value="all">Tất cả</option>
+        <option value="1">Quý 1 (T1-3)</option>
+        <option value="2">Quý 2 (T4-6)</option>
+        <option value="3">Quý 3 (T7-9)</option>
+        <option value="4">Quý 4 (T10-12)</option>
+      </select>
+    </div>
+    <label style="font-size:13px;color:#888;margin-bottom:6px;display:block;margin-top:0;">Năm</label>
+    <div class="select-wrap" style="margin-bottom:22px;">
+      <select id="sdt-nam"></select>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeSoDoanThuModal()" style="flex:1;padding:13px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;font-weight:600;background:#fff;color:#555;cursor:pointer;">Huỷ</button>
+      <button id="sdt-tai-btn" onclick="exportSoDoanThu()" style="flex:1;padding:13px;border:none;border-radius:10px;font-size:15px;font-weight:600;background:#7b1fa2;color:#fff;cursor:pointer;">📥 Tải Excel</button>
     </div>
   </div>
 </div>
@@ -2407,8 +2444,9 @@ function applyRolePermissions(role) {
   d(document.getElementById('dt-btn-report'),     isOwner);
   d(document.getElementById('hist-btn-nhap'),     isOwner);
   d(document.getElementById('hist-nhap-summary'), isOwner);
-  d(document.getElementById('btn-settings'),      isOwner);
-  d(document.getElementById('dt-btn-settings'),   isOwner);
+  d(document.getElementById('btn-settings'),            isOwner);
+  d(document.getElementById('dt-btn-settings'),         isOwner);
+  d(document.getElementById('btn-export-sodoanhthu'),   isOwner);
 }
 
 function doLogout() {
@@ -7946,6 +7984,267 @@ function _buildTopKhachHtml(showAll) {
     if (dd && e.target !== _pfEl && !dd.contains(e.target)) _pfACHide();
   });
 })();
+
+// ===== SỔ DOANH THU EXPORT =====
+function openSoDoanThuModal() {
+  var namEl = document.getElementById('sdt-nam');
+  if (namEl) {
+    var currentYear = new Date().getFullYear();
+    namEl.innerHTML = '';
+    for (var y = currentYear; y >= 2024; y--) {
+      var opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y;
+      if (y === currentYear) opt.selected = true;
+      namEl.appendChild(opt);
+    }
+  }
+  var overlay = document.getElementById('sdt-modal-overlay');
+  if (overlay) overlay.style.display = 'flex';
+}
+
+function closeSoDoanThuModal() {
+  var overlay = document.getElementById('sdt-modal-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+async function exportSoDoanThu() {
+  if (typeof XLSX === 'undefined') { showToast('Đang tải thư viện, vui lòng thử lại.'); return; }
+  var quy = document.getElementById('sdt-quy').value;
+  var nam = parseInt(document.getElementById('sdt-nam').value);
+
+  var fromDate, toDate;
+  if (quy === 'all') {
+    fromDate = new Date(nam, 0, 1);
+    toDate   = new Date(nam + 1, 0, 1);
+  } else {
+    var q = parseInt(quy);
+    fromDate = new Date(nam, (q - 1) * 3, 1);
+    toDate   = new Date(nam, q * 3, 1);
+  }
+
+  var taiBtn = document.getElementById('sdt-tai-btn');
+  if (taiBtn) { taiBtn.innerHTML = '⏳ Đang tải...'; taiBtn.disabled = true; }
+
+  var xuatRows = [];
+  try {
+    var rFrom = fromDate.getTime();
+    var rTo   = toDate.getTime();
+    var covered = _loadedRange && _loadedRange.from <= rFrom && _loadedRange.to >= rTo;
+    if (covered && _historyData.length) {
+      xuatRows = _historyData.filter(function(r) { return r.loai === 'Xuất'; });
+    } else {
+      var res = await fetch(
+        SCRIPT_URL + '?action=history&token=inox2026xK9m&fromDate=' + fromDate.toISOString() + '&toDate=' + toDate.toISOString(),
+        { cache: 'no-store' }
+      );
+      var data = await res.json();
+      xuatRows = (data.xuat || []).map(function(r) { return _mapHistRow(r, 'Xuất'); });
+    }
+  } catch(e) {
+    if (taiBtn) { taiBtn.innerHTML = '📥 Tải Excel'; taiBtn.disabled = false; }
+    showToast('Không tải được dữ liệu. Vui lòng thử lại.');
+    return;
+  }
+
+  xuatRows = xuatRows.filter(function(r) {
+    var d = new Date(r.thoigian_raw);
+    if (d.getFullYear() !== nam) return false;
+    if (quy !== 'all') {
+      var month = d.getMonth() + 1;
+      var q2 = parseInt(quy);
+      if (month < (q2 - 1) * 3 + 1 || month > q2 * 3) return false;
+    }
+    return true;
+  });
+  xuatRows = xuatRows.slice().sort(function(a, b) { return a.thoigian_raw - b.thoigian_raw; });
+
+  var kyLabel  = quy === 'all' ? ('Cả năm ' + nam) : ('Quý ' + quy + ' năm ' + nam);
+  var filename = 'SoDoanThu_' + (quy === 'all' ? 'CaNam' : 'Q' + quy) + '_' + nam + '.xlsx';
+
+  // ===== BUILD FORMATTED WORKSHEET =====
+  var wb = XLSX.utils.book_new();
+  var ws = {};
+
+  var BDR = {
+    top:    { style: 'thin',   color: { rgb: '000000' } },
+    bottom: { style: 'thin',   color: { rgb: '000000' } },
+    left:   { style: 'thin',   color: { rgb: '000000' } },
+    right:  { style: 'thin',   color: { rgb: '000000' } }
+  };
+  var BDR_MED = {
+    top:    { style: 'medium', color: { rgb: '000000' } },
+    bottom: { style: 'medium', color: { rgb: '000000' } },
+    left:   { style: 'medium', color: { rgb: '000000' } },
+    right:  { style: 'medium', color: { rgb: '000000' } }
+  };
+
+  // Helper: write cell
+  function sc(r, c, v, s, numFmt) {
+    var addr = XLSX.utils.encode_cell({ r: r, c: c });
+    var isNum = typeof v === 'number';
+    ws[addr] = { v: (v === null || v === undefined) ? '' : v, t: isNum ? 'n' : 's', s: s || {} };
+    if (isNum && numFmt) ws[addr].z = numFmt;
+  }
+
+  // --- Style definitions ---
+  var S_INFO = { font: { sz: 10, name: 'Times New Roman' } };
+  var S_TITLE = {
+    font: { bold: true, sz: 12, name: 'Times New Roman' },
+    alignment: { horizontal: 'center', vertical: 'center' }
+  };
+  var S_SUBTITLE = {
+    font: { sz: 11, name: 'Times New Roman' },
+    alignment: { horizontal: 'center', vertical: 'center' }
+  };
+  var S_UNIT_LABEL = {
+    font: { italic: true, sz: 10, name: 'Times New Roman' },
+    alignment: { horizontal: 'right', vertical: 'bottom' }
+  };
+  var S_HDR = {
+    font: { bold: true, sz: 11, name: 'Times New Roman' },
+    alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+    border: BDR,
+    fill: { patternType: 'solid', fgColor: { rgb: 'EEEEEE' } }
+  };
+  var S_IDX = {
+    font: { italic: true, sz: 9, name: 'Times New Roman' },
+    alignment: { horizontal: 'center', vertical: 'center' },
+    border: BDR,
+    fill: { patternType: 'solid', fgColor: { rgb: 'EEEEEE' } }
+  };
+  var S_DATA_TEXT = {
+    font: { sz: 11, name: 'Times New Roman' },
+    alignment: { vertical: 'center', wrapText: true },
+    border: BDR
+  };
+  var S_DATA_CTR = {
+    font: { sz: 11, name: 'Times New Roman' },
+    alignment: { horizontal: 'center', vertical: 'center' },
+    border: BDR
+  };
+  var S_DATA_NUM = {
+    font: { sz: 11, name: 'Times New Roman' },
+    alignment: { horizontal: 'right', vertical: 'center' },
+    border: BDR
+  };
+  var S_TOTAL_LBL = {
+    font: { bold: true, sz: 10, name: 'Times New Roman' },
+    alignment: { horizontal: 'center', vertical: 'center' },
+    border: BDR_MED,
+    fill: { patternType: 'solid', fgColor: { rgb: 'DDDDDD' } }
+  };
+  var S_TOTAL_NUM = {
+    font: { bold: true, sz: 10, name: 'Times New Roman' },
+    alignment: { horizontal: 'right', vertical: 'center' },
+    border: BDR_MED,
+    fill: { patternType: 'solid', fgColor: { rgb: 'DDDDDD' } }
+  };
+  var S_MAU_SO = {
+    font: { italic: true, sz: 8, name: 'Times New Roman' },
+    alignment: { horizontal: 'center', vertical: 'top', wrapText: true }
+  };
+
+  // --- Info rows (0-6) ---
+  sc(0, 0, 'HỘ, CÁ NHÂN KINH DOANH: Hộ Kinh Doanh Hàng Gia Dụng', S_INFO);
+  sc(1, 0, 'Địa chỉ: 49 Lê Quang Sung, Phường Bình Tây, TPHCM',    S_INFO);
+  sc(2, 0, 'Mã số thuế: ',                                           S_INFO);
+  sc(0, 3, 'Mẫu số S2a-HKD\n(Kèm theo Thông tư số 152/2025/TT-BTC\nngày 31 tháng 12 năm 2025 của Bộ trưởng\nBộ Tài chính)', S_MAU_SO);
+  // row 3: empty
+  sc(4, 0, 'SỔ DOANH THU BÁN HÀNG HÓA, DỊCH VỤ',                   S_TITLE);
+  sc(5, 0, 'Địa điểm kinh doanh: 49 Lê Quang Sung, Phường Bình Tây, TPHCM', S_SUBTITLE);
+  sc(6, 0, 'Kỳ kê khai: ' + kyLabel,                                S_SUBTITLE);
+  // row 7: empty
+
+  // --- "Đơn vị tính" label (row 8, col 4) ---
+  sc(8, 4, 'Đơn vị tính: đồng', S_UNIT_LABEL);
+
+  // --- Table header row 1 (row 9) ---
+  sc(9, 0, 'Chứng từ',  S_HDR);  // merges right to col 1
+  sc(9, 1, '',           S_HDR);
+  sc(9, 2, 'Diễn giải', S_HDR);  // merges down to row 10
+  sc(9, 3, 'Số lượng',  S_HDR);  // merges down to row 10
+  sc(9, 4, 'Thành tiền',   S_HDR);  // merges down to row 10
+
+  // --- Table header row 2 (row 10) ---
+  sc(10, 0, 'Số hiệu',     S_HDR);
+  sc(10, 1, 'Ngày, tháng', S_HDR);
+  sc(10, 2, '',             S_HDR);
+  sc(10, 3, '',             S_HDR);
+  sc(10, 4, '',             S_HDR);
+
+  // --- Column reference row (row 11) ---
+  sc(11, 0, 'A', S_IDX);
+  sc(11, 1, 'B', S_IDX);
+  sc(11, 2, 'C', S_IDX);
+  sc(11, 3, 'D', S_IDX);
+  sc(11, 4, '1', S_IDX);
+
+  // --- Data rows ---
+  var DR = 12;
+  ws['!rows'] = [];
+  xuatRows.forEach(function(r, i) {
+    var row = DR + i;
+    var dt  = new Date(r.thoigian_raw);
+    var ngay = String(dt.getDate()).padStart(2,'0') + '/' +
+               String(dt.getMonth()+1).padStart(2,'0') + '/' + dt.getFullYear();
+    var ten  = (r.hanghoa  || '').trim();
+    var dg   = ten;
+    var sl   = Number(r.soluong) || 0;
+    var tien = sl * (Number(r.gia) || 0);
+    // AutoFit: ước tính số dòng wrap dựa trên độ dài text cột Diễn giải
+    var wLines = Math.max(1, Math.ceil(dg.length / 40));
+    ws['!rows'][row] = { hpx: wLines * 14 + 2 };
+    sc(row, 0, '',   S_DATA_CTR);
+    sc(row, 1, ngay, S_DATA_CTR);
+    sc(row, 2, dg,   S_DATA_TEXT);
+    sc(row, 3, sl,   S_DATA_NUM, '#,##0');
+    sc(row, 4, tien, S_DATA_NUM, '#,##0');
+  });
+
+  // --- Total row ---
+  var TR    = DR + xuatRows.length;
+  var total = xuatRows.reduce(function(s, r) { return s + (Number(r.soluong)||0)*(Number(r.gia)||0); }, 0);
+  sc(TR, 0, 'TỔNG CỘNG', S_TOTAL_LBL);
+  sc(TR, 1, '',           S_TOTAL_LBL);
+  sc(TR, 2, '',           S_TOTAL_LBL);
+  sc(TR, 3, '',           S_TOTAL_LBL);
+  sc(TR, 4, total,        S_TOTAL_NUM, '#,##0');
+
+  // --- Merges ---
+  ws['!merges'] = [
+    { s:{r:0,c:0},  e:{r:0,c:2}  },   // HỘ KINH DOANH
+    { s:{r:1,c:0},  e:{r:1,c:2}  },   // Địa chỉ
+    { s:{r:2,c:0},  e:{r:2,c:2}  },   // MST
+    { s:{r:0,c:3},  e:{r:3,c:4}  },   // Mẫu số S2a-HKD (góc phải trên)
+    { s:{r:4,c:0},  e:{r:4,c:4}  },   // Tiêu đề
+    { s:{r:5,c:0},  e:{r:5,c:4}  },   // Địa điểm KD
+    { s:{r:6,c:0},  e:{r:6,c:4}  },   // Kỳ kê khai
+    { s:{r:9,c:0},  e:{r:9,c:1}  },   // "Chứng từ" gộp 2 cột
+    { s:{r:9,c:2},  e:{r:10,c:2} },   // "Diễn giải" gộp 2 hàng
+    { s:{r:9,c:3},  e:{r:10,c:3} },   // "Số lượng" gộp 2 hàng
+    { s:{r:9,c:4},  e:{r:10,c:4} },   // "Số tiền" gộp 2 hàng
+    { s:{r:TR,c:0}, e:{r:TR,c:3} },   // "TỔNG CỘNG" gộp 4 cột
+  ];
+
+  // --- Column widths & row heights ---
+  ws['!cols'] = [{ wch: 9 }, { wch: 12 }, { wch: 39 }, { wch: 11 }, { wch: 15 }];
+  ws['!rows'][4]  = { hpx: 30 };
+  ws['!rows'][9]  = { hpx: 30 };
+  ws['!rows'][10] = { hpx: 15 };
+  ws['!rows'][11] = { hpx: 15 };
+
+  ws['!margins']   = { left: 0.59, right: 0.59, top: 0.79, bottom: 0.79, header: 0.31, footer: 0.31 };
+  ws['!pageSetup'] = { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
+  ws['!ref'] = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:TR,c:4} });
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Sổ Doanh Thu');
+  XLSX.writeFile(wb, filename);
+
+  if (taiBtn) { taiBtn.innerHTML = '📥 Tải Excel'; taiBtn.disabled = false; }
+  closeSoDoanThuModal();
+  showToast('Đã xuất ' + filename);
+}
 </script>
 </body>
 </html>
