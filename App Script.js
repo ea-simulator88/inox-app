@@ -187,15 +187,15 @@ function doPost(e) {
           const giaDieuChinh = Number(adjustedGiaVon) || 0;
           const ts = Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd HH:mm:ss');
           const _adjIsX = adjSheet.getName() === 'Xuất';
-          // Xuất: A-K=data, L=phiKT(empty), M=formula, N=tenkhach(empty), O=note
-          // Nhập: A-K=data, L=formula,       M=note
+          // Xuất: A-K=data, L=KhachNo(empty), M=formula, N=tenkhach(empty), O=note
+          // Nhập: A-J=data, K=NoNCC(empty),   L=formula, M=note
           const adjRow = _adjIsX
-            ? [data.ma, ts, data.row[1], data.row[2], data.row[3], data.row[6], Math.abs(delta), giaDieuChinh, '', '', '', '', '', note]
-            : [data.ma, ts, data.row[1], data.row[2], data.row[3], data.row[6], Math.abs(delta), giaDieuChinh, '', '', '', note];
+            ? [data.ma, ts, data.row[1], data.row[2], data.row[3], data.row[6], Math.abs(delta), giaDieuChinh, '', '', '', '', '', '', note]
+            : [data.ma, ts, data.row[1], data.row[2], data.row[3], data.row[6], Math.abs(delta), giaDieuChinh, '', '', '', '', note];
           _withoutFilter_(adjSheet, function() {
             adjSheet.appendRow(adjRow);
             const nr = adjSheet.getLastRow();
-            adjSheet.getRange(nr, _adjIsX ? 12 : 11).setFormula('=G' + nr + '*H' + nr + '+J' + nr + (_adjIsX ? '+K' + nr : ''));
+            adjSheet.getRange(nr, _adjIsX ? 13 : 12).setFormula('=G' + nr + '*H' + nr + '+J' + nr + (_adjIsX ? '+K' + nr : ''));
           });
         }
       }
@@ -279,7 +279,7 @@ function doPost(e) {
             if (_historyTimeKey(cv) !== targetTimeKey) continue;
 
             const rowParty = (data.sheet === 'Xuất' || data.sheet === 'Nháp')
-              ? String(vals[i][12] || '').trim().toLowerCase()
+              ? String(vals[i][13] || '').trim().toLowerCase()
               : String(vals[i][2] || '').trim().toLowerCase();
 
             if (expectedParty && rowParty !== expectedParty) continue;
@@ -317,12 +317,12 @@ function doPost(e) {
         }
       }
       if (data.action === 'updateHistoryRows' && Array.isArray(data.rows)) {
-        const noteCol = data.sheet === 'Nhập' ? 12 : 14;
+        const noteCol = data.sheet === 'Nhập' ? 13 : 15;
         const _isXuatUpd = data.sheet === 'Xuất' || data.sheet === 'Nháp';
         const preparedRows = data.rows.map(function(row, i) {
           const r = row.slice();
           if (data.sheet === 'Nhập') {
-            r.length = 12; // Cắt bỏ các cột thừa, chỉ giữ đúng 12 cột (A -> L) của sheet Nhập
+            r.length = 13; // Cắt bỏ các cột thừa, chỉ giữ đúng 13 cột (A -> M) của sheet Nhập
           }
           if (data.notes && data.notes[i]) {
             while (r.length < noteCol) r.push('');
@@ -340,7 +340,7 @@ function doPost(e) {
             const startRow = sheet.getLastRow() + 1;
             sheet.getRange(startRow, 1, preparedRows.length, maxCols).setValues(preparedRows);
 
-            const formulaCol = _isXuatUpd ? 12 : 11;
+            const formulaCol = _isXuatUpd ? 13 : 12;
             const formulas = preparedRows.map(function(_, i) {
               const nr = startRow + i;
               return ['=G' + nr + '*H' + nr + '+J' + nr + (_isXuatUpd ? '+K' + nr : '')];
@@ -357,6 +357,42 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
+    // ── Xóa nợ một dòng lịch sử ──────────────────────────
+    if (data.action === 'clearDebtRow') {
+      const debtSheet = ss.getSheetByName(data.sheet);
+      if (!debtSheet) return _json({ ok: false, error: 'Sheet not found' });
+      const _isXuatDebt = data.sheet === 'Xuất' || data.sheet === 'Nháp';
+      const debtColNum = _isXuatDebt ? 12 : 11;
+      const noteColNum = _isXuatDebt ? 15 : 13;
+      const timeKey = _historyTimeKey(data.thoigian_key || '');
+      const ma = (data.ma || '').toString().trim();
+      if (!timeKey) return _json({ ok: false, error: 'Invalid thoigian_key' });
+      const dv = debtSheet.getDataRange().getValues();
+      const dd = debtSheet.getDataRange().getDisplayValues();
+      let found = false;
+      for (let i = 1; i < dv.length; i++) {
+        const cv = dd[i][1] || dv[i][1];
+        if (!cv) continue;
+        if (_historyTimeKey(cv) !== timeKey) continue;
+        if (ma && ma !== '[object Object]') {
+          const rowMaRaw = (dv[i][0] || '').toString().trim();
+          const rowMaDisp = (dd[i][0] || '').toString().trim();
+          if (rowMaRaw !== ma && rowMaDisp !== ma) continue;
+        }
+        const debtVal = Number(dv[i][debtColNum - 1]) || 0;
+        if (debtVal <= 0) continue;
+        debtSheet.getRange(i + 1, debtColNum).setValue('');
+        const dateStr = Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'dd/MM/yyyy');
+        const noteText = (_isXuatDebt ? 'Khách Nợ' : 'Nợ NCC') + ': ' + debtVal + '→0; ' + dateStr;
+        const noteCell = debtSheet.getRange(i + 1, noteColNum);
+        const existingNote = (noteCell.getValue() || '').toString().trim();
+        noteCell.setValue(existingNote ? existingNote + ' | ' + noteText : noteText);
+        found = true;
+        break;
+      }
+      return _json({ ok: found });
+    }
+
     // ── MẶC ĐỊNH: ghi Xuất / Nhập / Nháp ──────────────────
     const rowsToWrite = data.rows || [data.row];
     const _isXuatOrDraft = data.sheet === 'Xuất' || data.sheet === 'Nháp';
@@ -365,8 +401,8 @@ function doPost(e) {
     const preparedRows = rowsToWrite.map(function(row) {
       const r = row.slice();
       if (_isXuatOrDraft) {
-        while (r.length < 14) r.push('');
-        r[14] = data.user_name || '';
+        while (r.length < 15) r.push('');
+        r[15] = data.user_name || '';
       }
       return r;
     });
@@ -376,7 +412,7 @@ function doPost(e) {
     preparedRows.forEach(function(r) { while (r.length < maxCols) r.push(''); });
 
     // Ghi tất cả dòng 1 lần + set công thức 1 lần
-    const formulaCol = _isXuatOrDraft ? 12 : 11;
+    const formulaCol = _isXuatOrDraft ? 13 : 12;
     _withoutFilter_(sheet, function() {
       const startRow = sheet.getLastRow() + 1;
       sheet.getRange(startRow, 1, preparedRows.length, maxCols).setValues(preparedRows);
@@ -510,17 +546,17 @@ function _historyMatchSignature_(sheetName, row) {
   ];
 
   if (sheetName === 'Xuất') {
-    // ghichu (col 13) excluded: updateHistoryRows appends edit notes into that cell → mismatch after edit. //
+    // ghichu (col 14) excluded: updateHistoryRows appends edit notes into that cell → mismatch after edit.
     parts.push(
-      getVal(row, 12, 'tenkhach'),
-      getVal(row, 14, 'nguoighi')
+      getVal(row, 13, 'tenkhach'),
+      getVal(row, 15, 'nguoighi')
     );
   } else if (sheetName === 'Nháp') {
     // ghichu excluded: updateHistoryRows appends edit notes into that cell → mismatch after edit.
     // phichanh/phikhachtra excluded: sign/format differences cause mismatches in some flows.
     // tenkhach + 9 base fields + second-precision timestamp are unique enough
     parts.push(
-      getVal(row, 12, 'tenkhach')
+      getVal(row, 13, 'tenkhach')
     );
   } else {
     // Nhập: ghichu (col 12) excluded for same reason — notes appended there after edit.
@@ -707,7 +743,7 @@ function onEdit(e) {
   if (row <= 1) return;
 
   const col = e.range.getColumn();
-  const noteCol = sheetName === 'Nhập' ? 12 : sheetName === 'Sản phẩm' ? 11 : 14; // Nhập=L(12), SP=K(11), Xuất/Nháp=N(14)
+  const noteCol = sheetName === 'Nhập' ? 13 : sheetName === 'Sản phẩm' ? 11 : 15; // Nhập=M(13), SP=K(11), Xuất/Nháp=O(15)
   if (col === noteCol) return;
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
