@@ -7154,7 +7154,7 @@ async function exportSoDoanThu() {
   sc(10, 6, '',             S_HDR);
   sc(10, 7, '',             S_HDR);
 
-  // --- Column reference row (row 11) ---
+  //  --- Column reference row (row 11) ---
   sc(11, 0, 'A', S_IDX);
   sc(11, 1, 'B', S_IDX);
   sc(11, 2, 'C', S_IDX);

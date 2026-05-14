@@ -7,7 +7,7 @@ html.app-booting #app { visibility: hidden; }
 #screen-form, #screen-cart, #screen-history, #screen-history-detail, #screen-report { flex-direction: column; height: calc(100vh - 1rem); overflow: hidden; }
 #screen-form.active, #screen-cart.active, #screen-history.active, #screen-history-detail.active, #screen-report.active { display: flex; }
 
-/* Logo */
+/*  Logo  */
 .logo { text-align: center; padding: 2.5rem 0 2rem; }
 .logo-title { font-size: 24px; font-weight: 600; color: #1a1a1a; }
 .logo-sub { font-size: 14px; color: #888; margin-top: 6px; }

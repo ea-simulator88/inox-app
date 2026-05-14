@@ -322,7 +322,7 @@ function doPost(e) {
         const preparedRows = data.rows.map(function(row, i) {
           const r = row.slice();
           if (data.sheet === 'Nhập') {
-            r.length = 13; // Cắt bỏ các cột thừa, chỉ giữ đúng 13 cột (A -> M) của sheet Nhập
+            r.length = 13; // Cắt bo các cột thừa, chỉ giữ đúng 13 cột (A -> M) của sheet Nhập
           }
           if (data.notes && data.notes[i]) {
             while (r.length < noteCol) r.push('');

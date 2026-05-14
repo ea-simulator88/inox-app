@@ -1,9 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: ==========================================
+:: ===========================================
 :: PHAN 1: TU DONG BACKUP VAO FOLDER THEO SO THU TU
-:: ==========================================
+:: ===========================================
 set "SRC_DIR=%~dp0"
 set "BAK_DIR=%~dp0..\Backup"
 
