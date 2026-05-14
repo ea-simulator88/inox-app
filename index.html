@@ -1146,7 +1146,7 @@ const CONFIG = {
         <button onclick="showAnalyticsModal('chart7')"
           style="width:100%;padding:13px 16px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;
           font-size:13px;font-weight:600;color:#1a1a1a;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;">
-          <span>📅</span><span>Biểu đồ 7 ngày Nhập / Xuất</span>
+          <span>📅</span><span>Biểu đồ Nhập / Xuất</span>
         </button>
         <button onclick="showAnalyticsModal('topsp')"
           style="width:100%;padding:13px 16px;background:#fff;border:1px solid #e0e0e0;border-radius:10px;
@@ -7580,8 +7580,8 @@ function showAnalyticsModal(type) {
   const bodyEl  = document.getElementById('analytics-modal-body');
   let title = '', html = '';
   if (type === 'chart7') {
-    title = '📅 Biểu đồ 7 ngày Nhập / Xuất';
-    html  = _buildChart7Html();
+    title = '📅 Biểu đồ Nhập / Xuất';
+    html  = _buildChart7Html('week');
   } else if (type === 'topsp') {
     title = '📦 Sản phẩm bán chạy nhất';
     html  = _buildTopSpHtml();
@@ -7602,33 +7602,117 @@ function closeAnalyticsModal() {
   if (overlay) overlay.classList.remove('active');
 }
 
-function _buildChart7Html() {
+function _reRenderChart(period) {
+  const bodyEl = document.getElementById('analytics-modal-body');
+  if (bodyEl) bodyEl.innerHTML = _buildChart7Html(period);
+}
+
+function _getChartDateRange(period) {
   const now = new Date();
-  const days = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-    days.push(d);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+  if (period === 'week') {
+    const off = today.getDay() === 0 ? 6 : today.getDay() - 1;
+    return { from: new Date(today.getFullYear(), today.getMonth(), today.getDate() - off), to: endOfDay };
+  } else if (period === 'lastweek') {
+    const off = today.getDay() === 0 ? 6 : today.getDay() - 1;
+    const thisMon = new Date(today.getFullYear(), today.getMonth(), today.getDate() - off);
+    const lastMon = new Date(thisMon.getFullYear(), thisMon.getMonth(), thisMon.getDate() - 7);
+    const lastSun = new Date(thisMon.getFullYear(), thisMon.getMonth(), thisMon.getDate() - 1, 23, 59, 59);
+    return { from: lastMon, to: lastSun };
+  } else if (period === 'month') {
+    return { from: new Date(today.getFullYear(), today.getMonth(), 1), to: endOfDay };
+  } else if (period === 'lastmonth') {
+    const from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const to   = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59);
+    return { from, to };
+  } else {
+    return { from: new Date(today.getFullYear(), 0, 1), to: endOfDay };
   }
-  const nhapByDay = {}, xuatByDay = {};
-  days.forEach(d => { const key = d.toDateString(); nhapByDay[key] = 0; xuatByDay[key] = 0; });
+}
+
+async function _refreshChartData(period) {
+  _setRefreshLoading('chart-refresh-btn', true);
+  try {
+    await _fetchHistoryData(true, _getChartDateRange(period));
+    _reRenderChart(period);
+    showToast('Đã làm mới biểu đồ');
+  } catch(e) {
+    showToast('⚠️ Không thể làm mới dữ liệu');
+  } finally {
+    _setRefreshLoading('chart-refresh-btn', false);
+  }
+}
+
+function _buildChart7Html(period) {
+  period = period || 'week';
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  let days = [], groupBy = 'day', periodLabel = '', dateRangeLabel = '';
+
+  if (period === 'week') {
+    const dow = today.getDay();
+    const mondayOffset = dow === 0 ? 6 : dow - 1;
+    const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - mondayOffset);
+    for (let d = new Date(monday); d <= today; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) days.push(new Date(d));
+    periodLabel = 'Tuần này';
+    dateRangeLabel = `${monday.getDate()}/${monday.getMonth()+1} – ${today.getDate()}/${today.getMonth()+1}`;
+  } else if (period === 'lastweek') {
+    const dow = today.getDay();
+    const mondayOffset = dow === 0 ? 6 : dow - 1;
+    const thisMonday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - mondayOffset);
+    const lastMonday = new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate() - 7);
+    for (let i = 0; i < 7; i++) days.push(new Date(lastMonday.getFullYear(), lastMonday.getMonth(), lastMonday.getDate() + i));
+    const lastSun = days[6];
+    periodLabel = 'Tuần trước';
+    dateRangeLabel = `${lastMonday.getDate()}/${lastMonday.getMonth()+1} – ${lastSun.getDate()}/${lastSun.getMonth()+1}`;
+  } else if (period === 'month') {
+    for (let i = 1; i <= today.getDate(); i++) days.push(new Date(today.getFullYear(), today.getMonth(), i));
+    periodLabel = `Tháng ${today.getMonth()+1}`;
+    dateRangeLabel = `1/${today.getMonth()+1} – ${today.getDate()}/${today.getMonth()+1}`;
+  } else if (period === 'lastmonth') {
+    const lastMonthDays = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+    for (let i = 1; i <= lastMonthDays; i++) days.push(new Date(today.getFullYear(), today.getMonth() - 1, i));
+    const lm = today.getMonth() === 0 ? 12 : today.getMonth();
+    periodLabel = `Tháng ${lm}`;
+    dateRangeLabel = `1/${lm} – ${lastMonthDays}/${lm}`;
+  } else if (period === 'year') {
+    groupBy = 'month';
+    for (let m = 0; m <= today.getMonth(); m++) days.push(new Date(today.getFullYear(), m, 1));
+    periodLabel = `Năm ${today.getFullYear()}`;
+    dateRangeLabel = `T1 – T${today.getMonth()+1}/${today.getFullYear()}`;
+  }
+
+  const getKey = d => groupBy === 'month'
+    ? d.getFullYear() + '-' + d.getMonth()
+    : d.toDateString();
+
+  const nhapByKey = {}, xuatByKey = {};
+  days.forEach(d => { const k = getKey(d); nhapByKey[k] = 0; xuatByKey[k] = 0; });
   (_historyData || []).forEach(r => {
     if (!r.thoigian_raw) return;
     const d = new Date(r.thoigian_raw);
-    const key = d.toDateString();
-    if (!(key in nhapByDay)) return;
-    if (r.loai === 'Nhập') nhapByDay[key] += (Number(r.soluong)||0) * (Number(r.gia)||0);
-    else if (r.loai === 'Xuất') xuatByDay[key] += (Number(r.soluong)||0) * (Number(r.gia)||0);
+    const k = getKey(d);
+    if (!(k in nhapByKey)) return;
+    if (r.loai === 'Nhập') nhapByKey[k] += (Number(r.soluong)||0) * (Number(r.gia)||0);
+    else if (r.loai === 'Xuất') xuatByKey[k] += (Number(r.soluong)||0) * (Number(r.gia)||0);
   });
-  const nhapVals = days.map(d => nhapByDay[d.toDateString()]);
-  const xuatVals = days.map(d => xuatByDay[d.toDateString()]);
+
+  const nhapVals = days.map(d => nhapByKey[getKey(d)]);
+  const xuatVals = days.map(d => xuatByKey[getKey(d)]);
+  const xLabels  = days.map(d => groupBy === 'month' ? `T${d.getMonth()+1}` : `${d.getDate()}/${d.getMonth()+1}`);
   const maxVal   = Math.max(...nhapVals, ...xuatVals, 1);
+
   const W = 640, H = 220, padL = 60, padR = 16, padT = 16, padB = 40;
-  const chartW = W - padL - padR;
-  const chartH = H - padT - padB;
-  const colW   = chartW / days.length;
-  const barW   = Math.floor(colW * 0.28);
-  const gap    = 4;
+  const chartW = W - padL - padR, chartH = H - padT - padB;
+  const colW = chartW / days.length;
+  const barW = Math.max(4, Math.min(Math.floor(colW * 0.28), 24));
+  const gap  = 4;
   const scaleY = v => padT + chartH - (v / maxVal) * chartH;
+  const labelFontSize = days.length > 14 ? 8 : 10;
+  const showLabel = i => days.length <= 14 || i === 0 || i === days.length - 1 || (i + 1) % 5 === 0;
+
   let yLines = '';
   for (let i = 0; i <= 4; i++) {
     const v = (maxVal / 4) * i;
@@ -7637,16 +7721,17 @@ function _buildChart7Html() {
     yLines += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#f0f0f0" stroke-width="1"/>`;
     yLines += `<text x="${padL - 6}" y="${y + 4}" font-size="10" fill="#aaa" text-anchor="end">${label}</text>`;
   }
+
   let bars = '';
   days.forEach((d, i) => {
     const x = padL + i * colW + colW / 2;
-    const nVal = nhapVals[i], xVal = xuatVals[i];
-    const nH = nVal > 0 ? Math.max(2, (nVal / maxVal) * chartH) : 0;
-    const xH = xVal > 0 ? Math.max(2, (xVal / maxVal) * chartH) : 0;
+    const nH = nhapVals[i] > 0 ? Math.max(2, (nhapVals[i] / maxVal) * chartH) : 0;
+    const xH = xuatVals[i] > 0 ? Math.max(2, (xuatVals[i] / maxVal) * chartH) : 0;
     bars += `<rect x="${x - barW - gap/2}" y="${padT + chartH - nH}" width="${barW}" height="${nH}" fill="#4CAF50" rx="3" opacity="0.85"/>`;
     bars += `<rect x="${x + gap/2}" y="${padT + chartH - xH}" width="${barW}" height="${xH}" fill="#f44336" rx="3" opacity="0.85"/>`;
-    bars += `<text x="${x}" y="${H - padB + 14}" font-size="10" fill="#888" text-anchor="middle">${d.getDate()}/${d.getMonth()+1}</text>`;
+    if (showLabel(i)) bars += `<text x="${x}" y="${H - padB + 14}" font-size="${labelFontSize}" fill="#888" text-anchor="middle">${xLabels[i]}</text>`;
   });
+
   const legend = `<g transform="translate(${padL}, ${H - 8})"><rect x="0" y="-8" width="10" height="10" fill="#4CAF50" rx="2"/><text x="13" y="1" font-size="11" fill="#555">Nhập</text><rect x="52" y="-8" width="10" height="10" fill="#f44336" rx="2"/><text x="65" y="1" font-size="11" fill="#555">Xuất</text></g>`;
   const svg = `<svg width="100%" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%;">
     ${yLines}
@@ -7654,22 +7739,40 @@ function _buildChart7Html() {
     <line x1="${padL}" y1="${padT + chartH}" x2="${W - padR}" y2="${padT + chartH}" stroke="#e0e0e0" stroke-width="1"/>
     ${bars}${legend}
   </svg>`;
-  const totalNhap7 = nhapVals.reduce((a,b)=>a+b,0);
-  const totalXuat7 = xuatVals.reduce((a,b)=>a+b,0);
+
+  const totalNhap = nhapVals.reduce((a,b)=>a+b,0);
+  const totalXuat = xuatVals.reduce((a,b)=>a+b,0);
   const fmtM = v => v >= 1000000 ? (v/1000000).toFixed(2) + 'M đ' : fmt(v) + ' đ';
-  return `<div style="margin-bottom:4px;font-size:12px;color:#888;">7 ngày gần nhất (${days[0].getDate()}/${days[0].getMonth()+1} – ${days[6].getDate()}/${days[6].getMonth()+1})</div>
+
+  const periodOpts = [
+    { key: 'week',      label: 'Tuần này' },
+    { key: 'lastweek',  label: 'Tuần trước' },
+    { key: 'month',     label: 'Tháng này' },
+    { key: 'lastmonth', label: 'Tháng trước' },
+    { key: 'year',      label: 'Năm nay' },
+  ];
+  const selectorHtml = `<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center;">
+    ${periodOpts.map(p => {
+      const active = p.key === period;
+      return `<button onclick="_reRenderChart('${p.key}')" style="padding:5px 13px;border-radius:20px;border:1.5px solid ${active ? '#1976d2' : '#e0e0e0'};background:${active ? '#e3f2fd' : '#fafafa'};color:${active ? '#1565c0' : '#666'};font-size:12px;font-weight:${active ? '700' : '500'};cursor:pointer;">${p.label}</button>`;
+    }).join('')}
+    <button id="chart-refresh-btn" onclick="_refreshChartData('${period}')" title="Làm mới dữ liệu" style="margin-left:auto;background:none;border:1px solid #e0e0e0;border-radius:8px;padding:5px 7px;color:#4CAF50;cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg></button>
+  </div>`;
+
+  return `${selectorHtml}
+    <div style="margin-bottom:4px;font-size:12px;color:#888;">${periodLabel} (${dateRangeLabel})</div>
     ${svg}
     <div style="display:flex;gap:12px;margin-top:12px;">
       <div style="flex:1;background:#e8f5e9;border-radius:10px;padding:10px 14px;">
-        <div style="font-size:11px;color:#2e7d32;font-weight:700;">Tổng Nhập 7 ngày</div>
-        <div style="font-size:15px;font-weight:700;color:#2e7d32;margin-top:3px;">${fmtM(totalNhap7)}</div>
+        <div style="font-size:11px;color:#2e7d32;font-weight:700;">Tổng Nhập ${periodLabel}</div>
+        <div style="font-size:15px;font-weight:700;color:#2e7d32;margin-top:3px;">${fmtM(totalNhap)}</div>
       </div>
       <div style="flex:1;background:#ffebee;border-radius:10px;padding:10px 14px;">
-        <div style="font-size:11px;color:#c62828;font-weight:700;">Tổng Xuất 7 ngày</div>
-        <div style="font-size:15px;font-weight:700;color:#c62828;margin-top:3px;">${fmtM(totalXuat7)}</div>
+        <div style="font-size:11px;color:#c62828;font-weight:700;">Tổng Xuất ${periodLabel}</div>
+        <div style="font-size:15px;font-weight:700;color:#c62828;margin-top:3px;">${fmtM(totalXuat)}</div>
       </div>
     </div>
-    <div style="font-size:11px;color:#bbb;margin-top:10px;text-align:center;">* Dữ liệu từ cache hiện tại. Nếu chưa đủ 7 ngày hãy bấm 🔄 Làm mới ở bộ lọc "Tất cả".</div>`;
+    <div style="font-size:11px;color:#bbb;margin-top:10px;text-align:center;">* Dữ liệu từ cache hiện tại. Nếu thiếu hãy bấm 🔄 Làm mới ở bộ lọc "Tất cả".</div>`;
 }
 
 function _buildTopSpHtml(showAll) {
