@@ -6268,7 +6268,7 @@ function renderReport() {
     <div class="report-summary-card" onclick="showRptGdDetail('xuat')" style="background:#fff5f5;cursor:pointer;position:relative;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
       <div style="font-size:10px;color:#c62828;font-weight:700;margin-bottom:5px;">Tổng Xuất &nbsp;<span style="font-weight:400;color:#c62828;">${fmt(totalXuatQty)} SL · ${_countOrders(xuatRows)} đơn</span></div>
       <div style="font-size:15px;font-weight:700;color:#c62828;">${fmt(totalXuatAmount)} đ</div>
-      ${(xuatPhiVC > 0 || xuatPhiKT > 0) ? `<div style="font-size:10px;color:#e53935;margin-top:3px;">Phí vận chuyển: -${fmt(xuatPhiVC)} đ<span class="report-fee-mobile-break"></span><span class="report-fee-sep"> | </span>Phí KT: +${fmt(xuatPhiKT)} đ</div>` : ''}
+      ${(xuatPhiVC > 0 || xuatPhiKT > 0) ? `<div style="font-size:10px;color:#e53935;margin-top:3px;">${xuatPhiVC > 0 ? `Phí vận chuyển: -${fmt(xuatPhiVC)} đ` : ''}${xuatPhiVC > 0 && xuatPhiKT > 0 ? `<span class="report-fee-mobile-break"></span><span class="report-fee-sep"> | </span>` : ''}${xuatPhiKT > 0 ? `Phí KT: +${fmt(xuatPhiKT)} đ` : ''}</div>` : ''}
       <div style="position:absolute;bottom:8px;right:10px;font-size:10px;color:#e53935;">chi tiết ›</div>
     </div>
 
@@ -6528,7 +6528,7 @@ function _renderHistory() {
   } else { _sd('hist-sum-nhap-phi-wrap', 'none'); }
 
   if (_xuatPhiVC > 0 || _xuatPhiKT > 0) {
-    _seh('hist-sum-xuat-phi', `Phí vận chuyển: -${_xuatPhiVC.toLocaleString('en-US')} \u0111<span class="report-fee-mobile-break"></span><span class="report-fee-sep"> | </span>Phí KT: +${_xuatPhiKT.toLocaleString('en-US')} \u0111`);
+    _seh('hist-sum-xuat-phi', `${_xuatPhiVC > 0 ? `Phí vận chuyển: -${_xuatPhiVC.toLocaleString('en-US')} \u0111` : ''}${_xuatPhiVC > 0 && _xuatPhiKT > 0 ? `<span class="report-fee-mobile-break"></span><span class="report-fee-sep"> | </span>` : ''}${_xuatPhiKT > 0 ? `Phí KT: +${_xuatPhiKT.toLocaleString('en-US')} \u0111` : ''}`);
     _sd('hist-sum-xuat-phi-wrap', 'block');
   } else { _sd('hist-sum-xuat-phi-wrap', 'none'); }
 
