@@ -2,35 +2,37 @@
 setlocal enabledelayedexpansion
 
 :: ==========================================
-:: PHAN 1: TU DONG BACKUP (DUNG DUONG DAN TUONG DOI DE TRÁNH LỖI TIẾNG VIỆT)
+:: PHAN 1: TU DONG BACKUP VAO FOLDER THEO SO THU TU
 :: ==========================================
-:: %~dp0 la thu muc dang chua file update.bat
 set "SRC_DIR=%~dp0"
-:: Di lui lai 1 cap (thu muc cha) roi vao Backup
 set "BAK_DIR=%~dp0..\Backup"
 
 if not exist "%BAK_DIR%" mkdir "%BAK_DIR%"
-echo [1/2] Dang tien hanh backup file vao o D...
 
-:: Tim so thu tu tiep theo cho App Script.js
+:: Tim so thu tu folder tiep theo
 set n=1
-:loopJS
-if exist "%BAK_DIR%\App Script !n!.js" (
+:loopFolder
+if exist "%BAK_DIR%\Backup !n!" (
     set /a n+=1
-    goto loopJS
+    goto loopFolder
 )
-copy "%SRC_DIR%App Script.js" "%BAK_DIR%\App Script !n!.js" >nul
-echo   - Da backup thanh cong: App Script !n!.js
 
-:: Tim so thu tu tiep theo cho index.html
-set m=1
-:loopHTML
-if exist "%BAK_DIR%\index !m!.html" (
-    set /a m+=1
-    goto loopHTML
-)
-copy "%SRC_DIR%index.html" "%BAK_DIR%\index !m!.html" >nul
-echo   - Da backup thanh cong: index !m!.html
+set "DEST=%BAK_DIR%\Backup !n!"
+mkdir "%DEST%"
+
+echo [1/2] Dang backup vao folder: Backup !n!
+
+copy "%SRC_DIR%index.html"    "%DEST%\index !n!.html"      >nul
+echo   - index !n!.html
+
+copy "%SRC_DIR%style.css"     "%DEST%\style !n!.css"       >nul
+echo   - style !n!.css
+
+copy "%SRC_DIR%app.js"        "%DEST%\app !n!.js"          >nul
+echo   - app !n!.js
+
+copy "%SRC_DIR%App Script.js" "%DEST%\App Script !n!.js"   >nul
+echo   - App Script !n!.js
 
 echo.
 
