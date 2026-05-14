@@ -8156,15 +8156,18 @@ async function exportSoDoanThu() {
   sc(6, 0, 'Kỳ kê khai: ' + kyLabel,                                S_SUBTITLE);
   // row 7: empty
 
-  // --- "Đơn vị tính" label (row 8, col 4) ---
-  sc(8, 4, 'Đơn vị tính: đồng', S_UNIT_LABEL);
+  // --- "Đơn vị tính" label (row 8, col 5 = F) ---
+  sc(8, 5, 'Đơn vị tính: đồng', S_UNIT_LABEL);
 
   // --- Table header row 1 (row 9) ---
-  sc(9, 0, 'Chứng từ',  S_HDR);  // merges right to col 1
-  sc(9, 1, '',           S_HDR);
-  sc(9, 2, 'Diễn giải', S_HDR);  // merges down to row 10
-  sc(9, 3, 'Số lượng',  S_HDR);  // merges down to row 10
-  sc(9, 4, 'Thành tiền',   S_HDR);  // merges down to row 10
+  sc(9, 0, 'Chứng từ',       S_HDR);
+  sc(9, 1, '',                S_HDR);
+  sc(9, 2, 'Diễn giải',      S_HDR);
+  sc(9, 3, 'Số lượng',       S_HDR);
+  sc(9, 4, 'Đơn giá',        S_HDR);
+  sc(9, 5, 'Thành tiền',     S_HDR);
+  sc(9, 6, 'Giao dịch',      S_HDR);
+  sc(9, 7, 'Tên khách hàng', S_HDR);
 
   // --- Table header row 2 (row 10) ---
   sc(10, 0, 'Số hiệu',     S_HDR);
@@ -8172,6 +8175,9 @@ async function exportSoDoanThu() {
   sc(10, 2, '',             S_HDR);
   sc(10, 3, '',             S_HDR);
   sc(10, 4, '',             S_HDR);
+  sc(10, 5, '',             S_HDR);
+  sc(10, 6, '',             S_HDR);
+  sc(10, 7, '',             S_HDR);
 
   // --- Column reference row (row 11) ---
   sc(11, 0, 'A', S_IDX);
@@ -8179,27 +8185,31 @@ async function exportSoDoanThu() {
   sc(11, 2, 'C', S_IDX);
   sc(11, 3, 'D', S_IDX);
   sc(11, 4, '1', S_IDX);
+  sc(11, 5, '2', S_IDX);
 
   // --- Data rows ---
   var DR = 12;
   ws['!rows'] = [];
   xuatRows.forEach(function(r, i) {
-    var row = DR + i;
-    var dt  = new Date(r.thoigian_raw);
-    var ngay = String(dt.getDate()).padStart(2,'0') + '/' +
-               String(dt.getMonth()+1).padStart(2,'0') + '/' + dt.getFullYear();
-    var ten  = (r.hanghoa  || '').trim();
-    var dg   = ten;
-    var sl   = Number(r.soluong) || 0;
-    var tien = sl * (Number(r.gia) || 0);
-    // AutoFit: ước tính số dòng wrap dựa trên độ dài text cột Diễn giải
+    var row    = DR + i;
+    var dt     = new Date(r.thoigian_raw);
+    var ngay   = String(dt.getDate()).padStart(2,'0') + '/' +
+                 String(dt.getMonth()+1).padStart(2,'0') + '/' + dt.getFullYear();
+    var ten    = (r.hanghoa || '').trim();
+    var dg     = ten;
+    var sl     = Number(r.soluong) || 0;
+    var dongia = Number(r.gia) || 0;
+    var tien   = sl * dongia;
     var wLines = Math.max(1, Math.ceil(dg.length / 40));
     ws['!rows'][row] = { hpx: wLines * 14 + 2 };
-    sc(row, 0, '',   S_DATA_CTR);
-    sc(row, 1, ngay, S_DATA_CTR);
-    sc(row, 2, dg,   S_DATA_TEXT);
-    sc(row, 3, sl,   S_DATA_NUM, '#,##0');
-    sc(row, 4, tien, S_DATA_NUM, '#,##0');
+    sc(row, 0, '',               S_DATA_CTR);
+    sc(row, 1, ngay,             S_DATA_CTR);
+    sc(row, 2, dg,               S_DATA_TEXT);
+    sc(row, 3, sl,               S_DATA_NUM, '#,##0');
+    sc(row, 4, dongia,           S_DATA_NUM, '#,##0');
+    sc(row, 5, tien,             S_DATA_NUM, '#,##0');
+    sc(row, 6, r.giaodich  || '', S_DATA_CTR);
+    sc(row, 7, r.tenkhach  || '', S_DATA_TEXT);
   });
 
   // --- Total row ---
@@ -8209,26 +8219,38 @@ async function exportSoDoanThu() {
   sc(TR, 1, '',           S_TOTAL_LBL);
   sc(TR, 2, '',           S_TOTAL_LBL);
   sc(TR, 3, '',           S_TOTAL_LBL);
-  sc(TR, 4, total,        S_TOTAL_NUM, '#,##0');
+  sc(TR, 4, '',           S_TOTAL_LBL);
+  sc(TR, 5, total,        S_TOTAL_NUM, '#,##0');
 
   // --- Merges ---
   ws['!merges'] = [
-    { s:{r:0,c:0},  e:{r:0,c:2}  },   // HỘ KINH DOANH
-    { s:{r:1,c:0},  e:{r:1,c:2}  },   // Địa chỉ
-    { s:{r:2,c:0},  e:{r:2,c:2}  },   // MST
-    { s:{r:0,c:3},  e:{r:3,c:4}  },   // Mẫu số S2a-HKD (góc phải trên)
-    { s:{r:4,c:0},  e:{r:4,c:4}  },   // Tiêu đề
-    { s:{r:5,c:0},  e:{r:5,c:4}  },   // Địa điểm KD
-    { s:{r:6,c:0},  e:{r:6,c:4}  },   // Kỳ kê khai
+    { s:{r:0,c:0},  e:{r:0,c:2}  },
+    { s:{r:1,c:0},  e:{r:1,c:2}  },
+    { s:{r:2,c:0},  e:{r:2,c:2}  },
+    { s:{r:0,c:3},  e:{r:3,c:5}  },   // Mẫu số S2a-HKD (D-F)
+    { s:{r:4,c:0},  e:{r:4,c:5}  },   // Tiêu đề (A-F)
+    { s:{r:5,c:0},  e:{r:5,c:5}  },   // Địa điểm KD (A-F)
+    { s:{r:6,c:0},  e:{r:6,c:5}  },   // Kỳ kê khai (A-F)
     { s:{r:9,c:0},  e:{r:9,c:1}  },   // "Chứng từ" gộp 2 cột
     { s:{r:9,c:2},  e:{r:10,c:2} },   // "Diễn giải" gộp 2 hàng
     { s:{r:9,c:3},  e:{r:10,c:3} },   // "Số lượng" gộp 2 hàng
-    { s:{r:9,c:4},  e:{r:10,c:4} },   // "Số tiền" gộp 2 hàng
-    { s:{r:TR,c:0}, e:{r:TR,c:3} },   // "TỔNG CỘNG" gộp 4 cột
+    { s:{r:9,c:4},  e:{r:10,c:4} },   // "Đơn giá" gộp 2 hàng
+    { s:{r:9,c:5},  e:{r:10,c:5} },   // "Số tiền" gộp 2 hàng
+    { s:{r:9,c:6},  e:{r:10,c:6} },   // "Giao dịch" gộp 2 hàng
+    { s:{r:9,c:7},  e:{r:10,c:7} },   // "Tên khách hàng" gộp 2 hàng
+    { s:{r:TR,c:0}, e:{r:TR,c:4} },   // "TỔNG CỘNG" gộp 5 cột (A-E)
   ];
 
   // --- Column widths & row heights ---
-  ws['!cols'] = [{ wch: 9 }, { wch: 12 }, { wch: 39 }, { wch: 11 }, { wch: 15 }];
+  ws['!cols'] = [
+  { wch: 8 }, /* Số hiệu */
+  { wch: 11 }, /* Ngày, tháng */
+  { wch: 38 }, /* Diễn giải */
+  { wch: 6 }, /* Số lượng */
+  { wch: 10 }, /* Đơn giá */
+  { wch: 11 }, /* Số tiền */
+  { wch: 12 }, /* Giao dịch */
+  { wch: 22 }];  /* Tên khách hàng */
   ws['!rows'][4]  = { hpx: 30 };
   ws['!rows'][9]  = { hpx: 30 };
   ws['!rows'][10] = { hpx: 15 };
@@ -8236,9 +8258,111 @@ async function exportSoDoanThu() {
 
   ws['!margins']   = { left: 0.59, right: 0.59, top: 0.79, bottom: 0.79, header: 0.31, footer: 0.31 };
   ws['!pageSetup'] = { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
-  ws['!ref'] = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:TR,c:4} });
+  ws['!ref'] = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:TR,c:7} });
+
+  // In A4 từ cột A tới F (G, H không in)
+  wb.Workbook = { Names: [{ Name: '_xlnm.Print_Area', Ref: "'Sổ Doanh Thu'!$A$1:$F$" + (TR + 1), Sheet: 0 }] };
 
   XLSX.utils.book_append_sheet(wb, ws, 'Sổ Doanh Thu');
+
+  // ===== SHEET 2: TỔNG THEO NGÀY =====
+  var ws2 = {};
+  var ws2merges = [];
+  function sc2(r2, c2, v2, s2, nf2) {
+    var addr2 = XLSX.utils.encode_cell({ r: r2, c: c2 });
+    var isNum2 = typeof v2 === 'number';
+    ws2[addr2] = { v: (v2 === null || v2 === undefined) ? '' : v2, t: isNum2 ? 'n' : 's', s: s2 || {} };
+    if (isNum2 && nf2) ws2[addr2].z = nf2;
+  }
+
+  // Xây dựng map ngày → tổng tiền
+  var dayMap = {};
+  xuatRows.forEach(function(rx) {
+    var dx  = new Date(rx.thoigian_raw);
+    var key = dx.getFullYear() + '-' + (dx.getMonth()+1) + '-' + dx.getDate();
+    dayMap[key] = (dayMap[key] || 0) + (Number(rx.soluong)||0) * (Number(rx.gia)||0);
+  });
+
+  var allMonths;
+  if (quy === 'all') {
+    allMonths = [1,2,3,4,5,6,7,8,9,10,11,12];
+  } else {
+    var qn = parseInt(quy);
+    var m0 = (qn - 1) * 3 + 1;
+    allMonths = [m0, m0+1, m0+2];
+  }
+
+  var S_HDR2  = { font:{bold:true,sz:10,name:'Times New Roman'}, alignment:{horizontal:'center',vertical:'center',wrapText:true}, border:BDR, fill:{patternType:'solid',fgColor:{rgb:'EEEEEE'}} };
+  var S_DATE2 = { font:{sz:10,name:'Times New Roman'}, alignment:{horizontal:'center',vertical:'center'}, border:BDR };
+  var S_NUM2  = { font:{sz:10,name:'Times New Roman'}, alignment:{horizontal:'right',vertical:'center'}, border:BDR };
+  var S_TLBL2 = { font:{bold:true,sz:10,name:'Times New Roman'}, alignment:{horizontal:'center',vertical:'center'}, border:BDR_MED, fill:{patternType:'solid',fgColor:{rgb:'DDDDDD'}} };
+  var S_TNUM2 = { font:{bold:true,sz:10,name:'Times New Roman'}, alignment:{horizontal:'right',vertical:'center'}, border:BDR_MED, fill:{patternType:'solid',fgColor:{rgb:'DDDDDD'}} };
+
+  // 3 tháng song song: col 0-1 | 3-4 | 6-7 (col 2,5 là cột trống ngăn cách)
+  var colBases2   = [0, 3, 6];
+  var groupCount2 = Math.ceil(allMonths.length / 3);
+  var curRow2     = 0;
+  var grandTotal2 = 0;
+
+  for (var g2 = 0; g2 < groupCount2; g2++) {
+    var gMonths = allMonths.slice(g2 * 3, g2 * 3 + 3);
+
+    // Header hàng: "Ngày, tháng" | "Tổng" × 3 tháng
+    gMonths.forEach(function(m2, mi) {
+      var cb = colBases2[mi];
+      sc2(curRow2, cb,   'Ngày, tháng', S_HDR2);
+      sc2(curRow2, cb+1, 'Tổng',        S_HDR2);
+    });
+    curRow2++;
+
+    // Số ngày tối đa trong nhóm
+    var maxDays2 = 0;
+    gMonths.forEach(function(m2) {
+      var d2 = new Date(nam, m2, 0).getDate();
+      if (d2 > maxDays2) maxDays2 = d2;
+    });
+
+    // Hàng dữ liệu: từng ngày
+    var monthTotals2 = [0, 0, 0];
+    for (var day2 = 1; day2 <= maxDays2; day2++) {
+      gMonths.forEach(function(m2, mi) {
+        if (day2 > new Date(nam, m2, 0).getDate()) return;
+        var cb       = colBases2[mi];
+        var dateStr2 = String(day2).padStart(2,'0') + '/' + String(m2).padStart(2,'0') + '/' + nam;
+        var key2     = nam + '-' + m2 + '-' + day2;
+        var dayTot   = dayMap[key2] || 0;
+        monthTotals2[mi] += dayTot;
+        sc2(curRow2, cb,   dateStr2,              S_DATE2);
+        sc2(curRow2, cb+1, dayTot > 0 ? dayTot : '', dayTot > 0 ? S_NUM2 : S_DATE2, dayTot > 0 ? '#,##0' : undefined);
+      });
+      curRow2++;
+    }
+
+    // Hàng tổng từng tháng
+    gMonths.forEach(function(m2, mi) {
+      var cb = colBases2[mi];
+      grandTotal2 += monthTotals2[mi];
+      sc2(curRow2, cb,   'Tháng ' + m2,    S_TLBL2);
+      sc2(curRow2, cb+1, monthTotals2[mi], S_TNUM2, '#,##0');
+    });
+    curRow2++;
+
+    // Hàng trống ngăn cách giữa các nhóm
+    if (g2 < groupCount2 - 1) curRow2++;
+  }
+
+  // Hàng tổng cộng cuối cùng
+  sc2(curRow2, 0, 'TỔNG CỘNG', S_TLBL2);
+  sc2(curRow2, 1, grandTotal2,  S_TNUM2, '#,##0');
+
+  ws2['!merges']   = ws2merges;
+  ws2['!cols']     = [{ wch:12 },{ wch:14 },{ wch:2 },{ wch:12 },{ wch:14 },{ wch:2 },{ wch:12 },{ wch:14 }];
+  ws2['!ref']      = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:curRow2,c:7} });
+  ws2['!margins']  = { left: 0.59, right: 0.59, top: 0.79, bottom: 0.79, header: 0.31, footer: 0.31 };
+  ws2['!pageSetup']= { paperSize: 9, orientation: 'landscape' };
+
+  XLSX.utils.book_append_sheet(wb, ws2, 'Tổng theo ngày');
+
   XLSX.writeFile(wb, filename);
 
   if (taiBtn) { taiBtn.innerHTML = '📥 Tải Excel'; taiBtn.disabled = false; }
