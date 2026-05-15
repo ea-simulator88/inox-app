@@ -172,6 +172,21 @@
       style="flex:0 0 32px;height:31px;background:#fafafa;border:1px solid #e0e0e0;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#bbb;padding:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/></svg></button>
   </div>
   <div id="product-list" style="overflow-y:auto;max-height:calc(100vh - 200px);"></div>
+
+  <!-- Mobile quick-action bar: hiện khi giỏ hàng có SP, ẩn trên desktop -->
+  <div id="mob-quick-bar" style="display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:#fff;border-top:2px solid #e0e0e0;box-shadow:0 -2px 10px rgba(0,0,0,0.10);z-index:500;padding:8px 12px 10px;box-sizing:border-box;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="flex:1;min-width:0;overflow:hidden;">
+        <div style="font-size:15px;font-weight:700;color:#2e7d32;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Tổng: <span id="mob-quick-total">0</span> đ</div>
+        <div style="font-size:11px;color:#888;margin-top:2px;"><span id="mob-quick-sp">0</span> SP · SL: <span id="mob-quick-sl">0</span></div>
+      </div>
+      <div style="display:flex;gap:5px;flex-shrink:0;">
+        <button onclick="mobQuickAction('Nhập')" style="padding:8px 11px;background:#e3f2fd;color:#1565c0;border:1.5px solid #90caf9;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;line-height:1;">Nhập</button>
+        <button onclick="mobQuickAction('Xuất')" style="padding:8px 11px;background:#e8f5e9;color:#2e7d32;border:1.5px solid #a5d6a7;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;line-height:1;">Xuất</button>
+        <button onclick="mobQuickAction('Nháp')" style="padding:8px 9px;background:#fff8e1;color:#e65100;border:1.5px solid #ffb74d;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;line-height:1;">Nháp</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- FORM -->

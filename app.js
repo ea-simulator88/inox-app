@@ -1785,11 +1785,47 @@ function addToCart(product) {
 
 function updateCartBadge() {
   const badge = document.getElementById('cart-badge');
+  const bar = document.getElementById('mob-quick-bar');
+  const mainScreen = document.getElementById('screen-main');
   if (cart.length > 0) {
     badge.textContent = cart.length;
     badge.style.display = 'flex';
+    // Cập nhật mobile quick bar
+    if (bar) {
+      const total = cart.reduce((s, i) => s + i.sl * effectiveGia(i, cartMode), 0);
+      const totalSl = cart.reduce((s, i) => s + (i.sl || 0), 0);
+      const elTotal = document.getElementById('mob-quick-total');
+      const elSp = document.getElementById('mob-quick-sp');
+      const elSl = document.getElementById('mob-quick-sl');
+      if (elTotal) elTotal.textContent = fmt(total);
+      if (elSp) elSp.textContent = cart.length;
+      if (elSl) elSl.textContent = totalSl;
+      bar.style.display = 'block';
+    }
+    if (mainScreen) mainScreen.classList.add('mob-bar-active');
   } else {
     badge.style.display = 'none';
+    if (bar) bar.style.display = 'none';
+    if (mainScreen) mainScreen.classList.remove('mob-bar-active');
+  }
+}
+
+function mobQuickAction(mode) {
+  stopScan();
+  const bn = document.getElementById('cart-btn-nhap');
+  if (bn) bn.style.display = currentRole === 'owner' ? '' : 'none';
+  if (mode === 'Nháp') {
+    setCartMode('Xuất');
+  } else {
+    setCartMode(mode);
+  }
+  showScreen('screen-cart');
+  if (mode === 'Nháp') {
+    // Cuộn xuống cuối để thấy nút Lưu Nháp
+    setTimeout(() => {
+      const cartScroll = document.querySelector('#screen-cart > div[style*="overflow-y"]');
+      if (cartScroll) cartScroll.scrollTop = cartScroll.scrollHeight;
+    }, 100);
   }
 }
 
