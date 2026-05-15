@@ -315,6 +315,42 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   #manage-refresh-btn { margin-left:5px; order:1; }
 }
 /* Mobile quick-action bar: ẩn trên desktop */
+#mob-quick-bar {
+  display: none;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  box-sizing: border-box;
+}
+#mob-quick-bar .mob-quick-inner {
+  display: flex;
+  align-items: center;
+}
+#mob-quick-bar .mob-quick-summary {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+#mob-quick-bar .mob-quick-total {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#mob-quick-bar .mob-quick-sub {
+  margin-top: 2px;
+}
+#mob-quick-bar .mob-quick-actions {
+  display: flex;
+  flex-shrink: 0;
+}
+#mob-quick-bar .mob-quick-btn {
+  border: 1.5px solid transparent;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+}
 @media (min-width: 768px) { #mob-quick-bar { display: none !important; } }
 @media (max-width: 767px) {
   #mob-quick-bar {
@@ -336,6 +372,7 @@ input:focus, select:focus { border-color: #4CAF50; background: #fff; }
   }
   #mob-quick-bar .mob-quick-sub {
     color: #7b8b7c !important;
+    font-size: 11px !important;
     font-weight: 600 !important;
     letter-spacing: 0 !important;
   }

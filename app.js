@@ -1637,7 +1637,7 @@ function renderProductList(list, kw) {
       <div class="product-item-meta">
         <div class="product-item-tonkho${low ? ' low' : ''}">${tonDisplay}</div>
         <div class="qty-stepper">
-          <button class="btn-sub-cart" onclick="subFromCartMobile(products.find(x=>x.ma==='${p.ma}'))" ${cartSl <= 1 ? 'disabled' : ''}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          <button class="btn-sub-cart" onclick="subFromCartMobile(products.find(x=>x.ma==='${p.ma}'))" ${cartItem ? '' : 'disabled'}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <input class="qty-input" id="${qid}" data-ma="${p.ma}" type="text" inputmode="numeric" value="${cartSl}"
             placeholder="1" onclick="event.stopPropagation()" oninput="sanitizeQty(this);liveQtyInput(this)" />
           <button class="btn-add-cart" onclick="addPlusMobile(products.find(x=>x.ma==='${p.ma}'))"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
@@ -1673,7 +1673,16 @@ function liveQtyInput(el) {
   const ma = el.dataset.ma;
   if (!ma) return;
   const val = parseInt(el.value) || 0;
-  if (val <= 0) return;
+  if (val <= 0) {
+    const idx = cart.findIndex(i => i.product.ma === ma);
+    if (idx >= 0) {
+      cart.splice(idx, 1);
+      updateCartBadge();
+      _patchProductCardMobile(ma);
+      saveCartDebounced();
+    }
+    return;
+  }
   const product = productMap.get(ma) || products.find(x => x.ma === ma);
   if (!product) return;
   const existing = cart.find(i => i.product.ma === ma);
@@ -1713,7 +1722,7 @@ function _patchProductCardMobile(ma) {
   const cartItem = cart.find(i => i.product.ma === ma);
   input.value = cartItem ? cartItem.sl : '';
   const subBtn = input.parentElement && input.parentElement.querySelector('.btn-sub-cart');
-  if (subBtn) subBtn.disabled = (!cartItem || cartItem.sl <= 1);
+  if (subBtn) subBtn.disabled = !cartItem;
 }
 
 function addToCartQty(product) {
@@ -1749,9 +1758,14 @@ function addPlusMobile(product) {
 
 function subFromCartMobile(product) {
   if (!product) return;
-  const existing = cart.find(i => i.product.ma === product.ma);
-  if (!existing || existing.sl <= 1) return;
-  existing.sl -= 1;
+  const idx = cart.findIndex(i => i.product.ma === product.ma);
+  const existing = idx >= 0 ? cart[idx] : null;
+  if (!existing) return;
+  if (existing.sl <= 1) {
+    cart.splice(idx, 1);
+  } else {
+    existing.sl -= 1;
+  }
   updateCartBadge();
   _patchProductCardMobile(product.ma);
   saveCart();
@@ -1927,7 +1941,7 @@ function renderCart() {
       </div>
       <div>
         <div class="cart-item-inputs">
-          <button class="ci-sub-btn" onclick="cartStepSl(${idx}, -1)" ${item.sl <= 1 ? 'disabled' : ''}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          <button class="ci-sub-btn" onclick="cartStepSl(${idx}, -1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <input class="ci-sl" type="text" inputmode="numeric" value="${item.sl}"
             oninput="fmtInput(this);updateCartSl(${idx},this.value)" />
           <button class="ci-add-btn" onclick="cartStepSl(${idx}, 1)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
@@ -1963,8 +1977,12 @@ function removeFromCart(idx) {
 function cartStepSl(idx, delta) {
   if (!cart[idx]) return;
   const newSl = cart[idx].sl + delta;
-  if (newSl < 1) return;
-  cart[idx].sl = newSl;
+  if (newSl < 1) {
+    cart.splice(idx, 1);
+  } else {
+    cart[idx].sl = newSl;
+  }
+  updateCartBadge();
   renderCart();
   saveCart();
 }
@@ -3019,7 +3037,7 @@ function dtRenderProducts(list, kw) {
       <div style="flex-shrink:0;margin-left:8px;text-align:right;">
         <div style="font-size:12px;font-weight:600;color:${low ? '#f44336' : '#7d1ae8'};">${dtTonDisplay}</div>
         <div style="display:flex;align-items:center;gap:4px;margin-top:5px;justify-content:flex-end;">
-          <button class="dt-btn-sub-cart" onclick="event.stopPropagation();dtSubFromCart('${p.ma}')" ${cartItem && cartItem.sl > 1 ? '' : 'disabled'}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          <button class="dt-btn-sub-cart" onclick="event.stopPropagation();dtSubFromCart('${p.ma}')" ${cartItem ? '' : 'disabled'}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <input id="${slId}" data-ma="${p.ma}" type="text" inputmode="numeric" value="${currentSl}" placeholder="1"
             onclick="event.stopPropagation()" oninput="sanitizeQty(this);liveQtyInputDt(this)"
             style="width:45px;padding:6px;text-align:center;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;outline:none;color:#333;" />
@@ -3059,7 +3077,7 @@ function _patchProductCardDt(ma) {
     card.style.border = '1px solid ' + (inCart ? '#a5d6a7' : 'transparent');
     card.style.background = inCart ? '#e8f5e9' : '#fff';
     const subBtn = card.querySelector('.dt-btn-sub-cart');
-    if (subBtn) subBtn.disabled = (!cartItem || cartItem.sl <= 1);
+    if (subBtn) subBtn.disabled = !cartItem;
   }
 }
 
@@ -3080,9 +3098,14 @@ function dtAddPlus(ma) {
 }
 
 function dtSubFromCart(ma) {
-  const item = dtCart.find(i => i.product.ma === ma);
-  if (!item || item.sl <= 1) return;
-  item.sl -= 1;
+  const idx = dtCart.findIndex(i => i.product.ma === ma);
+  const item = idx >= 0 ? dtCart[idx] : null;
+  if (!item) return;
+  if (item.sl <= 1) {
+    dtCart.splice(idx, 1);
+  } else {
+    item.sl -= 1;
+  }
   dtRenderCart();
   _patchProductCardDt(ma);
   saveCart();
@@ -3178,7 +3201,7 @@ function dtRenderCart() {
       </div>
       <div>
         <div style="display:flex;align-items:center;gap:4px;">
-          <button class="dt-btn-sub-cart" onclick="dtCartStepSl('${p.ma}', -1)" ${item.sl <= 1 ? 'disabled' : ''}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          <button class="dt-btn-sub-cart" onclick="dtCartStepSl('${p.ma}', -1)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           <input type="text" inputmode="numeric" value="${item.sl}"
             style="width:45px;padding:6px 4px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;text-align:center;outline:none;"
             oninput="fmtInput(this);dtUpdateCart('${p.ma}','sl',this.value)" />
@@ -3208,13 +3231,18 @@ function dtRenderCart() {
 }
 
 function dtCartStepSl(ma, delta) {
-  const item = dtCart.find(i => i.product.ma === ma);
+  const idx = dtCart.findIndex(i => i.product.ma === ma);
+  const item = idx >= 0 ? dtCart[idx] : null;
   if (!item) return;
   const newSl = item.sl + delta;
-  if (newSl < 1) return;
-  item.sl = newSl;
+  if (newSl < 1) {
+    dtCart.splice(idx, 1);
+  } else {
+    item.sl = newSl;
+  }
   dtRenderCart();
   dtRenderProducts();
+  saveCart();
 }
 
 function dtSetMode(mode) {

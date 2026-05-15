@@ -174,16 +174,16 @@
   <div id="product-list" style="overflow-y:auto;max-height:calc(100vh - 200px);"></div>
 
   <!-- Mobile quick-action bar: hiện khi giỏ hàng có SP, ẩn trên desktop -->
-  <div id="mob-quick-bar" style="display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:#fff;border-top:2px solid #e0e0e0;box-shadow:0 -2px 10px rgba(0,0,0,0.10);z-index:500;padding:8px 12px 10px;box-sizing:border-box;">
-    <div class="mob-quick-inner" style="display:flex;align-items:center;gap:8px;">
-      <div class="mob-quick-summary" style="flex:1;min-width:0;overflow:hidden;">
-        <div class="mob-quick-total" style="font-size:15px;font-weight:700;color:#2e7d32;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Tổng: <span id="mob-quick-total">0</span> đ</div>
-        <div class="mob-quick-sub" style="font-size:11px;color:#888;margin-top:2px;"><span id="mob-quick-sp">0</span> SP · SL: <span id="mob-quick-sl">0</span></div>
+  <div id="mob-quick-bar">
+    <div class="mob-quick-inner">
+      <div class="mob-quick-summary">
+        <div class="mob-quick-total">Tổng: <span id="mob-quick-total">0</span> đ</div>
+        <div class="mob-quick-sub"><span id="mob-quick-sp">0</span> SP · SL: <span id="mob-quick-sl">0</span></div>
       </div>
-      <div class="mob-quick-actions" style="display:flex;gap:5px;flex-shrink:0;">
-        <button class="mob-quick-btn nhap" onclick="mobQuickAction('Nhập')" style="padding:8px 11px;background:#e3f2fd;color:#1565c0;border:1.5px solid #90caf9;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;line-height:1;">Nhập</button>
-        <button class="mob-quick-btn xuat" onclick="mobQuickAction('Xuất')" style="padding:8px 11px;background:#e8f5e9;color:#2e7d32;border:1.5px solid #a5d6a7;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;line-height:1;">Xuất</button>
-        <button class="mob-quick-btn nhap-draft" onclick="mobQuickAction('Nháp')" style="padding:8px 9px;background:#fff8e1;color:#e65100;border:1.5px solid #ffb74d;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;line-height:1;">Nháp</button>
+      <div class="mob-quick-actions">
+        <button class="mob-quick-btn nhap" onclick="mobQuickAction('Nhập')">Nhập</button>
+        <button class="mob-quick-btn xuat" onclick="mobQuickAction('Xuất')">Xuất</button>
+        <button class="mob-quick-btn nhap-draft" onclick="mobQuickAction('Nháp')">Nháp</button>
       </div>
     </div>
   </div>
