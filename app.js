@@ -7055,11 +7055,12 @@ async function exportSoDoanThu() {
   };
 
   // Helper: write cell
-  function sc(r, c, v, s, numFmt) {
+  function sc(r, c, v, s, numFmt, formula) {
     var addr = XLSX.utils.encode_cell({ r: r, c: c });
     var isNum = typeof v === 'number';
     ws[addr] = { v: (v === null || v === undefined) ? '' : v, t: isNum ? 'n' : 's', s: s || {} };
     if (isNum && numFmt) ws[addr].z = numFmt;
+    if (formula) ws[addr].f = formula;
   }
 
   // --- Style definitions ---
@@ -7182,7 +7183,7 @@ async function exportSoDoanThu() {
     sc(row, 2, dg,               S_DATA_TEXT);
     sc(row, 3, sl,               S_DATA_NUM, '#,##0');
     sc(row, 4, dongia,           S_DATA_NUM, '#,##0');
-    sc(row, 5, tien,             S_DATA_NUM, '#,##0');
+    sc(row, 5, tien,             S_DATA_NUM, '#,##0', 'D' + (row + 1) + '*E' + (row + 1));
     sc(row, 6, r.giaodich  || '', S_DATA_CTR);
     sc(row, 7, r.tenkhach  || '', S_DATA_TEXT);
   });
@@ -7195,7 +7196,7 @@ async function exportSoDoanThu() {
   sc(TR, 2, '',           S_TOTAL_LBL);
   sc(TR, 3, '',           S_TOTAL_LBL);
   sc(TR, 4, '',           S_TOTAL_LBL);
-  sc(TR, 5, total,        S_TOTAL_NUM, '#,##0');
+  sc(TR, 5, total,        S_TOTAL_NUM, '#,##0', 'SUM(F' + (DR + 1) + ':F' + TR + ')');
 
   // --- Merges ---
   ws['!merges'] = [
@@ -7240,16 +7241,7 @@ async function exportSoDoanThu() {
 
   XLSX.utils.book_append_sheet(wb, ws, 'Sổ Doanh Thu');
 
-  // ===== SHEET 2: TỔNG THEO NGÀY =====
-  var ws2 = {};
-  var ws2merges = [];
-  function sc2(r2, c2, v2, s2, nf2) {
-    var addr2 = XLSX.utils.encode_cell({ r: r2, c: c2 });
-    var isNum2 = typeof v2 === 'number';
-    ws2[addr2] = { v: (v2 === null || v2 === undefined) ? '' : v2, t: isNum2 ? 'n' : 's', s: s2 || {} };
-    if (isNum2 && nf2) ws2[addr2].z = nf2;
-  }
-
+  // ===== SHEET 2+: TỔNG THEO NGÀY – mỗi cụm 3 tháng = 1 sheet riêng =====
   // Xây dựng map ngày → tổng tiền
   var dayMap = {};
   xuatRows.forEach(function(rx) {
@@ -7273,20 +7265,32 @@ async function exportSoDoanThu() {
   var S_TLBL2 = { font:{bold:true,sz:10,name:'Times New Roman'}, alignment:{horizontal:'center',vertical:'center'}, border:BDR_MED, fill:{patternType:'solid',fgColor:{rgb:'DDDDDD'}} };
   var S_TNUM2 = { font:{bold:true,sz:10,name:'Times New Roman'}, alignment:{horizontal:'right',vertical:'center'}, border:BDR_MED, fill:{patternType:'solid',fgColor:{rgb:'DDDDDD'}} };
 
-  // 3 tháng song song: col 0-1 | 3-4 | 6-7 (col 2,5 là cột trống ngăn cách)
   var colBases2   = [0, 3, 6];
   var groupCount2 = Math.ceil(allMonths.length / 3);
-  var curRow2     = 0;
   var grandTotal2 = 0;
 
   for (var g2 = 0; g2 < groupCount2; g2++) {
+    var ws2 = {};
     var gMonths = allMonths.slice(g2 * 3, g2 * 3 + 3);
+    var curRow2 = 0;
+    var monthTotalAddrs = [];
 
-    // Header hàng: "Ngày, tháng" | "Tổng" × 3 tháng
+    // Hàm ghi cell gắn với sheet này
+    var _sc2 = (function(sheet) {
+      return function(r2, c2, v2, s2, nf2, formula2) {
+        var addr2 = XLSX.utils.encode_cell({ r: r2, c: c2 });
+        var isNum2 = typeof v2 === 'number';
+        sheet[addr2] = { v: (v2 === null || v2 === undefined) ? '' : v2, t: isNum2 ? 'n' : 's', s: s2 || {} };
+        if (isNum2 && nf2) sheet[addr2].z = nf2;
+        if (formula2) sheet[addr2].f = formula2;
+      };
+    }(ws2));
+
+    // Header
     gMonths.forEach(function(m2, mi) {
       var cb = colBases2[mi];
-      sc2(curRow2, cb,   'Ngày, tháng', S_HDR2);
-      sc2(curRow2, cb+1, 'Tổng',        S_HDR2);
+      _sc2(curRow2, cb,   'Ngày, tháng', S_HDR2);
+      _sc2(curRow2, cb+1, 'Tổng',        S_HDR2);
     });
     curRow2++;
 
@@ -7307,8 +7311,10 @@ async function exportSoDoanThu() {
         var key2     = nam + '-' + m2 + '-' + day2;
         var dayTot   = dayMap[key2] || 0;
         monthTotals2[mi] += dayTot;
-        sc2(curRow2, cb,   dateStr2,              S_DATE2);
-        sc2(curRow2, cb+1, dayTot > 0 ? dayTot : '', dayTot > 0 ? S_NUM2 : S_DATE2, dayTot > 0 ? '#,##0' : undefined);
+        _sc2(curRow2, cb, dateStr2, S_DATE2);
+        var dateCellRef2 = XLSX.utils.encode_col(cb) + (curRow2 + 1);
+        _sc2(curRow2, cb+1, dayTot, S_NUM2, '#,##0',
+            "SUMIFS('Sổ Doanh Thu'!$F:$F,'Sổ Doanh Thu'!$B:$B," + dateCellRef2 + ")");
       });
       curRow2++;
     }
@@ -7317,26 +7323,35 @@ async function exportSoDoanThu() {
     gMonths.forEach(function(m2, mi) {
       var cb = colBases2[mi];
       grandTotal2 += monthTotals2[mi];
-      sc2(curRow2, cb,   'Tháng ' + m2,    S_TLBL2);
-      sc2(curRow2, cb+1, monthTotals2[mi], S_TNUM2, '#,##0');
+      var sumCol      = XLSX.utils.encode_col(cb + 1);
+      var firstExcel  = curRow2 - maxDays2 + 1;
+      var lastExcel   = curRow2;
+      var sumFormula2 = 'SUM(' + sumCol + firstExcel + ':' + sumCol + lastExcel + ')';
+      _sc2(curRow2, cb,   'Tháng ' + m2,    S_TLBL2);
+      _sc2(curRow2, cb+1, monthTotals2[mi], S_TNUM2, '#,##0', sumFormula2);
+      monthTotalAddrs.push(sumCol + (curRow2 + 1));
     });
     curRow2++;
 
-    // Hàng trống ngăn cách giữa các nhóm
-    if (g2 < groupCount2 - 1) curRow2++;
+    // Cụm cuối: thêm TỔNG CỘNG (tham chiếu thẳng từ sheet Sổ Doanh Thu)
+    if (g2 === groupCount2 - 1) {
+      _sc2(curRow2, 0, 'TỔNG CỘNG', S_TLBL2);
+      _sc2(curRow2, 1, grandTotal2,  S_TNUM2, '#,##0',
+          "SUM('Sổ Doanh Thu'!F" + (DR + 1) + ":F" + TR + ")");
+    }
+
+    // 1 cụm duy nhất → giữ tên "Tổng theo ngày"; nhiều cụm → đặt tên theo tháng
+    var sheetName2 = groupCount2 === 1
+      ? 'Tổng theo ngày'
+      : 'Tháng ' + gMonths[0] + '-' + gMonths[gMonths.length - 1];
+
+    ws2['!cols']     = [{ wch:12 },{ wch:14 },{ wch:2 },{ wch:12 },{ wch:14 },{ wch:2 },{ wch:12 },{ wch:14 }];
+    ws2['!ref']      = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:curRow2,c:7} });
+    ws2['!margins']  = { left: 0.59, right: 0.59, top: 0.79, bottom: 0.79, header: 0.31, footer: 0.31 };
+    ws2['!pageSetup']= { paperSize: 9, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
+
+    XLSX.utils.book_append_sheet(wb, ws2, sheetName2);
   }
-
-  // Hàng tổng cộng cuối cùng
-  sc2(curRow2, 0, 'TỔNG CỘNG', S_TLBL2);
-  sc2(curRow2, 1, grandTotal2,  S_TNUM2, '#,##0');
-
-  ws2['!merges']   = ws2merges;
-  ws2['!cols']     = [{ wch:12 },{ wch:14 },{ wch:2 },{ wch:12 },{ wch:14 },{ wch:2 },{ wch:12 },{ wch:14 }];
-  ws2['!ref']      = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:curRow2,c:7} });
-  ws2['!margins']  = { left: 0.59, right: 0.59, top: 0.79, bottom: 0.79, header: 0.31, footer: 0.31 };
-  ws2['!pageSetup']= { paperSize: 9, orientation: 'landscape' };
-
-  XLSX.utils.book_append_sheet(wb, ws2, 'Tổng theo ngày');
 
   XLSX.writeFile(wb, filename);
 
