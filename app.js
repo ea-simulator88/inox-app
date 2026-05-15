@@ -132,8 +132,8 @@ let customerData = []; // rows: [0]=Tên KH, [1]=Địa chỉ KH, [2]=Địa ch�
 let _customerDataTs = 0;
 const _CUSTOMER_CACHE_MS = 10 * 60 * 1000; // 10 phút
 
-async function fetchCustomerData() {
-  if (customerData.length > 0 && Date.now() - _customerDataTs < _CUSTOMER_CACHE_MS) return;
+async function fetchCustomerData(force) {
+  if (!force && customerData.length > 0 && Date.now() - _customerDataTs < _CUSTOMER_CACHE_MS) return;
   try {
     const res = await fetch(SCRIPT_URL + '?action=getCustomers&token=inox2026xK9m', { cache: 'no-store' });
     const data = await res.json();
@@ -3880,7 +3880,11 @@ async function refreshHistoryData() {
   _setRefreshLoading('hist-refresh-btn', true);
   try {
     const currentRange = _getCurrentFilterRange();
-    await _fetchHistoryData(true, currentRange);
+    // Refresh song song: lịch sử + danh sách khách hàng (để lấy địa chỉ mới thêm vào sheet "Khách hàng")
+    await Promise.all([
+      _fetchHistoryData(true, currentRange),
+      fetchCustomerData(true)
+    ]);
     _renderHistory();
     showToast('Đã làm mới lịch sử');
   } catch (e) {
@@ -5555,7 +5559,8 @@ async function _doShowInvoice() {
   const xemInBtn = document.getElementById('inv-xem-in-btn');
   if (xemInBtn) { xemInBtn.disabled = true; xemInBtn.textContent = 'Đang tải...'; }
   await new Promise(r => setTimeout(r, 10));
-  if (customerData.length === 0) await fetchCustomerData();
+  // Luôn fetch khách hàng để lấy địa chỉ/SĐT mới (tôn trọng cache 10 phút bên trong)
+  await fetchCustomerData();
   const invOpts = _lookupCustomer(g.tenkhach);
   const fullHtml = showFull ? _buildInvoiceHTML(g, false, invOpts, true) : '';
   const noPriceHtml = showNoPrice ? _buildInvoiceHTML(g, true, invOpts, !showFull) : '';
