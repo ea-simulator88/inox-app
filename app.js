@@ -3676,12 +3676,15 @@ async function showHistory() {
       if (cached && cached.data && cached.range && (Date.now() - cached.ts < 5 * 60 * 1000)) {
         _historyData = cached.data;
         _loadedRange = cached.range;
-        _historyStale = false;
+        _historyStale = true;
       }
     } catch(e) {}
   }
 
-  if (_historyStale && _historyData.length) {
+  const _cnBtn = document.getElementById('hist-congno-btn');
+  if (_cnBtn) _cnBtn.style.display = currentRole === 'owner' ? 'inline-flex' : 'none';
+
+  if (_historyData.length) {
     histFilter('all');
     _fetchHistoryData(true, _getCurrentFilterRange()).then(() => {
       if (document.getElementById('screen-history').classList.contains('active')) histFilter('all');
@@ -3689,9 +3692,7 @@ async function showHistory() {
     return;
   }
 
-  if (!_historyData.length) {
-    if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
-  }
+  if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
 
   try {
     await _ensureHistoryDataForFilter();
@@ -3699,8 +3700,6 @@ async function showHistory() {
   } catch(e) {
     if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được lịch sử.</div>';
   }
-  const _cnBtn = document.getElementById('hist-congno-btn');
-  if (_cnBtn) _cnBtn.style.display = currentRole === 'owner' ? 'inline-flex' : 'none';
 }
 
 let _congNoTab = 'nhap';
