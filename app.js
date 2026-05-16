@@ -952,6 +952,7 @@ function applyRolePermissions(role) {
   d(document.getElementById('btn-settings'),            isOwner);
   d(document.getElementById('dt-btn-settings'),         isOwner);
   d(document.getElementById('btn-export-sodoanhthu'),   isOwner);
+  d(document.getElementById('btn-backup'),              isOwner);
 }
 
 function doLogout() {
@@ -1205,6 +1206,7 @@ function showModal(msg, sub, onYes, highlightMas) {
   const yes = document.getElementById('modal-yes');
   const no = document.getElementById('modal-no');
   yes.style.display = '';
+  yes.style.background = '#f44336';
   yes.textContent = 'Vẫn xuất';
   no.textContent = 'Không';
   overlay.style.display = 'flex';
@@ -1780,6 +1782,96 @@ function showToast(msg) {
   t.innerHTML = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 1800);
+}
+
+function doBackup() {
+  const btn = document.getElementById('btn-backup');
+  if (!btn || btn.disabled) return;
+  showModal(
+    'Xác nhận backup',
+    'Tạo một bản sao toàn bộ Spreadsheet vào thư mục Drive backup. Có thể mất vài giây.',
+    () => {}
+  );
+  const iconEl = document.getElementById('modal-icon');
+  if (iconEl) {
+    iconEl.style.color = '#7b1fa2';
+    iconEl.innerHTML = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7b1fa2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" fill="#ffffff"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+  }
+  const yesBtn = document.getElementById('modal-yes');
+  if (yesBtn) {
+    yesBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span>Backup</span>';
+    yesBtn.style.background = '#7b1fa2';
+    yesBtn.style.display = 'inline-flex';
+    yesBtn.style.alignItems = 'center';
+    yesBtn.style.justifyContent = 'center';
+    yesBtn.style.gap = '6px';
+    yesBtn.onclick = _doBackupRun;
+  }
+}
+
+function _doBackupRun() {
+  const headerBtn = document.getElementById('btn-backup');
+  const yesBtn    = document.getElementById('modal-yes');
+  const noBtn     = document.getElementById('modal-no');
+  const closeX    = document.getElementById('modal-close-x');
+  const overlay   = document.getElementById('modal-overlay');
+  if (!yesBtn || yesBtn.disabled) return;
+
+  if (headerBtn) headerBtn.disabled = true;
+  yesBtn.disabled = true;
+  yesBtn.style.opacity = '0.7';
+  yesBtn.style.cursor = 'wait';
+  yesBtn.innerHTML =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span>Đang Backup...</span>';
+  if (noBtn) noBtn.disabled = true;
+  if (closeX) closeX.style.pointerEvents = 'none';
+  if (overlay) overlay.onclick = null;
+
+  const cleanup = () => {
+    if (overlay) overlay.style.display = 'none';
+    if (headerBtn) headerBtn.disabled = false;
+    yesBtn.disabled = false;
+    yesBtn.style.opacity = '';
+    yesBtn.style.cursor = '';
+    if (noBtn) noBtn.disabled = false;
+    if (closeX) closeX.style.pointerEvents = '';
+  };
+
+  const backupToast = (msg, durationMs) => {
+    const old = document.querySelector('.toast');
+    if (old) old.remove();
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.style.cssText += 'display:flex;align-items:center;justify-content:center;gap:6px;';
+    t.innerHTML = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), durationMs);
+  };
+
+  const failIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c62828" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  const showFail = (detail) => {
+    const msg = detail ? ('Backup thất bại: ' + detail) : 'Backup thất bại!';
+    console.error('[Backup]', detail || 'unknown error');
+    backupToast(failIcon + ' ' + msg, 6000);
+  };
+
+  fetch(SCRIPT_URL + '?token=inox2026xK9m&action=backup', { cache: 'no-store' })
+    .then(r => r.text().then(text => ({ status: r.status, text })))
+    .then(({ status, text }) => {
+      let data = null;
+      try { data = JSON.parse(text); } catch(_) {}
+      if (data && data.status === 'ok') {
+        backupToast('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Backup thành công: ' + data.name, 4000);
+      } else if (data && data.message) {
+        showFail(data.message);
+      } else if (data && data.error) {
+        showFail(data.error);
+      } else {
+        showFail('HTTP ' + status + ' — server không trả JSON (kiểm tra deploy/version mới)');
+      }
+    })
+    .catch(err => showFail(err && err.message ? err.message : 'lỗi mạng'))
+    .finally(cleanup);
 }
 
 function addToCart(product) {
@@ -7070,7 +7162,7 @@ async function exportSoDoanThu() {
   }
 
   var taiBtn = document.getElementById('sdt-tai-btn');
-  if (taiBtn) { taiBtn.innerHTML = '⏳ Đang tải...'; taiBtn.disabled = true; }
+  if (taiBtn) { taiBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span>Đang tải...</span>'; taiBtn.disabled = true; }
 
   var xuatRows = [];
   try {
@@ -7088,7 +7180,7 @@ async function exportSoDoanThu() {
       xuatRows = (data.xuat || []).map(function(r) { return _mapHistRow(r, 'Xuất'); });
     }
   } catch(e) {
-    if (taiBtn) { taiBtn.innerHTML = '📥 Tải Excel'; taiBtn.disabled = false; }
+    if (taiBtn) { taiBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 1H4a2 2 0 00-2 2v12a2 2 0 002 2h11a2 2 0 002-2V6z" fill="#fff" stroke="#fff" stroke-width="1.5"/><path d="M12 1v5h5" stroke="#217346" stroke-width="1.5" stroke-linejoin="round"/><text x="5" y="13" fill="#217346" font-size="5" font-weight="700" font-family="Arial,sans-serif">XLS</text><line x1="11" y1="17" x2="11" y2="21" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><path d="M8.5 19 11 21.5 13.5 19" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Tải Excel</span>'; taiBtn.disabled = false; }
     showToast('Không tải được dữ liệu. Vui lòng thử lại.');
     return;
   }
@@ -7426,7 +7518,7 @@ async function exportSoDoanThu() {
 
   XLSX.writeFile(wb, filename);
 
-  if (taiBtn) { taiBtn.innerHTML = '📥 Tải Excel'; taiBtn.disabled = false; }
+  if (taiBtn) { taiBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 1H4a2 2 0 00-2 2v12a2 2 0 002 2h11a2 2 0 002-2V6z" fill="#fff" stroke="#fff" stroke-width="1.5"/><path d="M12 1v5h5" stroke="#217346" stroke-width="1.5" stroke-linejoin="round"/><text x="5" y="13" fill="#217346" font-size="5" font-weight="700" font-family="Arial,sans-serif">XLS</text><line x1="11" y1="17" x2="11" y2="21" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><path d="M8.5 19 11 21.5 13.5 19" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Tải Excel</span>'; taiBtn.disabled = false; }
   closeSoDoanThuModal();
   showToast('Đã xuất ' + filename);
 }

@@ -596,6 +596,9 @@ function doGet(e) {
     return ContentService.createTextOutput(JSON.stringify({error:'unauthorized'}));
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
+  // ── Backup spreadsheet (action=backup) ─────────────
+  if (e.parameter.action === 'backup') return backupSpreadsheet(e);
+
   // ── Lấy danh sách users (action=getUsers) ──────────
   if (e.parameter.action === 'getUsers') {
     try {
@@ -696,6 +699,24 @@ function doGet(e) {
   const data = sheet.getDataRange().getValues();
   return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function backupSpreadsheet(e) {
+  try {
+    var folderId = "1HemTF7LOmktdOpZF_himIEqM_apabiNc";
+    var folder = DriveApp.getFolderById(folderId);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var file = DriveApp.getFileById(ss.getId());
+    var today = Utilities.formatDate(new Date(), "Asia/Ho_Chi_Minh", "yyyy-MM-dd_HH-mm");
+    var newName = "Backup_InoxApp_" + today;
+    var copied = file.makeCopy(newName, folder);
+    return ContentService.createTextOutput(JSON.stringify({ status: "ok", name: newName, id: copied.getId() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    Logger.log("[backup] ERROR " + (err && err.message) + " | stack: " + (err && err.stack));
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: (err && err.message) || String(err) }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 function MASP(ten, allTen, currentRow) {
