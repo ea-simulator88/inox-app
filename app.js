@@ -5695,8 +5695,8 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
   const rowOffset = pageIndex * 13; // chỉnh Hóa đơn các dòng
 
   const headerHTML = hidePrice
-    ? `<th style="${thS}width:6%;">TT</th><th style="${thS}width:60%;">Tên Hàng</th><th style="${thS}width:13%;">ĐVT</th><th style="${thS}width:23%;">SL</th>`
-    : `<th style="${thS}width:6%;">TT</th><th style="${thS}width:50%;">Tên Hàng</th><th style="${thS}width:9.5%;">ĐVT</th><th style="${thS}width:6.5%;">SL</th><th style="${thS}width:16%;">Đơn Giá</th><th style="${thS}width:21%;">Thành Tiền</th>`;
+    ? `<th style="${thS}width:8%;">STT</th><th style="${thS}width:60%;">Tên Hàng</th><th style="${thS}width:13%;">SL</th><th style="${thS}width:23%;">ĐVT</th>`
+    : `<th style="${thS}width:8%;">STT</th><th style="${thS}width:50%;">Tên Hàng</th><th style="${thS}width:6.5%;">SL</th><th style="${thS}width:9.5%;">ĐVT</th><th style="${thS}width:16%;">Đơn Giá</th><th style="${thS}width:21%;">Thành Tiền</th>`;
 
   const bodyHTML = paddedRows.map((r, i) => {
     const name = r ? (r.hanghoa || '') + (r.kichthuoc ? ' - ' + r.kichthuoc : '') : '';
@@ -5704,11 +5704,11 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
     const qty = r ? r.soluong : '';
     const price = r ? fmtInvMoney(r.gia) : '';
     const amount = r ? fmtInvMoney(r.soluong * r.gia) : '';
-    const rowNum = r ? (rowOffset + i + 1) : '';
+    const rowNum = r ? '#' + (rowOffset + i + 1) : '';
     if (hidePrice) {
-      return `<tr><td style="${tdBase}padding:0 1mm;text-align:center;font-weight:600;">${rowNum}</td><td style="${tdBase}padding:0 2mm;">${name}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${dvt}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${qty}</td></tr>`;
+      return `<tr><td style="${tdBase}padding:0 1mm;text-align:center;font-weight:600;">${rowNum}</td><td style="${tdBase}padding:0 2mm;">${name}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${qty}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${dvt}</td></tr>`;
     }
-    return `<tr><td style="${tdBase}padding:0 1mm;text-align:center;font-weight:600;">${rowNum}</td><td style="${tdBase}padding:0 2mm;">${name}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${dvt}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${qty}</td><td style="${tdBase}padding:0 1.5mm;text-align:right;">${price}</td><td style="${tdBase}padding:0 1.5mm;text-align:right;">${amount}</td></tr>`;
+    return `<tr><td style="${tdBase}padding:0 1mm;text-align:center;font-weight:600;">${rowNum}</td><td style="${tdBase}padding:0 2mm;">${name}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${qty}</td><td style="${tdBase}padding:0 1mm;text-align:center;">${dvt}</td><td style="${tdBase}padding:0 1.5mm;text-align:right;">${price}</td><td style="${tdBase}padding:0 1.5mm;text-align:right;">${amount}</td></tr>`;
   }).join('');
 
   let footerHTML;
