@@ -3698,7 +3698,7 @@ function _computeCongNo() {
       const ncc = (g.ncc || '').trim();
       const val = Number(g.noncc) || 0;
       if (ncc && val > 0) nccDebt[ncc] = (nccDebt[ncc] || 0) + val;
-    } else if (g.loai === 'Xuất' || g.loai === 'Nháp') {
+    } else if (g.loai === 'Xuất') {
       const khach = (g.tenkhach || '').trim();
       const val = Number(g.khachno) || 0;
       if (khach && val > 0) khachDebt[khach] = (khachDebt[khach] || 0) + val;
@@ -3785,7 +3785,7 @@ function _showCongNoDetail(nameIdx) {
   const isNhap = _congNoTab === 'nhap';
   const rows = _congNoAllData.filter(g => {
     if (isNhap) return g.loai === 'Nhập' && (g.ncc || '').trim() === name && Number(g.noncc) > 0;
-    return (g.loai === 'Xuất' || g.loai === 'Nháp') && (g.tenkhach || '').trim() === name && Number(g.khachno) > 0;
+    return g.loai === 'Xuất' && (g.tenkhach || '').trim() === name && Number(g.khachno) > 0;
   }).sort((a, b) => a.thoigian_raw - b.thoigian_raw);
   window._congNoDetailRows = rows;
   _renderCongNoDetail(name, isNhap);
@@ -3832,9 +3832,11 @@ async function _daTra(rowIdx) {
   const rows = window._congNoDetailRows || [];
   const r = rows[rowIdx];
   if (!r) return;
+  const isNhap = r.loai === 'Nhập';
+  const amt = isNhap ? Number(r.noncc) : Number(r.khachno);
+  if (!confirm('Xác nhận đã trả nợ?\n' + r.thoigian + ' · ' + amt.toLocaleString('en-US') + ' đ\nHành động này không thể hoàn tác!')) return;
   const btn = document.querySelector('#cnd-row-' + rowIdx + ' button');
   if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
-  const isNhap = r.loai === 'Nhập';
   fetch(SCRIPT_URL + '?token=inox2026xK9m', {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
@@ -3854,7 +3856,7 @@ async function _daTra(rowIdx) {
   const isNhapTab = _congNoTab === 'nhap';
   const updated = _congNoAllData.filter(g => {
     if (isNhapTab) return g.loai === 'Nhập' && (g.ncc || '').trim() === name && Number(g.noncc) > 0;
-    return (g.loai === 'Xuất' || g.loai === 'Nháp') && (g.tenkhach || '').trim() === name && Number(g.khachno) > 0;
+    return g.loai === 'Xuất' && (g.tenkhach || '').trim() === name && Number(g.khachno) > 0;
   }).sort((a, b) => a.thoigian_raw - b.thoigian_raw);
   window._congNoDetailRows = updated;
   if (updated.length === 0) {
