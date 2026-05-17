@@ -706,11 +706,22 @@ function backupSpreadsheet(e) {
     var folderId = "1HemTF7LOmktdOpZF_himIEqM_apabiNc";
     var folder = DriveApp.getFolderById(folderId);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var file = DriveApp.getFileById(ss.getId());
     var today = Utilities.formatDate(new Date(), "Asia/Ho_Chi_Minh", "yyyy-MM-dd_HH-mm");
-    var newName = "Backup_InoxApp_" + today;
-    var copied = file.makeCopy(newName, folder);
-    return ContentService.createTextOutput(JSON.stringify({ status: "ok", name: newName, id: copied.getId() }))
+    var newName = "Backup_InoxApp_" + today + ".xlsx";
+
+    // Export Google Sheet → .xlsx (không kèm Apps Script)
+    var exportUrl = "https://www.googleapis.com/drive/v3/files/" + ss.getId()
+      + "/export?mimeType=" + encodeURIComponent("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    var resp = UrlFetchApp.fetch(exportUrl, {
+      headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken() },
+      muteHttpExceptions: true
+    });
+    if (resp.getResponseCode() !== 200) {
+      throw new Error("Export failed: HTTP " + resp.getResponseCode() + " " + resp.getContentText().slice(0, 300));
+    }
+
+    var savedFile = folder.createFile(resp.getBlob().setName(newName));
+    return ContentService.createTextOutput(JSON.stringify({ status: "ok", name: newName, id: savedFile.getId() }))
       .setMimeType(ContentService.MimeType.JSON);
   } catch(err) {
     Logger.log("[backup] ERROR " + (err && err.message) + " | stack: " + (err && err.stack));
