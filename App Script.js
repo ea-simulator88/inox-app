@@ -568,19 +568,38 @@ function _historyMatchSignature_(sheetName, row) {
 
 function _historyRowsFromSheet_(sheet, fromDate, toDate) {
   if (!sheet || sheet.getLastRow() <= 1) return [];
-  const values = sheet.getDataRange().getValues().slice(1);
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
 
-  let filtered = values;
+  let filtered;
   if (fromDate || toDate) {
     const fromTs = fromDate ? fromDate.getTime() : 0;
     const toTs = toDate ? toDate.getTime() : Date.now() + 86400000;
-    filtered = values.filter(function(r) {
+    const chunkSize = 500;
+    filtered = [];
+    for (var endRow = lastRow; endRow >= 2; endRow -= chunkSize) {
+      var startRow = Math.max(2, endRow - chunkSize + 1);
+      var values = sheet.getRange(startRow, 1, endRow - startRow + 1, lastCol).getValues();
+      var chunkMatches = [];
+      var chunkBeforeRange = true;
+      values.forEach(function(r) {
+        const t = r[1];
+        if (!t) return;
+        const d = (t instanceof Date) ? t : new Date(t);
+        if (isNaN(d.getTime())) return;
+        const ts = d.getTime();
+        if (ts >= fromTs) chunkBeforeRange = false;
+        if (ts >= fromTs && ts < toTs) chunkMatches.push(r);
+      });
+      if (chunkMatches.length) filtered = chunkMatches.concat(filtered);
+      if (chunkBeforeRange) break;
+    }
+  } else {
+    filtered = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues().filter(function(r) {
       const t = r[1];
       if (!t) return false;
       const d = (t instanceof Date) ? t : new Date(t);
-      if (isNaN(d.getTime())) return false;
-      const ts = d.getTime();
-      return ts >= fromTs && ts < toTs;
+      return !isNaN(d.getTime());
     });
   }
 

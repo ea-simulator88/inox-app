@@ -218,6 +218,12 @@ function _refreshProductsShared() {
   return _productsRefreshPromise;
 }
 let _productsFastRefreshPromise = null;
+function _renderProductsEverywhere() {
+  filterProductList();
+  filterManageProducts();
+  dtFilterProducts();
+  updateProductStats();
+}
 function _syncCartsWithProductMap() {
   cart = cart.map(i => {
     const latest = productMap.get(i.product.ma);
@@ -235,17 +241,25 @@ async function fetchProductsFastFromServer() {
   clearTimeout(timeoutId);
   const data = await res.json();
   const fastItems = Array.isArray(data.items) ? data.items : [];
-  if (fastItems.length === 0) return;
-  const byMa = new Map(fastItems.map(p => [p.ma, p]));
-  products = products.map(oldP => {
-    const n = byMa.get(oldP.ma);
-    if (!n) return oldP;
-    byMa.delete(oldP.ma);
-    return Object.assign({}, oldP, n);
+  if (fastItems.length === 0) return 0;
+  const oldMap = new Map((products || []).map(p => [p.ma, p]));
+  products = fastItems.map(p => {
+    const oldP = oldMap.get(p.ma) || {};
+    return Object.assign({}, oldP, p);
   });
-  byMa.forEach(p => products.push(p));
+  const now = Date.now();
+  Object.keys(pendingHiddenUpdates).forEach(ma => {
+    const upd = pendingHiddenUpdates[ma];
+    if (now - upd.ts < 15000) {
+      const p = products.find(x => x.ma === ma);
+      if (p) p.an = upd.value;
+    } else {
+      delete pendingHiddenUpdates[ma];
+    }
+  });
   _rebuildProductMap();
   try { localStorage.setItem('products_cache', JSON.stringify(products)); } catch(e) {}
+  return fastItems.length;
 }
 function _refreshProductsFastShared() {
   if (_productsFastRefreshPromise) return _productsFastRefreshPromise;
@@ -547,13 +561,17 @@ function doRefreshProducts() {
   filterManageProducts();
   updateProductStats();
 
-  // Fetch server nền — khi xong tự cập nhật lại
+  // Fetch nhanh tồn/giá/SP mới; chỉ dùng API đầy đủ khi chưa có dữ liệu.
   const btnIds = ['main-refresh-btn', 'manage-refresh-btn', 'dt-btn-refresh'];
   btnIds.forEach(id => _setRefreshLoading(id, true));
-  _refreshProductsShared().then(() => {
+  const refreshTask = products.length
+    ? _refreshProductsFastShared().catch(() => _refreshProductsShared())
+    : _refreshProductsShared();
+  refreshTask.then(() => {
     _syncCartsWithProductMap();
     renderCart();
     dtRenderCart();
+    _renderProductsEverywhere();
     updateCartBadge();
     saveCart();
     showToast('Đã làm mới sản phẩm');
@@ -568,12 +586,11 @@ async function refreshCartData() {
   const btnIds = ['cart-refresh-btn'];
   btnIds.forEach(id => _setRefreshLoading(id, true));
   try {
-    await _refreshProductsShared();
+    await (products.length ? _refreshProductsFastShared().catch(() => _refreshProductsShared()) : _refreshProductsShared());
     _syncCartsWithProductMap();
     renderCart();
     dtRenderCart();
-    if (window.innerWidth >= 768) dtRenderProducts();
-    else filterProductList();
+    _renderProductsEverywhere();
     updateCartBadge();
     saveCart();
     showToast('Đã làm mới giỏ hàng');
@@ -680,7 +697,6 @@ async function doLogin() {
       // Tự động làm sáng nút dựa trên cache
       document.getElementById(cached.role === 'owner' ? 'ln-role-owner' : 'ln-role-staff').classList.add('active');
 
-      localStorage.removeItem('products_cache');
       await loadProducts();
       startAutoRefresh();
       startInactivityWatch();
@@ -706,7 +722,6 @@ async function doLogin() {
     const role = _preMatch.vaitro;
     document.getElementById(role === 'owner' ? 'ln-role-owner' : 'ln-role-staff').classList.add('active');
     localStorage.setItem('login_cache', JSON.stringify({ role: role, pass: pass, name: _preMatch.ten }));
-    localStorage.removeItem('products_cache');
     await loadProducts();
     startAutoRefresh();
     startInactivityWatch();
@@ -735,7 +750,6 @@ async function doLogin() {
         document.getElementById(role === 'owner' ? 'ln-role-owner' : 'ln-role-staff').classList.add('active');
 
         localStorage.setItem('login_cache', JSON.stringify({ role: role, pass: pass, name: match.ten }));
-        localStorage.removeItem('products_cache');
         await loadProducts();
         startAutoRefresh();
         startInactivityWatch();
@@ -861,7 +875,6 @@ function _finishAppBoot() {
     }
     localStorage.setItem('last_activity', Date.now());
     currentRole = cached.role;
-    localStorage.removeItem('products_cache');
     await loadProducts();
     // Restore cart
     try {
@@ -966,7 +979,6 @@ function doLogout() {
   cartGiaodich = '';
   dtCart = [];
   dtMode = 'Xuất';
-  localStorage.removeItem('products_cache');
   localStorage.removeItem('login_cache');
   localStorage.removeItem('last_activity');
   localStorage.removeItem('cart');
@@ -1128,10 +1140,11 @@ async function loadProducts() {
 async function fetchProductsFromServer() {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     const res = await fetch(SCRIPT_URL + '?action=get&token=inox2026xK9m', { signal: controller.signal, cache: 'no-store' });
     clearTimeout(timeoutId);
     const data = await res.json();
+    if (!Array.isArray(data) || data.length <= 1) throw new Error('empty products');
 
     // Đọc header động từ data[0], map theo CONFIG.product_columns
     const headers = (data[0] || []).map(h => (h || '').toString().trim());
@@ -1160,6 +1173,7 @@ async function fetchProductsFromServer() {
       p.an       = anIdx       !== -1 ? (r[anIdx]       || '') : '';
       return p;
     }).filter(p => p.ma);
+    if (fetched.length === 0) throw new Error('empty products');
     products = fetched;
     _rebuildProductMap();
     // Áp lại các thay đổi ẩn/hiện chưa kịp sync lên sheet
@@ -1174,16 +1188,20 @@ async function fetchProductsFromServer() {
       }
     });
     localStorage.setItem('products_cache', JSON.stringify(products));
-    filterProductList();
-    filterManageProducts();
-    dtFilterProducts();
-    updateProductStats();
+    _renderProductsEverywhere();
   } catch(e) {
+    const fastCount = await fetchProductsFastFromServer().catch(function() { return 0; });
+    if (fastCount > 0 && products.length > 0) {
+      _renderProductsEverywhere();
+      return;
+    }
+    _renderProductsEverywhere();
     if (products.length === 0) {
       usingFallbackProducts = false;
       products = [];
       _rebuildProductMap();
     }
+    throw e;
   }
 }
 
@@ -1406,6 +1424,11 @@ function fmtMoney(val) {
     return isNaN(num) ? val : num.toLocaleString('en-US') + ' đ';
   }
   return Number(val || 0).toLocaleString('en-US') + ' đ';
+}
+
+function _successDebtRow(label, amount) {
+  const n = Number(amount) || 0;
+  return n > 0 ? `<div class="info-row"><span class="info-label">${label}</span><span class="info-value" style="font-weight:600;color:#6a1b9a;">${fmt(n)} đ</span></div>` : '';
 }
 
 function findProduct(code) {
@@ -2239,6 +2262,8 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra, xuatG
     body: JSON.stringify({ sheet: mode, rows, token: 'inox2026xK9m' ,user_name: currentUserName })
   }).catch(() => { showToast('⚠️ Lỗi kết nối, vui lòng kiểm tra mạng.'); });
 
+  _queueHistoryPending([], rows, mode);
+
   const isXuat = mode === 'Xuất';
   document.getElementById('success-title').innerHTML = isXuat ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Xuất hàng thành công!' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4"/><polyline points="17 14 12 9 7 14"/><line x1="12" y1="9" x2="12" y2="21"/></svg> Nhập hàng thành công!';
   document.getElementById('success-sub').textContent = thoiGian;
@@ -2249,6 +2274,7 @@ async function doSubmitCart(mode, giaodich, ghichu, phiChanh, phiKhachTra, xuatG
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
     ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
     ${phiKhachTra > 0 && mode === 'Xuất' ? `<div class="info-row"><span class="info-label">Phí KH trả</span><span class="info-value">${fmt(phiKhachTra)} đ</span></div>` : ''}
+    ${mode === 'Xuất' ? _successDebtRow('Khách nợ', khachNo) : _successDebtRow('Nợ NCC', noNCC)}
     ${ghichu ? `<div class="info-row"><span class="info-label">${mode === 'Xuất' ? 'Tên khách' : 'Ghi chú'}</span><span class="info-value">${ghichu}</span></div>` : ''}
     ${xuatGhiChu && mode === 'Xuất' ? `<div class="info-row"><span class="info-label">Ghi chú</span><span class="info-value">${xuatGhiChu}</span></div>` : ''}
   `;
@@ -2483,6 +2509,7 @@ async function doSubmit(sl, gia, giaodich, ghichu, phiChanh) {
   try {
     fetch(SCRIPT_URL + '?token=inox2026xK9m', { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sheet: sheetName, row, token: 'inox2026xK9m' ,user_name: currentUserName }) });
   } catch(e) {}
+  _queueHistoryPending([], [row], sheetName);
 
   btn.disabled = false;
   const isXuat = currentMode === 'Xuất';
@@ -3480,6 +3507,8 @@ async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra, xuatGhiChu, 
     body: JSON.stringify({ sheet: dtMode, rows, token: 'inox2026xK9m' ,user_name: currentUserName })
   }).catch(() => { showToast('⚠️ Lỗi kết nối, vui lòng kiểm tra mạng.'); });
 
+  _queueHistoryPending([], rows, dtMode);
+
   const count = dtCart.length;
   const totalQty = dtCart.reduce((s, i) => s + (i.sl || 0), 0);
   const totalAmount = dtCart.reduce((s, i) => s + i.sl * i.gia, 0);
@@ -3499,7 +3528,7 @@ async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra, xuatGhiChu, 
   dtSetMode(dtMode);
   dtRenderCart();
   dtFilterProducts();
-  fetchProductsFromServer().then(() => dtFilterProducts());
+  fetchProductsFromServer().then(() => dtFilterProducts()).catch(() => {});
 
   // Hiện success overlay
   document.getElementById('dt-success-title').innerHTML = isXuat ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Xuất hàng thành công!' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v4"/><polyline points="17 14 12 9 7 14"/><line x1="12" y1="9" x2="12" y2="21"/></svg> Nhập hàng thành công!';
@@ -3511,6 +3540,7 @@ async function _doDtSubmit(giaodich, ghichu, phiChanh, phiKhachTra, xuatGhiChu, 
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
     ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
     ${phiKhachTra > 0 && isXuat ? `<div class="info-row"><span class="info-label">Phí KH trả</span><span class="info-value">${fmt(phiKhachTra)} đ</span></div>` : ''}
+    ${isXuat ? _successDebtRow('Khách nợ', khachNo) : _successDebtRow('Nợ NCC', noNCC)}
     ${ghichu ? `<div class="info-row"><span class="info-label">${isXuat ? 'Tên khách' : 'Ghi chú'}</span><span class="info-value">${ghichu}</span></div>` : ''}
     ${xuatGhiChu && isXuat ? `<div class="info-row"><span class="info-label">Ghi chú</span><span class="info-value">${xuatGhiChu}</span></div>` : ''}
   `;
@@ -3556,6 +3586,29 @@ let _reportDateTo   = null;
 let _reportSortMode = 'newest';
 const _DEFAULT_DAYS = 3;
 const _HISTORY_CACHE_KEY = 'history_cache_v2';
+const _HISTORY_PENDING_TTL = 30 * 60 * 1000;
+let _historyPendingOrders = [];
+
+function _applyHistoryPending(baseData) {
+  const now = Date.now();
+  _historyPendingOrders = _historyPendingOrders.filter(p => now - p.ts < _HISTORY_PENDING_TTL);
+  let data = (baseData || _historyData || []).slice();
+  _historyPendingOrders.forEach(function(p) {
+    const keys = new Set(p.keys || []);
+    if (keys.size) data = data.filter(r => !keys.has(_orderKey(r)));
+    if (p.rows && p.rows.length) data.push(...p.rows);
+  });
+  return data.sort((a, b) => b.thoigian_raw - a.thoigian_raw);
+}
+
+function _queueHistoryPending(removeKeys, rows, loai) {
+  const mappedRows = (rows || []).map(row => Array.isArray(row) ? _mapHistRow(row, loai) : row);
+  const keys = new Set((removeKeys || []).filter(Boolean));
+  if (mappedRows.length) keys.add(_orderKey(mappedRows[0]));
+  _historyPendingOrders.push({ keys: [...keys], rows: mappedRows, ts: Date.now() });
+  _historyData = _applyHistoryPending(_historyData);
+  _saveHistoryCache();
+}
 
 function _markHistoryStale() {
   _historyStale = true;
@@ -3599,7 +3652,7 @@ async function _fetchHistoryData(force = false, customRange = null) {
   const xuat  = (data.xuat  || []).map(r => _mapHistRow(r, 'Xuất'));
   const nhap  = (data.nhap  || []).map(r => _mapHistRow(r, 'Nhập'));
   const draft = (data.draft || []).map(r => _mapHistRow(r, 'Nháp'));
-  _historyData = [...xuat, ...nhap, ...draft].sort((a, b) => b.thoigian_raw - a.thoigian_raw);
+  _historyData = _applyHistoryPending([...xuat, ...nhap, ...draft]);
   _loadedRange = { from: range.from.getTime(), to: range.to.getTime() };
   _historyStale = false;
   _saveHistoryCache();
@@ -3723,17 +3776,9 @@ async function showCongNo() {
   }
   // Always fetch fresh data in background
   try {
-    const controller = new AbortController();
-    const tid = setTimeout(() => controller.abort(), 25000);
     const from = new Date(0).toISOString();
     const to = new Date(Date.now() + 86400000).toISOString();
-    const res = await fetch(SCRIPT_URL + '?action=history&token=inox2026xK9m&fromDate=' + from + '&toDate=' + to, { signal: controller.signal, cache: 'no-store' });
-    clearTimeout(tid);
-    const dat = await res.json();
-    const xuat  = (dat.xuat  || []).map(r => _mapHistRow(r, 'Xuất'));
-    const nhap  = (dat.nhap  || []).map(r => _mapHistRow(r, 'Nhập'));
-    const draft = (dat.draft || []).map(r => _mapHistRow(r, 'Nháp'));
-    _congNoAllData = [...xuat, ...nhap, ...draft];
+    _congNoAllData = await _fetchHistoryData(true, { from: new Date(from), to: new Date(to) });
     // Only re-render if modal is still open and not in detail view
     if (m.style.display !== 'none' && !_congNoDetailKey) {
       _computeCongNo();
@@ -3760,17 +3805,9 @@ async function _refreshCongNo() {
   if (tabs) tabs.style.display = 'flex';
   document.getElementById('congno-body').innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;font-size:13px;">Đang tải...</div>';
   try {
-    const controller = new AbortController();
-    const tid = setTimeout(() => controller.abort(), 25000);
     const from = new Date(0).toISOString();
     const to = new Date(Date.now() + 86400000).toISOString();
-    const res = await fetch(SCRIPT_URL + '?action=history&token=inox2026xK9m&fromDate=' + from + '&toDate=' + to, { signal: controller.signal, cache: 'no-store' });
-    clearTimeout(tid);
-    const dat = await res.json();
-    const xuat  = (dat.xuat  || []).map(r => _mapHistRow(r, 'Xuất'));
-    const nhap  = (dat.nhap  || []).map(r => _mapHistRow(r, 'Nhập'));
-    const draft = (dat.draft || []).map(r => _mapHistRow(r, 'Nháp'));
-    _congNoAllData = [...xuat, ...nhap, ...draft];
+    _congNoAllData = await _fetchHistoryData(true, { from: new Date(from), to: new Date(to) });
     _computeCongNo();
     _renderCongNoTab();
   } catch(e) {
@@ -3934,6 +3971,16 @@ async function _daTra(rowIdx) {
     body: JSON.stringify({ action: 'clearDebtRow', sheet: r.loai, thoigian_key: r.thoigian, ma: r.ma, token: 'inox2026xK9m' })
   }).catch(() => {});
   // Optimistic update
+  const debtOrderKey = _orderKey(r);
+  const pendingRows = (_historyData || []).filter(g => _orderKey(g) === debtOrderKey).map(function(g) {
+    const next = Object.assign({}, g);
+    if (next.ma === r.ma) {
+      if (isNhap) next.noncc = 0;
+      else next.khachno = 0;
+    }
+    return next;
+  });
+  if (pendingRows.length) _queueHistoryPending([debtOrderKey], pendingRows, r.loai);
   const dataIdx = _congNoAllData.findIndex(g =>
     g.loai === r.loai && g.thoigian === r.thoigian && g.ma === r.ma &&
     (isNhap ? Number(g.noncc) > 0 : Number(g.khachno) > 0)
@@ -3973,12 +4020,9 @@ async function refreshHistoryData() {
   _setRefreshLoading('hist-refresh-btn', true);
   try {
     const currentRange = _getCurrentFilterRange();
-    // Refresh song song: lịch sử + danh sách khách hàng (để lấy địa chỉ mới thêm vào sheet "Khách hàng")
-    await Promise.all([
-      _fetchHistoryData(true, currentRange),
-      fetchCustomerData(true)
-    ]);
+    await _fetchHistoryData(true, currentRange);
     _renderHistory();
+    fetchCustomerData(true).catch(function() {});
     showToast('Đã làm mới lịch sử');
   } catch (e) {
     if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được lịch sử.</div>';
@@ -6233,9 +6277,7 @@ async function _doHistSaveEdit() {
 
   // Cập nhật _historyData local
   const targetOrderKey = _orderKey((g.rows && g.rows[0]) ? g.rows[0] : g);
-  _historyData = _historyData.filter(r => _orderKey(r) !== targetOrderKey);
-  updatedRows.forEach(row => _historyData.push(_mapHistRow(row, g.loai)));
-  _saveHistoryCache();
+  _queueHistoryPending([targetOrderKey], updatedRows, g.loai);
 
   document.getElementById('hist-edit-modal').style.display = 'none';
   _renderHistory();
@@ -6263,8 +6305,7 @@ async function histDeleteGroup(idx) {
   }).catch(() => { showToast('⚠️ Lỗi kết nối, dữ liệu có thể chưa được lưu.'); });
 
   const targetOrderKey = _orderKey((g.rows && g.rows[0]) ? g.rows[0] : g);
-  _historyData = _historyData.filter(r => _orderKey(r) !== targetOrderKey);
-  _saveHistoryCache();
+  _queueHistoryPending([targetOrderKey], [], g.loai);
   _renderHistory();
   showToast('🗑︎ Đã xóa giao dịch.');
   _historyStale = true;
@@ -6310,9 +6351,8 @@ async function dtSaveDraft() {
   const totalItems = dtCart.length;
   const totalQty = dtCart.reduce((s, x) => s + (Number(x.sl) || 0), 0);
   const totalAmount = dtCart.reduce((s, x) => s + (Number(x.sl) || 0) * (Number(x.gia) || 0), 0);
-  rows.forEach(row => _historyData.push(_mapHistRow(row, 'Nháp')));
+  _queueHistoryPending([], rows, 'Nháp');
   _historyStale = true;
-  _saveHistoryCache();
   dtCart = [];
   document.getElementById('dt-giaodich').value = '';
   document.getElementById('dt-phichanh').value = '';
@@ -6335,6 +6375,7 @@ async function dtSaveDraft() {
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
     ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
     ${phiKhachTra > 0 ? `<div class="info-row"><span class="info-label">Phí KH trả</span><span class="info-value">${fmt(phiKhachTra)} đ</span></div>` : ''}
+    ${_successDebtRow('Khách nợ', khachNo)}
     ${ghichu ? `<div class="info-row"><span class="info-label">Tên khách</span><span class="info-value">${ghichu}</span></div>` : ''}
   `;
   document.getElementById('dt-success-overlay').style.display = 'flex';
@@ -6379,9 +6420,8 @@ async function saveDraft() {
   const totalItems = cart.length;
   const totalQty = cart.reduce((s, x) => s + (Number(x.sl) || 0), 0);
   const totalAmount = cart.reduce((s, x) => s + (Number(x.sl) || 0) * (Number(x.gia) || 0), 0);
-  rows.forEach(row => _historyData.push(_mapHistRow(row, 'Nháp')));
+  _queueHistoryPending([], rows, 'Nháp');
   _historyStale = true;
-  _saveHistoryCache();
   cart = []; cartGiaodich = '';
   document.getElementById('cart-ghichu').value = '';
   document.getElementById('cart-xuatghichu').value = '';
@@ -6402,6 +6442,7 @@ async function saveDraft() {
     <div class="info-row"><span class="info-label">Giao dịch</span><span class="info-value">${giaodich}</span></div>
     ${phiChanh > 0 ? `<div class="info-row"><span class="info-label">Phí vận chuyển</span><span class="info-value">${fmt(phiChanh)} đ</span></div>` : ''}
     ${phiKhachTra > 0 ? `<div class="info-row"><span class="info-label">Phí KH trả</span><span class="info-value">${fmt(phiKhachTra)} đ</span></div>` : ''}
+    ${_successDebtRow('Khách nợ', khachNo)}
     ${ghichu ? `<div class="info-row"><span class="info-label">Tên khách</span><span class="info-value">${ghichu}</span></div>` : ''}
   `;
   showScreen('screen-success');
@@ -6425,9 +6466,7 @@ async function _doDraftConfirmSkip(idx) {
   const _nowTs = fmtTime(new Date());
   const rows = g.rows.map(r => [r.ma, _nowTs, r.ncc, r.hanghoa, r.kichthuoc, r.dvt, r.soluong, r.gia, giaodich || r.giaodich, r.phichanh || '', r.phikhachtra || '', r.khachno || '', '', r.tenkhach || '', r.ghichu || '', currentUserName]);
   const targetOrderKey = _orderKey((g.rows && g.rows[0]) ? g.rows[0] : g);
-  _historyData = _historyData.filter(r => _orderKey(r) !== targetOrderKey);
-  rows.forEach(row => _historyData.push(_mapHistRow(row, 'Xuất')));
-  _saveHistoryCache();
+  _queueHistoryPending([targetOrderKey], rows, 'Xuất');
   _renderHistory();
   showToast('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Đã xác nhận Xuất.');
   if (document.getElementById('screen-history-detail').classList.contains('active')) showHistory();
@@ -6482,9 +6521,7 @@ async function _doDraftConfirm(idx, giaodich) {
 
   // 1. CẬP NHẬT GIAO DIỆN NGAY LẬP TỨC (Không chờ server)
   const targetOrderKey = _orderKey((g.rows && g.rows[0]) ? g.rows[0] : g);
-  _historyData = _historyData.filter(r => _orderKey(r) !== targetOrderKey);
-  rows.forEach(row => _historyData.push(_mapHistRow(row, 'Xuất')));
-  _saveHistoryCache();
+  _queueHistoryPending([targetOrderKey], rows, 'Xuất');
   _renderHistory();
   showToast('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Đã xác nhận Xuất.');
   _historyStale = true;
