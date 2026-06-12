@@ -3589,9 +3589,18 @@ const _HISTORY_CACHE_KEY = 'history_cache_v2';
 const _HISTORY_PENDING_TTL = 30 * 60 * 1000;
 let _historyPendingOrders = [];
 
-function _applyHistoryPending(baseData) {
+function _pruneHistoryPending() {
   const now = Date.now();
   _historyPendingOrders = _historyPendingOrders.filter(p => now - p.ts < _HISTORY_PENDING_TTL);
+}
+
+function _hasHistoryPending() {
+  _pruneHistoryPending();
+  return _historyPendingOrders.length > 0;
+}
+
+function _applyHistoryPending(baseData) {
+  _pruneHistoryPending();
   let data = (baseData || _historyData || []).slice();
   _historyPendingOrders.forEach(function(p) {
     const keys = new Set(p.keys || []);
@@ -3622,7 +3631,7 @@ function _markHistoryStale() {
 }
 
 function _saveHistoryCache() {
-  try { localStorage.setItem(_HISTORY_CACHE_KEY, JSON.stringify({ data: _historyData, ts: Date.now(), range: _loadedRange })); } catch(e) {}
+  try { localStorage.setItem(_HISTORY_CACHE_KEY, JSON.stringify({ data: _historyData, pending: _historyPendingOrders, ts: Date.now(), range: _loadedRange })); } catch(e) {}
 }
 
 async function _fetchHistoryData(force = false, customRange = null) {
@@ -3727,7 +3736,9 @@ async function showHistory() {
     try {
       const cached = JSON.parse(localStorage.getItem(_HISTORY_CACHE_KEY) || 'null');
       if (cached && cached.data && cached.range && (Date.now() - cached.ts < 5 * 60 * 1000)) {
+        if (Array.isArray(cached.pending)) _historyPendingOrders = cached.pending;
         _historyData = cached.data;
+        _historyData = _applyHistoryPending(_historyData);
         _loadedRange = cached.range;
         _historyStale = true;
       }
@@ -4032,7 +4043,13 @@ function _setRefreshLoading(btnId, loading) {
 
 async function refreshHistoryData() {
   const list = document.getElementById('history-list');
-  if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+  const hasPending = _hasHistoryPending();
+  if (hasPending) {
+    _historyData = _applyHistoryPending(_historyData);
+    _renderHistory();
+  } else if (list) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">Đang tải...</div>';
+  }
   _setRefreshLoading('hist-refresh-btn', true);
   try {
     const currentRange = _getCurrentFilterRange();
@@ -4301,7 +4318,9 @@ async function showReport() {
     try {
       const cached = JSON.parse(localStorage.getItem(_HISTORY_CACHE_KEY) || 'null');
       if (cached && cached.data && cached.range && (Date.now() - cached.ts < 5 * 60 * 1000)) {
+        if (Array.isArray(cached.pending)) _historyPendingOrders = cached.pending;
         _historyData = cached.data;
+        _historyData = _applyHistoryPending(_historyData);
         _loadedRange = cached.range;
         _historyStale = false;
       }
@@ -6298,7 +6317,7 @@ async function _doHistSaveEdit() {
   document.getElementById('hist-edit-modal').style.display = 'none';
   _renderHistory();
   showToast('\u2705 \u0110\u00E3 l\u01B0u thay \u0111\u1ED5i.');
-  _historyStale = true;
+  _historyStale = false;
   if (document.getElementById('screen-history-detail').classList.contains('active') && _histDetailIdx >= 0) {
     const g = _historyGroups[_histDetailIdx];
     if (g) { showHistoryDetail(_histDetailIdx); } else { showHistory(); }
