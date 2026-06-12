@@ -3738,9 +3738,10 @@ async function showHistory() {
   if (_cnBtn) _cnBtn.style.display = currentRole === 'owner' ? 'inline-flex' : 'none';
 
   if (_historyData.length) {
-    histFilter('all');
+    histFilter(_historyFilter);
     _fetchHistoryData(true, _getCurrentFilterRange()).then(() => {
-      if (document.getElementById('screen-history').classList.contains('active')) histFilter('all');
+      _preloadCongNoData().catch(function() {});
+      if (document.getElementById('screen-history').classList.contains('active')) histFilter(_historyFilter);
     }).catch(() => {});
     return;
   }
@@ -3749,7 +3750,8 @@ async function showHistory() {
 
   try {
     await _ensureHistoryDataForFilter();
-    histFilter('all');
+    _preloadCongNoData().catch(function() {});
+    histFilter(_historyFilter);
   } catch(e) {
     if (list) list.innerHTML = '<div style="text-align:center;padding:40px;color:#f44336;">Không tải được lịch sử.</div>';
   }
@@ -3758,6 +3760,23 @@ async function showHistory() {
 let _congNoTab = 'nhap';
 let _congNoAllData = [];
 let _congNoDetailKey = null;
+let _congNoLoadPromise = null;
+let _congNoLoadedAll = false;
+
+function _preloadCongNoData(force) {
+  if (!force && _congNoLoadedAll) return Promise.resolve(_congNoAllData);
+  if (_congNoLoadPromise && (!force || !_congNoLoadedAll)) return _congNoLoadPromise;
+  const range = { from: new Date(0), to: new Date(Date.now() + 86400000) };
+  _congNoLoadPromise = _fetchHistoryData(true, range).then(function(data) {
+    _congNoAllData = data || [];
+    _congNoLoadedAll = true;
+    _computeCongNo();
+    return _congNoAllData;
+  }).finally(function() {
+    _congNoLoadPromise = null;
+  });
+  return _congNoLoadPromise;
+}
 
 async function showCongNo() {
   const m = document.getElementById('congno-modal');
@@ -3776,9 +3795,7 @@ async function showCongNo() {
   }
   // Always fetch fresh data in background
   try {
-    const from = new Date(0).toISOString();
-    const to = new Date(Date.now() + 86400000).toISOString();
-    _congNoAllData = await _fetchHistoryData(true, { from: new Date(from), to: new Date(to) });
+    _congNoAllData = await _preloadCongNoData(_congNoAllData.length === 0);
     // Only re-render if modal is still open and not in detail view
     if (m.style.display !== 'none' && !_congNoDetailKey) {
       _computeCongNo();
@@ -3796,6 +3813,7 @@ async function showCongNo() {
 async function _refreshCongNo() {
   _setRefreshLoading('congno-refresh-btn', true);
   _congNoAllData = [];
+  _congNoLoadedAll = false;
   _congNoDetailKey = null;
   const backBtn = document.getElementById('congno-back-btn');
   if (backBtn) backBtn.style.visibility = 'hidden';
@@ -3805,9 +3823,7 @@ async function _refreshCongNo() {
   if (tabs) tabs.style.display = 'flex';
   document.getElementById('congno-body').innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;font-size:13px;">Đang tải...</div>';
   try {
-    const from = new Date(0).toISOString();
-    const to = new Date(Date.now() + 86400000).toISOString();
-    _congNoAllData = await _fetchHistoryData(true, { from: new Date(from), to: new Date(to) });
+    _congNoAllData = await _preloadCongNoData(true);
     _computeCongNo();
     _renderCongNoTab();
   } catch(e) {
