@@ -5821,10 +5821,10 @@ function _buildInvoicePageHTML(g, hidePrice, pageRows, pageIndex, totalPages, is
     <div style="font-size:5.0mm;font-weight:700;letter-spacing:0.6px;line-height:1;text-transform:uppercase;">HỘ KINH DOANH HÀNG GIA DỤNG</div>
     <div style="font-size:3.2mm;line-height:1.15;margin-top:1.2mm;">
       <div>&#127968; Địa chỉ: 49 Lê Quang Sung, P. Bình Tây, TP.HCM</div>
-      <div>&#128222; SĐT-Zalo: 090.6265.980, 0937.359.789</div>
+      <div>&#128222; SĐT-Zalo: 0906.265.980, 0978.664.270</div>
       <div>&#9993; Email: hkd.hanggiadung88@gmail.com</div>
     </div>
-    <div style="font-size:2.8mm;font-weight:700;line-height:1.18;margin-top:1.2mm;">Chuyên Sỉ Lẻ Hàng Inox Đồ Gia Dụng, Thiết Bị Nhà Bếp, Phòng Tắm, Bàn Ghế, Kệ, Sườn Võng, Giường Xếp, Thang Inox Vv...</div>
+    <div style="font-size:3.1mm;font-weight:700;line-height:1.18;margin-top:1.2mm;">Chuyên Sỉ Lẻ Hàng Inox Đồ Gia Dụng, Thiết Bị Nhà Bếp, Phòng Tắm, Bàn Ghế, Kệ, Sườn Võng, Giường Xếp, Thang Inox Vv...</div>
     <div style="font-size:4.5mm;font-weight:700;line-height:1;margin-top:1.6mm;text-transform:uppercase;">HÓA ĐƠN BÁN HÀNG</div>
   </div>
   <div style="font-size:3.6mm;margin-bottom:1mm;display:flex;align-items:flex-end;margin-top:-2mm;">
