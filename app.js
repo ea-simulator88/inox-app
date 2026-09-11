@@ -1285,34 +1285,12 @@ function ixShow(el) {
 }
 function ixClear(el) {
   el.value = '';
-  if ('kd' in el.dataset) el.dataset.kd = '';
   el.dispatchEvent(new Event('input', {bubbles: true}));
 }
 function fmtInputK(el) {
-  const inputDigits = el.value.replace(/[^0-9]/g, '');
-  if (!inputDigits) { el.value = ''; el.dataset.kd = ''; el.dataset.kprev = ''; return; }
-  let prevKd = el.dataset.kd || '';
-  // Nếu field bị reset ngoài (el.value='') mà dataset.kd chưa xóa → phát hiện qua
-  // độ lệch chiều dài giữa giá trị hiện tại và giá trị formatted lần trước (kprev)
-  const kprev = el.dataset.kprev || '';
-  if (prevKd && kprev && Math.abs(el.value.length - kprev.length) > 2) prevKd = '';
-  const prevFull = prevKd ? (parseInt(prevKd) * 1000).toString() : '';
-  let newKd;
-  if (!prevKd) {
-    newKd = inputDigits.endsWith('000') && inputDigits.length > 3 ? inputDigits.slice(0, -3) : inputDigits;
-  } else if (inputDigits.startsWith(prevFull) && inputDigits.length === prevFull.length + 1) {
-    newKd = prevKd + inputDigits.slice(-1);
-  } else if (inputDigits.length < prevFull.length) {
-    const steps = prevFull.length - inputDigits.length;
-    newKd = steps >= prevKd.length ? '' : prevKd.slice(0, -steps);
-  } else {
-    newKd = inputDigits.endsWith('000') && inputDigits.length > 3 ? inputDigits.slice(0, -3) : inputDigits;
-  }
-  el.dataset.kd = newKd;
-  if (!newKd) { el.value = ''; el.dataset.kprev = ''; return; }
-  el.value = (parseInt(newKd) * 1000).toLocaleString('en-US');
-  el.dataset.kprev = el.value;
-  el.setSelectionRange(el.value.length, el.value.length);
+  delete el.dataset.kd;
+  delete el.dataset.kprev;
+  fmtInput(el);
 }
 
 function fmtInput(el) {
@@ -2063,7 +2041,6 @@ function renderCart() {
           <span class="ci-sep">×</span>
           <div style="position:relative;flex:1;">
             <input class="ci-gia" style="width:100%;box-sizing:border-box;padding-right:22px;" type="text" inputmode="numeric" value="${giaFormatted}"
-              data-kd="${item.gia > 0 ? Math.floor(item.gia/1000) : ''}"
               placeholder="${giaPlaceholder}"
               oninput="fmtInputK(this);updateCartGia(${idx},this.value);ixShow(this)" />
             <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:${giaFormatted ? 'inline-block' : 'none'};position:absolute;right:3px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px 3px;cursor:pointer;color:#bbb;font-size:11px;line-height:1;">✕</button>
@@ -2673,8 +2650,7 @@ async function openProductForm(mode, product, skipFetch = false) {
         type="text" inputmode="${isNum ? 'numeric' : 'text'}"
         value="${displayVal}"
         placeholder="${col.sheet_name}..."
-        ${isNum ? ('oninput="' + ((col.field === 'giavon' || col.field === 'giasi') ? 'fmtInputK(this)' : 'fmtInput(this)') + ';ixShow(this)"') : (!locked ? 'oninput="ixShow(this)"' : '')}
-        ${(col.field === 'giavon' || col.field === 'giasi') ? ('data-kd="' + (displayVal ? Math.floor(parseNum(displayVal)/1000) : '') + '"') : ''}
+        ${isNum ? 'oninput="fmtInput(this);ixShow(this)"' : (!locked ? 'oninput="ixShow(this)"' : '')}
         ${locked ? 'readonly style="background:#f5f5f5;color:#888;"' : 'style="padding-right:26px;"'} />
       ${ixBtn}
       </div>
@@ -3330,7 +3306,6 @@ function dtRenderCart() {
             <input type="text" inputmode="numeric" value="${giaFmt}"
               placeholder="${giaPlaceholder}"
               style="width:100%;padding:5px 22px 5px 7px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;outline:none;box-sizing:border-box;"
-              data-kd="${p.gia > 0 ? Math.floor(p.gia/1000) : ''}"
               oninput="fmtInputK(this);dtUpdateCart('${p.ma}','gia',this.value);ixShow(this)" />
             <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)" style="display:${giaFmt ? 'inline-block' : 'none'};position:absolute;right:3px;top:50%;transform:translateY(-50%);background:none;border:none;padding:2px 3px;cursor:pointer;color:#bbb;font-size:11px;line-height:1;">✕</button>
           </div>
@@ -5946,7 +5921,6 @@ function heditMaChange(el, idx) {
       giaEl.placeholder = defaultGia > 0 ? (labelGoiY + ": " + defaultGia.toLocaleString('vi-VN') + "đ") : "Nhập đơn giá";
 
       if (!_histEditRows[idx] || ma !== _histEditRows[idx].ma) {
-        giaEl.dataset.kd = '';
         giaEl.value = '';
         ixShow(giaEl);
       }
@@ -6021,7 +5995,6 @@ function _renderHistEditRows() {
           <input type="text" inputmode="numeric" id="hedit-gia-${i}"
             value="${r.gia > 0 ? Number(r.gia).toLocaleString('en-US') : ''}"
             placeholder="${displayGoiY}"
-            data-kd="${r.gia > 0 ? Math.floor(r.gia/1000) : ''}"
             style="width:100%;padding:6px 22px 6px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;box-sizing:border-box;"
             oninput="fmtInputK(this);ixShow(this)">
           <button class="ix" tabindex="-1" onclick="ixClear(this.previousElementSibling)"
@@ -6068,9 +6041,7 @@ function histEditGroup(idx) {
   const _hpc = document.getElementById('hedit-phichanh');
   if (_hpc) {
     const absVal = Math.abs((g.rows[0] && g.rows[0].phichanh) || 0);
-    const kd = absVal > 0 ? Math.floor(absVal / 1000) : 0;
-    _hpc.dataset.kd = kd > 0 ? String(kd) : '';
-    _hpc.value = kd > 0 ? (kd * 1000).toLocaleString('en-US') : '';
+    _hpc.value = absVal > 0 ? absVal.toLocaleString('en-US') : '';
     ixShow(_hpc);
   }
 
@@ -6081,9 +6052,7 @@ function histEditGroup(idx) {
       const _hpkt = document.getElementById('hedit-phikhachtra');
       if (_hpkt) {
         const v = g.rows[0] ? (Number(g.rows[0].phikhachtra) || 0) : 0;
-        const kd2 = v > 0 ? Math.floor(v / 1000) : 0;
-        _hpkt.dataset.kd = kd2 > 0 ? String(kd2) : '';
-        _hpkt.value = kd2 > 0 ? (kd2 * 1000).toLocaleString('en-US') : '';
+        _hpkt.value = v > 0 ? v.toLocaleString('en-US') : '';
         ixShow(_hpkt);
       }
     }
@@ -6096,9 +6065,7 @@ function histEditGroup(idx) {
       const _hkn = document.getElementById('hedit-khachno');
       if (_hkn) {
         const v = g.rows.reduce((s, r) => s + (Number(r.khachno) || 0), 0);
-        const kd = v > 0 ? Math.floor(v / 1000) : 0;
-        _hkn.dataset.kd = kd > 0 ? String(kd) : '';
-        _hkn.value = kd > 0 ? (kd * 1000).toLocaleString('en-US') : '';
+        _hkn.value = v > 0 ? v.toLocaleString('en-US') : '';
         ixShow(_hkn);
       }
     }
@@ -6111,9 +6078,7 @@ function histEditGroup(idx) {
       const _hnn = document.getElementById('hedit-noncc');
       if (_hnn) {
         const v = g.rows.reduce((s, r) => s + (Number(r.noncc) || 0), 0);
-        const kd = v > 0 ? Math.floor(v / 1000) : 0;
-        _hnn.dataset.kd = kd > 0 ? String(kd) : '';
-        _hnn.value = kd > 0 ? (kd * 1000).toLocaleString('en-US') : '';
+        _hnn.value = v > 0 ? v.toLocaleString('en-US') : '';
         ixShow(_hnn);
       }
     }
